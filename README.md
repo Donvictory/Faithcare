@@ -1,7 +1,7 @@
 
   # Design FaithCare Dashboard UI
 
-  This is a code bundle for Design FaithCare Dashboard UI. The original project is available at https://www.figma.com/design/LKQCPYrW6msFWUjHbHU6tY/Design-FaithCare-Dashboard-UI.
+
 
   ## Running the code
 
