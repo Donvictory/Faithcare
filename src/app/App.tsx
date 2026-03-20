@@ -26,6 +26,7 @@ export default function App() {
   const [appState, setAppState] = useState<AppState>("sign-in");
   const [userType, setUserType] = useState<UserType>("individual");
   const [activeSection, setActiveSection] = useState("dashboard");
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Authentication handlers
   const handleSignIn = () => {
@@ -58,6 +59,7 @@ export default function App() {
     // After onboarding, go to dashboard
     setAppState("dashboard");
     setActiveSection("dashboard");
+    setIsMobileSidebarOpen(false);
   };
 
   // Show authentication screens
@@ -108,6 +110,7 @@ export default function App() {
               <Header 
                 title="Dashboard" 
                 subtitle="Your personal spiritual growth journey"
+                onMenuToggle={() => setIsMobileSidebarOpen(true)}
               />
               <main className="flex-1 p-8 overflow-y-auto">
                 <IndividualDashboard />
@@ -121,6 +124,7 @@ export default function App() {
               <Header 
                 title="Sunday Journal" 
                 subtitle="Reflect on this week's message and what God is teaching you."
+                onMenuToggle={() => setIsMobileSidebarOpen(true)}
               />
               <main className="flex-1 p-8 overflow-y-auto">
                 <SundayJournal />
@@ -134,6 +138,7 @@ export default function App() {
               <Header 
                 title="Daily Scripture" 
                 subtitle="Start your day with God's Word."
+                onMenuToggle={() => setIsMobileSidebarOpen(true)}
               />
               <main className="flex-1 p-8 overflow-y-auto">
                 <DailyScripture />
@@ -147,6 +152,7 @@ export default function App() {
               <Header 
                 title="Focus Timer" 
                 subtitle="Stay focused and productive with intentional work sessions."
+                onMenuToggle={() => setIsMobileSidebarOpen(true)}
               />
               <main className="flex-1 p-8 overflow-y-auto">
                 <FocusTimer />
@@ -160,6 +166,7 @@ export default function App() {
               <Header 
                 title="Settings" 
                 subtitle="Manage your account and preferences."
+                onMenuToggle={() => setIsMobileSidebarOpen(true)}
               />
               <main className="flex-1 p-8 overflow-y-auto">
                 <Settings />
@@ -181,6 +188,7 @@ export default function App() {
               <Header 
                 title="Dashboard" 
                 subtitle="Welcome back! Here's what's happening in your community."
+                onMenuToggle={() => setIsMobileSidebarOpen(true)}
               />
               <main className="flex-1 p-8 overflow-y-auto">
                 <OrganizationDashboard />
@@ -194,6 +202,7 @@ export default function App() {
               <Header 
                 title="First Timers" 
                 subtitle="Manage and follow up with new visitors to your church."
+                onMenuToggle={() => setIsMobileSidebarOpen(true)}
               />
               <main className="flex-1 p-8 overflow-y-auto">
                 <FirstTimersManagement />
@@ -207,6 +216,7 @@ export default function App() {
               <Header 
                 title="Second Timers" 
                 subtitle="Manage and follow up with visitors who have returned to your church."
+                onMenuToggle={() => setIsMobileSidebarOpen(true)}
               />
               <main className="flex-1 p-8 overflow-y-auto">
                 <SecondTimers />
@@ -220,6 +230,7 @@ export default function App() {
               <Header 
                 title="Salvation Records" 
                 subtitle="Track and manage the salvation records of your church members."
+                onMenuToggle={() => setIsMobileSidebarOpen(true)}
               />
               <main className="flex-1 p-8 overflow-y-auto">
                 <SalvationRecords />
@@ -233,6 +244,7 @@ export default function App() {
               <Header 
                 title="Communities" 
                 subtitle="Manage and organize the different communities within your church."
+                onMenuToggle={() => setIsMobileSidebarOpen(true)}
               />
               <main className="flex-1 p-8 overflow-y-auto">
                 <Communities />
@@ -246,6 +258,7 @@ export default function App() {
               <Header 
                 title="Prayer Requests" 
                 subtitle="Stay connected with your community's prayer needs."
+                onMenuToggle={() => setIsMobileSidebarOpen(true)}
               />
               <main className="flex-1 p-8 overflow-y-auto">
                 <PrayerRequests />
@@ -259,6 +272,7 @@ export default function App() {
               <Header 
                 title="Follow Ups" 
                 subtitle="Keep track of pending follow ups and connections."
+                onMenuToggle={() => setIsMobileSidebarOpen(true)}
               />
               <main className="flex-1 p-8 overflow-y-auto">
                 <FollowUps />
@@ -272,6 +286,7 @@ export default function App() {
               <Header 
                 title="Settings" 
                 subtitle="Manage your account and preferences."
+                onMenuToggle={() => setIsMobileSidebarOpen(true)}
               />
               <main className="flex-1 p-8 overflow-y-auto">
                 <Settings />
@@ -288,13 +303,15 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background relative overflow-hidden">
       <Sidebar 
         activeSection={activeSection} 
         onSectionChange={setActiveSection}
         userType={userType}
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
       />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {renderContent()}
       </div>
     </div>

@@ -39,9 +39,9 @@ export function SundayJournal() {
   };
 
   return (
-    <div className="flex gap-6 h-[calc(100vh-180px)]">
+    <div className="flex flex-col lg:flex-row gap-6 lg:h-[calc(100vh-180px)]">
       {/* Main Editor */}
-      <div className="flex-1 bg-card rounded-xl border border-border p-8 overflow-y-auto">
+      <div className="flex-1 bg-card rounded-xl border border-border p-4 md:p-8 overflow-y-auto min-h-[500px] lg:min-h-0">
         {/* Title */}
         <input
           type="text"
@@ -84,7 +84,7 @@ export function SundayJournal() {
       </div>
 
       {/* Previous Entries Sidebar */}
-      <div className="w-80 bg-card rounded-xl border border-border p-6 overflow-y-auto">
+      <div className="w-full lg:w-80 bg-card rounded-xl border border-border p-4 md:p-6 overflow-y-auto max-h-[400px] lg:max-h-none">
         <h3 className="text-foreground mb-4 flex items-center gap-2">
           <Calendar className="w-5 h-5" />
           Previous Entries

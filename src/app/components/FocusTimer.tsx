@@ -151,7 +151,7 @@ export function FocusTimer() {
       </div>
 
       {/* Quick Actions */}
-      <div className="mt-6 grid grid-cols-3 gap-4">
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <button
           onClick={() => {
             setTimeLeft(15 * 60);

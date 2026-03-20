@@ -3,7 +3,7 @@ import { Sparkles, Book } from "lucide-react";
 export function DailyScripture() {
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-xl p-12 border border-accent/20">
+      <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-xl p-6 md:p-12 border border-accent/20">
         {/* Icon */}
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center border border-accent/20">
@@ -18,7 +18,7 @@ export function DailyScripture() {
 
         {/* Scripture */}
         <blockquote className="text-center mb-6">
-          <p className="text-2xl text-foreground leading-relaxed mb-4">
+          <p className="text-xl md:text-2xl text-foreground leading-relaxed mb-4">
             "For I know the plans I have for you," declares the Lord, "plans to prosper you and not to harm you, plans to give you hope and a future."
           </p>
           <footer className="flex items-center justify-center gap-2 text-accent">
@@ -28,8 +28,8 @@ export function DailyScripture() {
         </blockquote>
 
         {/* Encouragement */}
-        <div className="bg-white rounded-lg p-6 mb-6 border border-accent/10">
-          <p className="text-muted-foreground leading-relaxed text-center">
+        <div className="bg-white rounded-lg p-4 md:p-6 mb-6 border border-accent/10">
+          <p className="text-xs md:text-sm text-muted-foreground leading-relaxed text-center">
             Today, remember that God has a beautiful plan for your life. Even when the path seems unclear, trust that He is working all things together for your good. Take a moment to reflect on His faithfulness and let His peace guide your steps.
           </p>
         </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Phone, MessageCircle, PhoneCall, Send } from "lucide-react";
+import { Phone, MessageCircle, PhoneCall, Send, Upload } from "lucide-react";
 import { Badge } from "./ui/badge";
 
 interface SalvationRecord {
@@ -75,6 +75,14 @@ export function SalvationRecords() {
 
   return (
     <div className="space-y-6">
+      {/* Page Actions */}
+      <div className="flex justify-end">
+        <button className="flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors text-sm font-medium">
+          <Upload className="w-4 h-4" />
+          Upload Excel
+        </button>
+      </div>
+
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-6 border border-green-200">
