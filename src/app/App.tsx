@@ -5,8 +5,6 @@ import { SignUpChoice } from "./Pages/SignUpChoice";
 import { OrganizationOnboarding } from "./Pages/OrganizationOnboarding";
 import { IndividualOnboarding } from "./Pages/IndividualOnboarding";
 import ForgotPassword from "./Pages/ForgotPassword";
- 
- 
 import { Settings } from "./Pages/Settings";
 import SignUpIndividual from "./Pages/SignUpIndividual";
 import SignUpOrganization from "./Pages/SignUpOrganization";
@@ -26,8 +24,7 @@ import { Communities } from "./components/Communities";
 
 export default function App() {
  
-
-
+ 
   
 
   return (
@@ -54,7 +51,10 @@ export default function App() {
       <Route path="/salvation-records" element={<AppLayout><SalvationRecords  /></AppLayout>} />
       <Route path="/communities" element={<AppLayout><Communities  /></AppLayout>} />
      </Routes>
-      
+
      </BrowserRouter>
-  );
+  )
 }
+      
+ 
+  
