@@ -1,6 +1,7 @@
 import { Send, QrCode, Calendar } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { useState } from "react";
+import { Header } from "./Header";
 
 const firstTimersData = [
   {
@@ -11,7 +12,7 @@ const firstTimersData = [
     prayerRequest: "Guidance in new job transition",
     status: "Pending",
     dateRegistered: "Mar 2, 2026",
-    sunday: "Mar 2, 2026", // First Sunday of March
+    sunday: "Mar 2, 2026",  
   },
   {
     id: 2,
@@ -31,7 +32,7 @@ const firstTimersData = [
     prayerRequest: "Strength during health challenges",
     status: "Pending",
     dateRegistered: "Feb 23, 2026",
-    sunday: "Feb 23, 2026", // Last Sunday of February
+    sunday: "Feb 23, 2026",  
   },
   {
     id: 4,
@@ -51,8 +52,8 @@ const firstTimersData = [
     prayerRequest: "Career guidance and direction",
     status: "Pending",
     dateRegistered: "Feb 16, 2026",
-    sunday: "Feb 16, 2026", // Third Sunday of February
-  },
+    sunday: "Feb 16, 2026", 
+   }, 
   {
     id: 6,
     name: "Robert Wilson",
@@ -100,7 +101,9 @@ export function FirstTimersManagement() {
     : firstTimersData;
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-full">
+      <Header title="First Timers Management" subtitle="Manage first timers and their registration"/>
+      <div className="p-4 md:p-8 space-y-6">
       {/* QR Code Card */}
       <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-xl p-8 border border-accent/20">
         <div className="flex items-center justify-between">
@@ -215,6 +218,7 @@ export function FirstTimersManagement() {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
     </div>
   );

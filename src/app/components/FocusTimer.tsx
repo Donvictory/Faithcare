@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Play, Pause, RotateCcw, Sparkles } from "lucide-react";
+import { Header } from "./Header";
 
 export function FocusTimer() {
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
@@ -78,113 +79,119 @@ export function FocusTimer() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="bg-card rounded-xl p-12 border border-border text-center">
-        {/* Timer Display */}
-        <div className="mb-8">
-          <p className="text-sm text-muted-foreground mb-4">Focus Timer</p>
-          <div className="relative inline-block">
-            {/* Progress Circle */}
-            <svg className="w-64 h-64 transform -rotate-90">
-              <circle
-                cx="128"
-                cy="128"
-                r="120"
-                stroke="#e2e8f0"
-                strokeWidth="8"
-                fill="none"
-              />
-              <circle
-                cx="128"
-                cy="128"
-                r="120"
-                stroke="#d4a574"
-                strokeWidth="8"
-                fill="none"
-                strokeDasharray={`${2 * Math.PI * 120}`}
-                strokeDashoffset={`${2 * Math.PI * 120 * (1 - progress / 100)}`}
-                strokeLinecap="round"
-                className="transition-all duration-1000"
-              />
-            </svg>
-            {/* Time Text */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-6xl text-foreground tabular-nums">
-                {formatTime(timeLeft)}
-              </span>
+    <div className="min-h-full">
+      <Header title="Focus Timer" subtitle="Stay focused and productive with intentional work sessions." />
+      <div className="p-4 md:p-8">
+        <div className="max-w-2xl mx-auto space-y-6 md:space-y-8">
+          <div className="bg-card rounded-xl p-6 md:p-12 border border-border text-center shadow-sm">
+            {/* Timer Display */}
+            <div className="mb-8">
+              <p className="text-sm text-muted-foreground mb-4 font-medium uppercase tracking-wider">Focus Session</p>
+              <div className="relative inline-block">
+                {/* Progress Circle */}
+                <svg className="w-64 h-64 transform -rotate-90">
+                  <circle
+                    cx="128"
+                    cy="128"
+                    r="120"
+                    stroke="#e2e8f0"
+                    strokeWidth="8"
+                    fill="none"
+                  />
+                  <circle
+                    cx="128"
+                    cy="128"
+                    r="120"
+                    stroke="#d4a574"
+                    strokeWidth="8"
+                    fill="none"
+                    strokeDasharray={`${2 * Math.PI * 120}`}
+                    strokeDashoffset={`${2 * Math.PI * 120 * (1 - progress / 100)}`}
+                    strokeLinecap="round"
+                    className="transition-all duration-1000"
+                  />
+                </svg>
+                {/* Time Text */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-6xl font-bold text-foreground tabular-nums">
+                    {formatTime(timeLeft)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="flex items-center justify-center gap-4">
+              <button
+                onClick={handleStartPause}
+                className="flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all shadow-sm active:scale-95"
+              >
+                {isRunning ? (
+                  <>
+                    <Pause className="w-5 h-5" />
+                    Pause
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-5 h-5 ml-1" />
+                    Start
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleReset}
+                className="p-3 border border-border rounded-lg hover:bg-muted transition-colors text-foreground shadow-sm"
+                title="Reset Timer"
+              >
+                <RotateCcw className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Instructions */}
+            <div className="mt-8 p-4 bg-muted/50 rounded-lg border border-border/50">
+              <p className="text-sm text-muted-foreground italic">
+                "Whatever you do, work at it with all your heart, as working for the Lord..."
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* Controls */}
-        <div className="flex items-center justify-center gap-4">
-          <button
-            onClick={handleStartPause}
-            className="flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            {isRunning ? (
-              <>
-                <Pause className="w-5 h-5" />
-                Pause
-              </>
-            ) : (
-              <>
-                <Play className="w-5 h-5" />
-                Start
-              </>
-            )}
-          </button>
-          <button
-            onClick={handleReset}
-            className="p-3 border border-border rounded-lg hover:bg-muted transition-colors text-foreground"
-          >
-            <RotateCcw className="w-5 h-5" />
-          </button>
+          {/* Quick Actions */}
+          <div className="grid grid-cols-3 gap-4">
+            <button
+              onClick={() => {
+                setTimeLeft(15 * 60);
+                setIsRunning(false);
+                setIsCompleted(false);
+              }}
+              className="p-4 bg-card rounded-lg border border-border hover:bg-muted/30 transition-all text-center shadow-sm hover:border-accent/40"
+            >
+              <p className="font-semibold text-foreground">15 min</p>
+              <p className="text-xs text-muted-foreground">Quick Session</p>
+            </button>
+            <button
+              onClick={() => {
+                setTimeLeft(25 * 60);
+                setIsRunning(false);
+                setIsCompleted(false);
+              }}
+              className="p-4 bg-accent/10 rounded-lg border border-accent/20 hover:bg-accent/20 transition-all text-center shadow-sm hover:border-accent/40"
+            >
+              <p className="font-semibold text-foreground">25 min</p>
+              <p className="text-xs text-muted-foreground">Standard</p>
+            </button>
+            <button
+              onClick={() => {
+                setTimeLeft(45 * 60);
+                setIsRunning(false);
+                setIsCompleted(false);
+              }}
+              className="p-4 bg-card rounded-lg border border-border hover:bg-muted/30 transition-all text-center shadow-sm hover:border-accent/40"
+            >
+              <p className="font-semibold text-foreground">45 min</p>
+              <p className="text-xs text-muted-foreground">Deep Work</p>
+            </button>
+          </div>
         </div>
-
-        {/* Instructions */}
-        <div className="mt-8 p-4 bg-muted/50 rounded-lg">
-          <p className="text-sm text-muted-foreground">
-            Take 25 minutes to focus on your work or study. During this time, minimize distractions and work with intention.
-          </p>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="mt-6 grid grid-cols-3 gap-4">
-        <button
-          onClick={() => {
-            setTimeLeft(15 * 60);
-            setIsRunning(false);
-            setIsCompleted(false);
-          }}
-          className="p-4 bg-card rounded-lg border border-border hover:bg-muted/30 transition-colors text-center"
-        >
-          <p className="text-foreground">15 min</p>
-          <p className="text-xs text-muted-foreground">Quick Session</p>
-        </button>
-        <button
-          onClick={() => {
-            setTimeLeft(25 * 60);
-            setIsRunning(false);
-            setIsCompleted(false);
-          }}
-          className="p-4 bg-accent/10 rounded-lg border border-accent/20 hover:bg-accent/20 transition-colors text-center"
-        >
-          <p className="text-foreground">25 min</p>
-          <p className="text-xs text-muted-foreground">Standard</p>
-        </button>
-        <button
-          onClick={() => {
-            setTimeLeft(45 * 60);
-            setIsRunning(false);
-            setIsCompleted(false);
-          }}
-          className="p-4 bg-card rounded-lg border border-border hover:bg-muted/30 transition-colors text-center"
-        >
-          <p className="text-foreground">45 min</p>
-          <p className="text-xs text-muted-foreground">Deep Work</p>
-        </button>
       </div>
     </div>
   );

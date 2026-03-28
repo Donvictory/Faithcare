@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Sparkles, ArrowRight, ArrowLeft, Building2, Users, MapPin, Phone, Globe, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+ 
 
-interface OnboardingProps {
-  onComplete: () => void;
-}
-
-export function Onboarding({ onComplete }: OnboardingProps) {
+export function OrganizationOnboarding () {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     churchName: "",
@@ -30,7 +29,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
-      onComplete();
+      
     }
   };
 
@@ -39,9 +38,19 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       setStep(step - 1);
     }
   };
+  const handleSubmit = (e: React.FormEvent) => {
+    
+    e.preventDefault();
+    if (step === totalSteps) {
+      console.log("Form submitted:", formData);
+      navigate("/dashboard");
+    } else {
+      handleNext();
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <form onSubmit={handleSubmit} className="min-h-screen bg-background flex">
       {/* Left Side - Progress & Info */}
       <div className="hidden lg:flex flex-col w-96 bg-gradient-to-br from-accent/10 to-accent/5 p-12">
         <div className="mb-12">
@@ -403,8 +412,10 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               <button
                 onClick={handleBack}
                 className="flex items-center gap-2 px-6 py-3 border border-border rounded-lg hover:bg-muted transition-colors text-foreground"
+                type="button"
               >
                 <ArrowLeft className="w-5 h-5" />
+
                 Back
               </button>
             ) : (
@@ -412,15 +423,17 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             )}
 
             <button
-              onClick={handleNext}
+
+              type="submit"
               className="flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors ml-auto"
             >
-              {step === totalSteps ? "Complete Setup" : "Continue"}
+              {step === totalSteps ? "Complete Setup" : "Continue" 
+                }
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </form>
   );
 }

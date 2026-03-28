@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Phone, MessageCircle, PhoneCall, Send } from "lucide-react";
 import { Badge } from "./ui/badge";
+import { Header } from "./Header";
 
 interface SalvationRecord {
   id: number;
@@ -74,7 +75,9 @@ export function SalvationRecords() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-full">
+      <Header title="Salvation Records" subtitle="Manage salvation records and their registration"/>
+      <div className="p-4 md:p-8 space-y-6">
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-6 border border-green-200">
@@ -220,6 +223,7 @@ export function SalvationRecords() {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
     </div>
   );

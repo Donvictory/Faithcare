@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CheckCircle, Send, Calendar } from "lucide-react";
 import { Badge } from "./ui/badge";
+import { Header } from "./Header";
 
 interface FirstTimer {
   id: number;
@@ -141,7 +142,9 @@ export function SecondTimers() {
   const secondTimerCount = timers.filter((t) => t.status === "second-timer").length;
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-full">
+      <Header title="Second Timers" subtitle="Manage second timers and their registration"/>
+      <div className="p-4 md:p-8 space-y-6">
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200">
@@ -305,6 +308,7 @@ export function SecondTimers() {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
     </div>
   );

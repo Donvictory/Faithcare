@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Upload, Users, Send, MessageCircle, Phone, Trash2 } from "lucide-react";
 import { Badge } from "./ui/badge";
+import { Header } from "./Header";
 
 interface CommunityMember {
   id: number;
@@ -110,8 +111,9 @@ export function Communities() {
 
   const handleCreateCommunity = () => {
     if (newCommunity.name.trim()) {
+      const maxId = communities.length > 0 ? Math.max(...communities.map((c) => c.id)) : 0;
       const community: Community = {
-        id: communities.length + 1,
+        id: maxId + 1,
         name: newCommunity.name,
         description: newCommunity.description,
         memberCount: 0,
@@ -153,18 +155,14 @@ export function Communities() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header with Create Button */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl text-foreground">Communities</h2>
-          <p className="text-muted-foreground mt-1">
-            Manage your church communities and stay connected with members
-          </p>
-        </div>
+    <div className="min-h-full">
+      <Header title="Communities" subtitle="Manage your church communities and stay connected with members" />
+      <div className="p-4 md:p-8 space-y-6">
+      {/* Toolbar with Create Button */}
+      <div className="flex items-center justify-end">
         <button
           onClick={() => setShowNewCommunityForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all shadow-sm active:scale-95"
         >
           <Plus className="w-4 h-4" />
           New Community
@@ -387,6 +385,7 @@ export function Communities() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

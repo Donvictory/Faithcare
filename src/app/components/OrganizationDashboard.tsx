@@ -1,4 +1,6 @@
 import { UserPlus, CheckCircle, Heart, TrendingUp } from "lucide-react";
+import { DashboardOverview } from "./DashboardOverview";
+import { Header } from "./Header";
 
 export function OrganizationDashboard() {
   const statsData = [
@@ -60,9 +62,11 @@ export function OrganizationDashboard() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="min-h-full">
+      <Header title="Dashboard" subtitle="Welcome back! Here's what's happening in your community." />
+      <div className="p-4 md:p-8 space-y-6 md:space-y-8">
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {statsData.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -216,6 +220,8 @@ export function OrganizationDashboard() {
             </div>
           </div>
         </div>
+      </div>
+       <DashboardOverview />
       </div>
     </div>
   );

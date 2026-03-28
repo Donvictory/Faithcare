@@ -1,4 +1,5 @@
 import { BookOpen, Sparkles, Timer, TrendingUp } from "lucide-react";
+import { Header } from "./Header";
 
 export function IndividualDashboard() {
   const stats = [
@@ -29,9 +30,11 @@ export function IndividualDashboard() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="min-h-full">
+      <Header  title="Dashboard" subtitle="Welcome to your spiritual journey" />
+      <div className="p-4 md:p-8 space-y-6 md:space-y-8">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-xl p-8 border border-accent/20">
+      <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-xl p-6 md:p-8 border border-accent/20">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-foreground mb-2">Good morning! ✨</h2>
@@ -192,6 +195,7 @@ export function IndividualDashboard() {
             <p className="text-sm text-foreground">View Progress</p>
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

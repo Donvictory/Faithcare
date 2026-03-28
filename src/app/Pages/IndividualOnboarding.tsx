@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Sparkles, ArrowRight, User, Mail, MapPin, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-interface IndividualOnboardingProps {
-  onComplete: () => void;
-}
+ 
 
-export function IndividualOnboarding({ onComplete }: IndividualOnboardingProps) {
+ 
+
+export function IndividualOnboarding() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -41,14 +42,15 @@ export function IndividualOnboarding({ onComplete }: IndividualOnboardingProps) 
       });
     }
   };
-
-  const handleComplete = (e: React.FormEvent) => {
+  const navigate = useNavigate();
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onComplete();
+    navigate("/dashboard");
+     
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <form onSubmit={handleSubmit} className="min-h-screen bg-background flex">
       {/* Left Side - Info */}
       <div className="hidden lg:flex flex-col w-96 bg-gradient-to-br from-accent/10 to-accent/5 p-12">
         <div className="mb-12">
@@ -116,7 +118,7 @@ export function IndividualOnboarding({ onComplete }: IndividualOnboardingProps) 
             </p>
           </div>
 
-          <form onSubmit={handleComplete} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name Fields */}
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -238,6 +240,6 @@ export function IndividualOnboarding({ onComplete }: IndividualOnboardingProps) 
           </form>
         </div>
       </div>
-    </div>
+    </form>
   );
 }

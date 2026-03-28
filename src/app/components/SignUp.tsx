@@ -1,14 +1,17 @@
 import { Sparkles, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+ 
 
-interface SignUpProps {
-  onSignUp: () => void;
-  onSwitchToSignIn: () => void;
-}
-
-export function SignUp({ onSignUp, onSwitchToSignIn }: SignUpProps) {
+export function SignUp({type}: {type:string}) {
+  const navigate = useNavigate();
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSignUp();
+    localStorage.setItem('userType', type);
+    if(type === "individual"){
+      navigate("/individual-onboarding");
+    }else{
+      navigate("/organization-onboarding");
+    }
   };
 
   return (
@@ -185,12 +188,12 @@ export function SignUp({ onSignUp, onSwitchToSignIn }: SignUpProps) {
           {/* Sign In Link */}
           <p className="text-center text-muted-foreground">
             Already have an account?{" "}
-            <button
-              onClick={onSwitchToSignIn}
+            <Link to="/" 
+               
               className="text-accent hover:text-accent/80 transition-colors"
             >
               Sign in
-            </button>
+            </Link>
           </p>
         </div>
       </div>

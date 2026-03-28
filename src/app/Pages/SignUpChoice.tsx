@@ -1,12 +1,8 @@
 import { Sparkles, Building2, User, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
-interface SignUpChoiceProps {
-  onChooseIndividual: () => void;
-  onChooseOrganization: () => void;
-  onBackToSignIn: () => void;
-}
-
-export function SignUpChoice({ onChooseIndividual, onChooseOrganization, onBackToSignIn }: SignUpChoiceProps) {
+ 
+export function SignUpChoice( ) {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-8">
       <div className="w-full max-w-5xl">
@@ -25,8 +21,8 @@ export function SignUpChoice({ onChooseIndividual, onChooseOrganization, onBackT
         {/* Choice Cards */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Individual Card */}
-          <button
-            onClick={onChooseIndividual}
+          <Link to="/sign-up-individual"
+             
             className="bg-card rounded-xl p-8 border-2 border-border hover:border-accent transition-all text-left group hover:shadow-lg"
           >
             <div className="w-14 h-14 rounded-full bg-accent/10 flex items-center justify-center mb-6 group-hover:bg-accent/20 transition-colors">
@@ -68,11 +64,11 @@ export function SignUpChoice({ onChooseIndividual, onChooseOrganization, onBackT
             <div className="mt-6 pt-6 border-t border-border">
               <p className="text-sm text-accent">Free forever</p>
             </div>
-          </button>
+          </Link>
 
           {/* Organization Card */}
-          <button
-            onClick={onChooseOrganization}
+          <Link to="/sign-up-organization"
+             
             className="bg-card rounded-xl p-8 border-2 border-border hover:border-accent transition-all text-left group hover:shadow-lg"
           >
             <div className="w-14 h-14 rounded-full bg-accent/10 flex items-center justify-center mb-6 group-hover:bg-accent/20 transition-colors">
@@ -114,18 +110,18 @@ export function SignUpChoice({ onChooseIndividual, onChooseOrganization, onBackT
             <div className="mt-6 pt-6 border-t border-border">
               <p className="text-sm text-accent">14-day free trial</p>
             </div>
-          </button>
+          </Link>
         </div>
 
         {/* Back to Sign In */}
         <p className="text-center text-muted-foreground">
           Already have an account?{" "}
-          <button
-            onClick={onBackToSignIn}
+          <Link to="/" 
+             
             className="text-accent hover:text-accent/80 transition-colors"
           >
             Sign in
-          </button>
+          </Link>
         </p>
       </div>
     </div>

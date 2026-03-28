@@ -1,14 +1,12 @@
 import { Sparkles, Mail, Lock, ArrowRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+ 
 
-interface SignInProps {
-  onSignIn: () => void;
-  onSwitchToSignUp: () => void;
-}
-
-export function SignIn({ onSignIn, onSwitchToSignUp }: SignInProps) {
+export function SignIn( ) {
+  const navigate = useNavigate();
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSignIn();
+     navigate("/dashboard");
   };
 
   return (
@@ -72,17 +70,18 @@ export function SignIn({ onSignIn, onSwitchToSignUp }: SignInProps) {
                   Remember me
                 </span>
               </label>
-              <button
+              <Link to="/forgot-password" 
                 type="button"
                 className="text-sm text-accent hover:text-accent/80 transition-colors"
               >
                 Forgot password?
-              </button>
+              </Link>
             </div>
 
             <button
-              type="submit"
+               
               className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              
             >
               Sign In
               <ArrowRight className="w-5 h-5" />
@@ -135,12 +134,12 @@ export function SignIn({ onSignIn, onSwitchToSignUp }: SignInProps) {
           {/* Sign Up Link */}
           <p className="text-center text-muted-foreground">
             Don't have an account?{" "}
-            <button
-              onClick={onSwitchToSignUp}
+            <Link to="/sign-up-choice" 
+               
               className="text-accent hover:text-accent/80 transition-colors"
             >
               Sign up
-            </button>
+            </Link>
           </p>
         </div>
       </div>

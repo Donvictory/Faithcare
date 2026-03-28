@@ -1,5 +1,6 @@
 import { CheckCircle, Clock, User } from "lucide-react";
 import { Badge } from "./ui/badge";
+import { Header } from "./Header";
 
 const followUpsData = [
   {
@@ -77,66 +78,61 @@ export function FollowUps() {
   };
 
   return (
-    <div className="space-y-4">
-      {followUpsData.map((followUp) => (
-        <div
-          key={followUp.id}
-          className={`bg-card rounded-xl p-6 border transition-all ${
-            followUp.status === "Completed"
-              ? "border-border opacity-60"
-              : "border-border hover:shadow-md"
-          }`}
-        >
-          <div className="flex items-start justify-between">
-            {/* Left Side */}
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-                  <User className="w-5 h-5 text-accent" />
-                </div>
-                <div>
-                  <p className="text-foreground">{followUp.name}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge
-                      variant="outline"
-                      className={getTypeColor(followUp.type)}
-                    >
-                      {followUp.type}
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className={getPriorityColor(followUp.priority)}
-                    >
-                      {followUp.priority}
-                    </Badge>
+    <div className="min-h-full">
+      <Header title="Follow Ups" subtitle="Track and manage pastor follow-ups with members" />
+      <div className="p-4 md:p-8 space-y-4">
+        {followUpsData.map((followUp) => (
+          <div
+            key={followUp.id}
+            className={`bg-card rounded-xl p-6 border transition-all ${
+              followUp.status === "Completed"
+                ? "border-border opacity-60"
+                : "border-border hover:shadow-md"
+            }`}
+          >
+            <div className="flex items-start justify-between">
+              {/* Left Side */}
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+                    <User className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-foreground font-medium">{followUp.name}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className={getTypeColor(followUp.type)}>
+                        {followUp.type}
+                      </Badge>
+                      <Badge variant="outline" className={getPriorityColor(followUp.priority)}>
+                        {followUp.priority}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <p className="text-muted-foreground ml-[52px] mb-3">
-                {followUp.note}
-              </p>
-              <div className="flex items-center gap-2 ml-[52px] text-sm text-muted-foreground">
-                <Clock className="w-4 h-4" />
-                <span>Due {followUp.dueDate}</span>
-              </div>
-            </div>
-
-            {/* Right Side */}
-            <div className="ml-4">
-              {followUp.status === "Completed" ? (
-                <div className="flex items-center gap-2 text-green-600">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="text-sm">Completed</span>
+                <p className="text-muted-foreground ml-[52px] mb-3">{followUp.note}</p>
+                <div className="flex items-center gap-2 ml-[52px] text-sm text-muted-foreground">
+                  <Clock className="w-4 h-4" />
+                  <span>Due {followUp.dueDate}</span>
                 </div>
-              ) : (
-                <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-                  Complete
-                </button>
-              )}
+              </div>
+
+              {/* Right Side */}
+              <div className="ml-4 flex-shrink-0">
+                {followUp.status === "Completed" ? (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="text-sm font-medium">Completed</span>
+                  </div>
+                ) : (
+                  <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all shadow-sm active:scale-95 text-sm font-medium">
+                    Complete
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

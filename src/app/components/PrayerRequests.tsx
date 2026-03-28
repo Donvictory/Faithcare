@@ -1,5 +1,6 @@
 import { Heart, User } from "lucide-react";
 import { Badge } from "./ui/badge";
+import { Header } from "./Header";
 
 const prayerRequestsData = [
   {
@@ -61,48 +62,53 @@ export function PrayerRequests() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {prayerRequestsData.map((prayer) => (
-        <div
-          key={prayer.id}
-          className="bg-card rounded-xl p-6 border border-border hover:shadow-md transition-shadow"
-        >
-          {/* Header */}
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-                <User className="w-5 h-5 text-accent" />
+    <div className="min-h-full">
+      <Header title="Prayer Requests" subtitle="Pray for one another and lift each other up" />
+      <div className="p-4 md:p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          {prayerRequestsData.map((prayer) => (
+            <div
+              key={prayer.id}
+              className="bg-card rounded-xl p-6 border border-border hover:shadow-md transition-shadow shadow-sm flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+                    <User className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-foreground font-medium">{prayer.name}</p>
+                    <p className="text-sm text-muted-foreground">{prayer.date}</p>
+                  </div>
+                </div>
+                <Badge
+                  variant="outline"
+                  className={`${getStatusColor(prayer.status)} font-medium`}
+                >
+                  {prayer.status}
+                </Badge>
               </div>
-              <div>
-                <p className="text-foreground">{prayer.name}</p>
-                <p className="text-sm text-muted-foreground">{prayer.date}</p>
+
+              {/* Prayer Request */}
+              <p className="text-muted-foreground mb-6 leading-relaxed flex-1">
+                "{prayer.request}"
+              </p>
+
+              {/* Actions */}
+              <div className="flex items-center gap-2 mt-auto">
+                <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all shadow-sm active:scale-95">
+                  <Heart className="w-4 h-4" />
+                  Praying
+                </button>
+                <button className="px-4 py-2.5 border border-border rounded-lg hover:bg-muted transition-colors text-foreground font-medium shadow-sm">
+                  Contact
+                </button>
               </div>
             </div>
-            <Badge
-              variant="outline"
-              className={getStatusColor(prayer.status)}
-            >
-              {prayer.status}
-            </Badge>
-          </div>
-
-          {/* Prayer Request */}
-          <p className="text-muted-foreground mb-4 leading-relaxed">
-            {prayer.request}
-          </p>
-
-          {/* Actions */}
-          <div className="flex items-center gap-2">
-            <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-              <Heart className="w-4 h-4" />
-              Praying
-            </button>
-            <button className="px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors text-foreground">
-              Contact
-            </button>
-          </div>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 }

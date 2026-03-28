@@ -1,8 +1,10 @@
 import { User, Bell, Lock, Palette, Globe } from "lucide-react";
+import { Header } from "../components/Header";
 
 export function Settings() {
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-full space-y-6">
+      <Header title="Settings" subtitle="Manage your account and preferences" />
       {/* Profile Settings */}
       <div className="bg-card rounded-xl p-6 border border-border">
         <div className="flex items-center gap-3 mb-6">
