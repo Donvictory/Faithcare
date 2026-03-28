@@ -1,4 +1,4 @@
-import React from 'react'
+ 
 import { OrganizationDashboard } from '../components/OrganizationDashboard'
 import { IndividualDashboard } from '../components/IndividualDashboard';
  

@@ -6,7 +6,7 @@ import { OrganizationOnboarding } from "./Pages/OrganizationOnboarding";
 import { IndividualOnboarding } from "./Pages/IndividualOnboarding";
 import ForgotPassword from "./Pages/ForgotPassword";
  
-import { DashboardOverview } from "./components/DashboardOverview";
+ 
 import { Settings } from "./Pages/Settings";
 import SignUpIndividual from "./Pages/SignUpIndividual";
 import SignUpOrganization from "./Pages/SignUpOrganization";
