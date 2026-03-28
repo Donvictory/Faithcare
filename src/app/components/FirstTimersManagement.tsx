@@ -1,4 +1,4 @@
-import { Send, QrCode, Calendar, Upload, UserCheck } from "lucide-react";
+import { Send, QrCode, Calendar, UserCheck } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { useState } from "react";
 import { Header } from "./Header";
@@ -101,21 +101,9 @@ export function FirstTimersManagement() {
     : firstTimersData;
 
   return (
- 
     <div className="min-h-full">
       <Header title="First Timers Management" subtitle="Manage first timers and their registration"/>
       <div className="p-4 md:p-8 space-y-6">
-=======
-    <div className="space-y-6">
-      {/* Page Actions */}
-      <div className="flex justify-end">
-        <button className="flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors text-sm font-medium">
-          <Upload className="w-4 h-4" />
-          Upload Excel
-        </button>
-      </div>
-
- 
       {/* QR Code Card */}
       <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-xl p-6 md:p-8 border border-accent/20">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-0 text-center md:text-left">
@@ -242,7 +230,5 @@ export function FirstTimersManagement() {
       </div>
       </div>
     </div>
-    </div>
   );
-
 }
