@@ -23,11 +23,7 @@ import { Communities } from "./components/Communities";
 
 
 export default function App() {
- 
- 
-  
-
-  return (
+ return (
      <BrowserRouter>
       
      <Routes>
