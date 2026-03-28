@@ -1,4 +1,4 @@
-import { Send, QrCode, Calendar } from "lucide-react";
+import { Send, QrCode, Calendar, Upload, UserCheck } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { useState } from "react";
 import { Header } from "./Header";
@@ -101,19 +101,31 @@ export function FirstTimersManagement() {
     : firstTimersData;
 
   return (
+ 
     <div className="min-h-full">
       <Header title="First Timers Management" subtitle="Manage first timers and their registration"/>
       <div className="p-4 md:p-8 space-y-6">
+=======
+    <div className="space-y-6">
+      {/* Page Actions */}
+      <div className="flex justify-end">
+        <button className="flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors text-sm font-medium">
+          <Upload className="w-4 h-4" />
+          Upload Excel
+        </button>
+      </div>
+
+ 
       {/* QR Code Card */}
-      <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-xl p-8 border border-accent/20">
-        <div className="flex items-center justify-between">
+      <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-xl p-6 md:p-8 border border-accent/20">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-0 text-center md:text-left">
           <div>
-            <h3 className="text-foreground mb-2">First Timer Registration</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-foreground text-lg md:text-xl font-medium mb-1 md:mb-2">First Timer Registration</h3>
+            <p className="text-sm md:text-base text-muted-foreground">
               Scan to register as a First Timer
             </p>
           </div>
-          <div className="w-32 h-32 bg-white rounded-lg p-3 border border-accent/20 flex items-center justify-center">
+          <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-lg p-2 md:p-3 border border-accent/20 flex flex-shrink-0 items-center justify-center">
             <QrCode className="w-full h-full text-foreground" />
           </div>
         </div>
@@ -179,6 +191,9 @@ export function FirstTimersManagement() {
                 <th className="px-6 py-4 text-left text-sm text-muted-foreground">
                   Action
                 </th>
+                <th className="px-6 py-4 text-left text-sm text-muted-foreground">
+                  Activate
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -208,9 +223,15 @@ export function FirstTimersManagement() {
                     </Badge>
                   </td>
                   <td className="px-6 py-4">
-                    <button className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+                    <button className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex-shrink-0 whitespace-nowrap">
                       <Send className="w-4 h-4" />
                       Send Follow Up
+                    </button>
+                  </td>
+                  <td className="px-6 py-4">
+                    <button className="flex items-center gap-2 px-3 py-1.5 text-sm bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors flex-shrink-0 whitespace-nowrap">
+                      <UserCheck className="w-4 h-4" />
+                      Make Second Timer
                     </button>
                   </td>
                 </tr>
@@ -221,5 +242,7 @@ export function FirstTimersManagement() {
       </div>
       </div>
     </div>
+    </div>
   );
+
 }
