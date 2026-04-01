@@ -1,13 +1,15 @@
- 
-import { OrganizationDashboard } from '../components/OrganizationDashboard'
-import { IndividualDashboard } from '../components/IndividualDashboard';
- 
+import { OrganizationDashboard } from "../components/OrganizationDashboard";
+import { IndividualDashboard } from "../components/IndividualDashboard";
 
 export default function Dashboard() {
-    const userType = localStorage.getItem('userType') || "individual";
+  const userType = localStorage.getItem("userType") || "individual";
   return (
     <div>
-        {userType === "individual" ? <IndividualDashboard /> : <OrganizationDashboard />}
+      {userType === "individual" ? (
+        <IndividualDashboard />
+      ) : (
+        <OrganizationDashboard />
+      )}
     </div>
-  )
+  );
 }

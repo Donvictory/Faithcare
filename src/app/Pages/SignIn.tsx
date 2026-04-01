@@ -1,13 +1,51 @@
+import { login, refreshToken } from "@/api/auth";
 import { Sparkles, Mail, Lock, ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
- 
 
-export function SignIn( ) {
+export function SignIn({ auth, setAuth }: any) {
   const navigate = useNavigate();
-  const handleSubmit = (e: React.FormEvent) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  console.log(auth);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-     navigate("/dashboard");
+
+    setIsLoading(true);
+    setError(null);
+    const result = await login({
+      email,
+      password,
+    });
+    setIsLoading(false);
+    console.log(result);
+
+    if (result.success === true) {
+      localStorage.setItem(
+        "refreshToken",
+        JSON.stringify(result.data.refreshToken),
+      );
+
+      setAuth({
+        user: result?.data?.user,
+        accessToken: result?.data?.accessToken,
+      });
+    } else {
+      setError(result.error);
+    }
+
+    // const result2 = await refreshToken();
+    // console.log(result2);
+
+    //  navigate("/dashboard");
   };
+
+  // console.log("password", password);
+  // console.log("email", email);
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -16,7 +54,7 @@ export function SignIn( ) {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="flex items-center gap-2 mb-8">
-            <Sparkles className="w-8 h-8" style={{ color: '#d4a574' }} />
+            <Sparkles className="w-8 h-8" style={{ color: "#d4a574" }} />
             <h1 className="text-foreground">FaithCare</h1>
           </div>
 
@@ -37,6 +75,7 @@ export function SignIn( ) {
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
+                  onChange={(e) => setEmail(e.target.value)}
                   type="email"
                   placeholder="you@example.com"
                   className="w-full pl-11 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
@@ -52,6 +91,7 @@ export function SignIn( ) {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
+                  onChange={(e) => setPassword(e.target.value)}
                   type="password"
                   placeholder="Enter your password"
                   className="w-full pl-11 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
@@ -70,7 +110,8 @@ export function SignIn( ) {
                   Remember me
                 </span>
               </label>
-              <Link to="/forgot-password" 
+              <Link
+                to="/forgot-password"
                 type="button"
                 className="text-sm text-accent hover:text-accent/80 transition-colors"
               >
@@ -78,10 +119,10 @@ export function SignIn( ) {
               </Link>
             </div>
 
+            {error && <p className="text-sm text-red-600 mt-8 mb-2">{error}</p>}
             <button
-               
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-              
+              disabled={isLoading}
+              className={`w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors ${isLoading ? "opacity-50" : ""}`}
             >
               Sign In
               <ArrowRight className="w-5 h-5" />
@@ -134,8 +175,8 @@ export function SignIn( ) {
           {/* Sign Up Link */}
           <p className="text-center text-muted-foreground">
             Don't have an account?{" "}
-            <Link to="/sign-up-choice" 
-               
+            <Link
+              to="/sign-up-choice"
               className="text-accent hover:text-accent/80 transition-colors"
             >
               Sign up
@@ -148,18 +189,25 @@ export function SignIn( ) {
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-accent/10 to-accent/5 items-center justify-center p-16">
         <div className="max-w-lg">
           <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 border border-accent/20">
-            <Sparkles className="w-8 h-8" style={{ color: '#d4a574' }} />
+            <Sparkles className="w-8 h-8" style={{ color: "#d4a574" }} />
           </div>
           <h2 className="text-foreground mb-4">
             Empowering spiritual growth for your community
           </h2>
           <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-            FaithCare helps churches nurture deeper connections with their members while providing tools for personal spiritual development.
+            FaithCare helps churches nurture deeper connections with their
+            members while providing tools for personal spiritual development.
           </p>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center mt-1" style={{ backgroundColor: '#22c55e20' }}>
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }}></div>
+              <div
+                className="w-6 h-6 rounded-full flex items-center justify-center mt-1"
+                style={{ backgroundColor: "#22c55e20" }}
+              >
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: "#22c55e" }}
+                ></div>
               </div>
               <div>
                 <p className="text-foreground">Member Care Management</p>
@@ -169,8 +217,14 @@ export function SignIn( ) {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center mt-1" style={{ backgroundColor: '#22c55e20' }}>
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }}></div>
+              <div
+                className="w-6 h-6 rounded-full flex items-center justify-center mt-1"
+                style={{ backgroundColor: "#22c55e20" }}
+              >
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: "#22c55e" }}
+                ></div>
               </div>
               <div>
                 <p className="text-foreground">Spiritual Productivity</p>
@@ -180,8 +234,14 @@ export function SignIn( ) {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center mt-1" style={{ backgroundColor: '#22c55e20' }}>
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }}></div>
+              <div
+                className="w-6 h-6 rounded-full flex items-center justify-center mt-1"
+                style={{ backgroundColor: "#22c55e20" }}
+              >
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: "#22c55e" }}
+                ></div>
               </div>
               <div>
                 <p className="text-foreground">Built for Young Professionals</p>
