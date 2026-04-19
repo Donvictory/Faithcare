@@ -1,15 +1,41 @@
+import { signUpOrg, signUpUser } from "@/api/auth";
 import { Sparkles, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 export function SignUp({ type }: { type: string }) {
   const navigate = useNavigate();
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    phoneNumber: "",
+    terms: false,
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     localStorage.setItem("userType", type);
     if (type === "individual") {
-      navigate("/individual-onboarding");
+      const res = await signUpUser({
+        email: formData.email,
+        password: formData.password,
+        fullName: formData.fullName,
+        phoneNumber: formData.phoneNumber,
+      });
+      if (res.success) {
+        navigate("/otp-verification", { state: { email: formData.email } });
+      }
     } else {
-      navigate("/organization-onboarding");
+      const res = await signUpOrg({
+        email: formData.email,
+        password: formData.password,
+      });
+      if (res.success) {
+        navigate("/otp-verification", { state: { email: formData.email } });
+      }
     }
   };
 
@@ -76,6 +102,10 @@ export function SignUp({ type }: { type: string }) {
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
+                  value={formData.fullName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, fullName: e.target.value })
+                  }
                   type="text"
                   placeholder="John Doe"
                   className="w-full pl-11 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
@@ -91,8 +121,30 @@ export function SignUp({ type }: { type: string }) {
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   type="email"
                   placeholder="you@example.com"
+                  className="w-full pl-11 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">
+                Phone Number
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <input
+                  value={formData.phoneNumber}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phoneNumber: e.target.value })
+                  }
+                  type="text"
+                  placeholder="xxxxxxx"
                   className="w-full pl-11 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                   required
                 />
@@ -106,6 +158,10 @@ export function SignUp({ type }: { type: string }) {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                   type="password"
                   placeholder="Create a strong password"
                   className="w-full pl-11 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
@@ -119,6 +175,10 @@ export function SignUp({ type }: { type: string }) {
 
             <div className="flex items-start gap-2">
               <input
+                value={formData.terms as any}
+                onChange={(e) =>
+                  setFormData({ ...formData, terms: e.target.checked })
+                }
                 type="checkbox"
                 id="terms"
                 className="w-4 h-4 rounded border-border text-accent focus:ring-accent mt-1"
@@ -143,6 +203,7 @@ export function SignUp({ type }: { type: string }) {
             </div>
 
             <button
+              disabled={!formData.terms}
               type="submit"
               className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
             >

@@ -1,16 +1,16 @@
 import { login, refreshToken } from "@/api/auth";
 import { Sparkles, Mail, Lock, ArrowRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { AuthContext, useAuth } from "../providers/AuthProvider";
 
-export function SignIn({ auth, setAuth }: any) {
+export function SignIn() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  console.log(auth);
+  const { setUser, setAccessToken } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,16 +24,10 @@ export function SignIn({ auth, setAuth }: any) {
     setIsLoading(false);
     console.log(result);
 
+    return console.log(result);
     if (result.success === true) {
-      localStorage.setItem(
-        "refreshToken",
-        JSON.stringify(result.data.refreshToken),
-      );
-
-      setAuth({
-        user: result?.data?.user,
-        accessToken: result?.data?.accessToken,
-      });
+      setUser(result?.data?.user);
+      setAccessToken(result?.data?.accessToken);
     } else {
       setError(result.error);
     }

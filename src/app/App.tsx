@@ -9,6 +9,8 @@ import SignUpIndividual from "./Pages/SignUpIndividual";
 import SignUpOrganization from "./Pages/SignUpOrganization";
 import AppLayout from "./Layouts/AppLayout";
 import Dashboard from "./Pages/Dashboard";
+import OTPVerification from "./Pages/OTPVerification";
+
 import { SundayJournal } from "./components/SundayJournal";
 import { DailyScripture } from "./components/DailyScripture";
 import { PrayerRequests } from "./components/PrayerRequests";
@@ -39,6 +41,8 @@ export default function App() {
           element={<OrganizationOnboarding />}
         />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/otp-verification" element={<OTPVerification />} />
+
 
         <Route
           path="/settings"

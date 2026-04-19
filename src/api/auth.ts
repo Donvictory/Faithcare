@@ -35,14 +35,21 @@ export async function login({
 export async function signUpUser({
   email,
   password,
+  fullName,
+  phoneNumber,
 }: {
   email: string;
   password: string;
+  fullName: string;
+  phoneNumber: string;
 }) {
   try {
-    const response = await fetch(`${baseUrl}/login`, {
+    const response = await fetch(`${baseUrl}/auth/register/user`, {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, fullName, phoneNumber }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
     const data = await response.json();
@@ -68,7 +75,7 @@ export async function signUpOrg({
   password: string;
 }) {
   try {
-    const response = await fetch(`${baseUrl}/login`, {
+    const response = await fetch(`${baseUrl}/auth/register/admin`, {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
@@ -90,7 +97,10 @@ export async function signUpOrg({
 
 export async function logout() {
   try {
-    const response = await fetch(`${baseUrl}/logout`);
+    const response = await fetch(`${baseUrl}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
 
     const data = await response.json();
 
@@ -129,3 +139,60 @@ export async function refreshToken() {
     };
   }
 }
+
+export async function verifyOTP({
+  email,
+  otp,
+}: {
+  email: string;
+  otp: string;
+}) {
+  try {
+    const response = await fetch(`${baseUrl}/auth/verify-otp`, {
+      method: "POST",
+      body: JSON.stringify({ email, otp }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) throw new Error(data.message || "Invalid OTP");
+    return {
+      success: true,
+      data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
+export async function resendOTP(email: string) {
+  try {
+    const response = await fetch(`${baseUrl}/auth/resend-otp`, {
+      method: "POST",
+      body: JSON.stringify({ email }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) throw new Error(data.message || "Failed to resend OTP");
+    return {
+      success: true,
+      data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
