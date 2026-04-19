@@ -1,15 +1,14 @@
 import { Sparkles, Mail, Lock, User, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
- 
 
-export function SignUp({type}: {type:string}) {
+export function SignUp({ type }: { type: string }) {
   const navigate = useNavigate();
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('userType', type);
-    if(type === "individual"){
+    localStorage.setItem("userType", type);
+    if (type === "individual") {
       navigate("/individual-onboarding");
-    }else{
+    } else {
       navigate("/organization-onboarding");
     }
   };
@@ -20,19 +19,22 @@ export function SignUp({type}: {type:string}) {
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-accent/10 to-accent/5 items-center justify-center p-16">
         <div className="max-w-lg">
           <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 border border-accent/20">
-            <Sparkles className="w-8 h-8" style={{ color: '#d4a574' }} />
+            <Sparkles className="w-8 h-8" style={{ color: "#d4a574" }} />
           </div>
           <h2 className="text-foreground mb-4">
             Join thousands of churches growing together
           </h2>
           <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-            Start your journey with FaithCare and transform how you connect with your community and grow spiritually.
+            Start your journey with FaithCare and transform how you connect with
+            your community and grow spiritually.
           </p>
-          
+
           {/* Testimonial */}
           <div className="bg-white rounded-xl p-6 border border-accent/20">
             <p className="text-muted-foreground italic mb-4">
-              "FaithCare has revolutionized how we care for our members. The combination of church management and personal spiritual tools is exactly what our community needed."
+              "FaithCare has revolutionized how we care for our members. The
+              combination of church management and personal spiritual tools is
+              exactly what our community needed."
             </p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground">
@@ -40,19 +42,20 @@ export function SignUp({type}: {type:string}) {
               </div>
               <div>
                 <p className="text-foreground text-sm">Pastor John Miller</p>
-                <p className="text-xs text-muted-foreground">Grace Community Church</p>
+                <p className="text-xs text-muted-foreground">
+                  Grace Community Church
+                </p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Right Side - Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="flex items-center gap-2 mb-8">
-            <Sparkles className="w-8 h-8" style={{ color: '#d4a574' }} />
+            <Sparkles className="w-8 h-8" style={{ color: "#d4a574" }} />
             <h1 className="text-foreground">FaithCare</h1>
           </div>
 
@@ -123,11 +126,17 @@ export function SignUp({type}: {type:string}) {
               />
               <label htmlFor="terms" className="text-sm text-muted-foreground">
                 I agree to the{" "}
-                <button type="button" className="text-accent hover:text-accent/80">
+                <button
+                  type="button"
+                  className="text-accent hover:text-accent/80"
+                >
                   Terms of Service
                 </button>{" "}
                 and{" "}
-                <button type="button" className="text-accent hover:text-accent/80">
+                <button
+                  type="button"
+                  className="text-accent hover:text-accent/80"
+                >
                   Privacy Policy
                 </button>
               </label>
@@ -188,8 +197,8 @@ export function SignUp({type}: {type:string}) {
           {/* Sign In Link */}
           <p className="text-center text-muted-foreground">
             Already have an account?{" "}
-            <Link to="/" 
-               
+            <Link
+              to="/"
               className="text-accent hover:text-accent/80 transition-colors"
             >
               Sign in
