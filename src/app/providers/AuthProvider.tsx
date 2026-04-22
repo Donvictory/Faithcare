@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { refreshToken as callRefreshTokenAPI } from "@/api/auth";
+import { refreshToken as callRefreshTokenAPI, logout as callLogoutAPI } from "@/api/auth";
 
 interface AuthContextType {
   user: any;
@@ -7,7 +7,7 @@ interface AuthContextType {
   setUser: (user: any) => void;
   setAccessToken: (token: string | null) => void;
   isLoading: boolean;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 export const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -40,27 +40,33 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // A freshly signed-up user has a valid access token in storage but
         // no refresh cookie yet — calling logout() here would erase their session.
         if (!hasStoredSession) {
-          logout();
+          await logout();
         }
       }
     } catch (error) {
       console.error("Failed to initialize session", error);
       if (!hasStoredSession) {
-        logout();
+        await logout();
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    setAccessToken(null);
-    setUser(null);
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
-    localStorage.removeItem("rememberMe");
-    sessionStorage.removeItem("accessToken");
-    sessionStorage.removeItem("user");
+  const logout = async () => {
+    try {
+      await callLogoutAPI();
+    } catch (error) {
+      console.error("API logout failed", error);
+    } finally {
+      setAccessToken(null);
+      setUser(null);
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+      localStorage.removeItem("rememberMe");
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("user");
+    }
   };
 
   useEffect(() => {

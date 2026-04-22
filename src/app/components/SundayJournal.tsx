@@ -163,7 +163,7 @@ export function SundayJournal() {
             </h2>
             <button
               onClick={handleNewEntry}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-accent hover:bg-accent/10 rounded-full transition-all"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-accent hover:bg-accent/10 rounded-full transition-all"
             >
               <Plus className="w-4 h-4" />
               Reset Form
@@ -172,18 +172,18 @@ export function SundayJournal() {
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground ml-1">Message Title</label>
+              <label className="text-sm text-muted-foreground ml-1">Message Title</label>
               <input
                 type="text"
                 placeholder="What was the sermon title?"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full text-2xl font-semibold text-foreground placeholder:text-muted-foreground/50 bg-secondary/30 border border-border rounded-xl px-5 py-4 focus:ring-2 focus:ring-accent outline-none transition-all"
+                className="w-full text-2xl text-foreground placeholder:text-muted-foreground/50 bg-secondary/30 border border-border rounded-xl px-5 py-4 focus:ring-2 focus:ring-accent outline-none transition-all"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground ml-1">Scripture Reference</label>
+              <label className="text-sm text-muted-foreground ml-1">Scripture Reference</label>
               <div className="relative">
                 <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
                 <input
@@ -197,7 +197,7 @@ export function SundayJournal() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground ml-1">Your Reflections</label>
+              <label className="text-sm text-muted-foreground ml-1">Your Reflections</label>
               <textarea
                 placeholder="Write down key takeaways and how you plan to apply them..."
                 value={content}
@@ -211,7 +211,7 @@ export function SundayJournal() {
             <button
               onClick={handleSave}
               disabled={isLoading}
-              className="flex items-center gap-3 px-10 py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 font-bold active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-3 px-10 py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 disabled:opacity-50"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -257,13 +257,13 @@ export function SundayJournal() {
                     >
                       <div className="flex flex-col gap-1">
                         <div className="flex justify-between items-start">
-                          <p className={`font-bold transition-colors truncate pr-4 ${
+                          <p className={`transition-colors truncate pr-4 ${
                             isActive ? "text-accent" : "text-foreground group-hover:text-accent"
                           }`}>
                             {entry.title || "Untitled"}
                           </p>
                           <div className="flex items-center gap-2">
-                             <span className="text-[10px] uppercase tracking-tighter text-muted-foreground font-bold">
+                             <span className="text-[10px] uppercase tracking-tighter text-muted-foreground">
                                {entry.createdAt ? new Date(entry.createdAt).toLocaleDateString("en-US", { month: 'short', day: 'numeric' }) : "New"}
                              </span>
                           </div>

@@ -290,7 +290,7 @@ export function FocusTimer() {
             ) : (
               <>
                 <div className="mb-10">
-                  <p className="text-xs text-muted-foreground mb-6 font-bold uppercase tracking-[0.2em]">Focus Session</p>
+                  <p className="text-xs text-muted-foreground mb-6 uppercase tracking-[0.2em]">Focus Session</p>
                   <div className="relative inline-block">
                     <svg className="w-64 h-64 md:w-80 md:h-80 transform -rotate-90">
                       <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="8" fill="none" className="text-muted/30" />
@@ -303,12 +303,12 @@ export function FocusTimer() {
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-6xl md:text-7xl font-black text-foreground tabular-nums tracking-tighter">{formatTime(timeLeft)}</span>
+                      <span className="text-6xl md:text-7xl font-bold text-foreground tabular-nums tracking-tighter">{formatTime(timeLeft)}</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center justify-center gap-6">
-                  <button onClick={handleStartPause} className="flex items-center gap-3 px-12 py-5 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 font-bold active:scale-95">
+                  <button onClick={handleStartPause} className="flex items-center gap-3 px-12 py-5 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95">
                     {isRunning ? <><Pause className="w-6 h-6 fill-current" /> Pause</> : <><Play className="w-6 h-6 fill-current ml-1" /> Start</>}
                   </button>
                   <button onClick={handleReset} className="p-5 border-2 border-border rounded-2xl hover:bg-muted transition-all text-foreground" title="Reset Timer"><RotateCcw className="w-6 h-6" /></button>
@@ -320,7 +320,7 @@ export function FocusTimer() {
           {!isRunning && !isCompleted && (
             <div className="w-full max-w-2xl mt-8 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
               <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-                <label className="block text-sm font-bold text-muted-foreground mb-4 uppercase tracking-wider">Set Custom Duration</label>
+                <label className="block text-sm text-muted-foreground mb-4 uppercase tracking-wider">Set Custom Duration</label>
                 <div className="flex gap-4">
                   <div className="relative flex-1">
                     <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -334,7 +334,7 @@ export function FocusTimer() {
                         setTimeLeft(mins * 60);
                         setTotalDuration(mins * 60);
                       }}
-                      className="w-full pl-12 pr-4 py-4 bg-muted/50 border-2 border-transparent focus:border-accent rounded-xl outline-none transition-all font-bold text-lg"
+                      className="w-full pl-12 pr-4 py-4 bg-muted/50 border-2 border-transparent focus:border-accent rounded-xl outline-none transition-all text-lg"
                       placeholder="Minutes"
                     />
                   </div>
@@ -347,7 +347,7 @@ export function FocusTimer() {
                           setTimeLeft(mins * 60);
                           setTotalDuration(mins * 60);
                         }}
-                        className={`px-4 py-4 rounded-xl border font-bold transition-all ${parseInt(customMinutes) === mins ? "bg-accent border-accent text-white" : "bg-card border-border hover:border-accent/40"}`}
+                        className={`px-4 py-4 rounded-xl border transition-all ${parseInt(customMinutes) === mins ? "bg-accent border-accent text-white" : "bg-card border-border hover:border-accent/40"}`}
                       >
                         {mins}m
                       </button>
@@ -363,13 +363,13 @@ export function FocusTimer() {
           <div className="bg-card rounded-3xl border border-border flex flex-col h-full shadow-sm overflow-hidden">
             <div className="p-6 border-b border-border flex items-center justify-between bg-muted/30">
               <div className="flex items-center gap-2"><History className="w-5 h-5 text-accent" /><h3 className="font-bold text-foreground">Session History</h3></div>
-              <span className="text-xs font-bold px-2 py-1 bg-accent/10 text-accent rounded-full">{history.length} Records</span>
+              <span className="text-xs px-2 py-1 bg-accent/10 text-accent rounded-full">{history.length} Records</span>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
               {isLoadingHistory ? (
-                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground"><Loader2 className="w-8 h-8 animate-spin mb-4" /><p className="text-sm font-medium">Loading records...</p></div>
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground"><Loader2 className="w-8 h-8 animate-spin mb-4" /><p className="text-sm">Loading records...</p></div>
               ) : history.length === 0 ? (
-                <div className="text-center py-12 px-6"><div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4"><History className="w-8 h-8 text-muted-foreground/50" /></div><p className="text-sm font-bold text-muted-foreground">No records yet</p></div>
+                <div className="text-center py-12 px-6"><div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4"><History className="w-8 h-8 text-muted-foreground/50" /></div><p className="text-sm text-muted-foreground">No records yet</p></div>
               ) : (
                 history.map((session) => (
                   <div key={session._id || session.id} className="group bg-muted/40 hover:bg-muted/80 border border-border/50 rounded-2xl p-4 transition-all duration-300">
@@ -380,10 +380,10 @@ export function FocusTimer() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-foreground">{session.duration} Minutes</span>
-                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${session.status === "COMPLETED" ? "bg-success/20 text-success" : "bg-warning/20 text-warning"}`}>{session.status}</span>
+                            <span className="text-foreground">{session.duration} Minutes</span>
+                            <span className={`text-[10px] uppercase px-2 py-0.5 rounded ${session.status === "COMPLETED" ? "bg-success/20 text-success" : "bg-warning/20 text-warning"}`}>{session.status}</span>
                           </div>
-                          <p className="text-xs text-muted-foreground font-medium mt-1">{new Date(session.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{new Date(session.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
                         </div>
                       </div>
                       <button onClick={() => handleDeleteHistory(session._id || session.id!)} className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"><Trash2 className="w-4 h-4" /></button>

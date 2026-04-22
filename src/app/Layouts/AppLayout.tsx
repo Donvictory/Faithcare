@@ -1,9 +1,42 @@
 import React from "react";
 import { Sidebar } from "../components/Sidebar";
 import { LayoutProvider, useLayout } from "../contexts/LayoutContext";
+import { useAuth } from "../providers/AuthProvider";
+import { useNavigate } from "react-router-dom";
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const { isSidebarOpen, closeSidebar } = useLayout();
+  const { accessToken, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  // Global theme persistence
+  React.useEffect(() => {
+    const theme = localStorage.getItem("theme");
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+  // Authentication Guard
+  React.useEffect(() => {
+    if (!isLoading && !accessToken) {
+      navigate("/");
+    }
+  }, [accessToken, isLoading, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!accessToken) return null;
+
+  const userType = (localStorage.getItem("userType") as "individual" | "organization") || "individual";
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -23,13 +56,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         w-64 bg-card border-r border-border
       `}
       >
-        <Sidebar
-          userType={
-            (localStorage.getItem("userType") as
-              | "individual"
-              | "organization") || "individual"
-          }
-        />
+        <Sidebar userType={userType} />
       </div>
 
       <div className="flex-1 flex flex-col min-w-0">
