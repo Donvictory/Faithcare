@@ -143,7 +143,9 @@ export function SignUp({ type }: { type: string }) {
           </div>
 
           <div className="mb-8">
-            <h2 className="text-foreground mb-2">Create your account</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-2">
+              Create your account
+            </h2>
             <p className="text-muted-foreground">
               Get started with FaithCare in just a few steps
             </p>
@@ -205,7 +207,7 @@ export function SignUp({ type }: { type: string }) {
                     />
                   </svg>
                   <div>
-                    <p className="text-sm text-red-500 font-medium">
+                    <p className="text-sm text-red-500 font-bold">
                       {emailError}
                     </p>
                     <Link
@@ -346,14 +348,14 @@ export function SignUp({ type }: { type: string }) {
                 I agree to the{" "}
                 <button
                   type="button"
-                  className="text-accent hover:text-accent/80"
+                  className="text-accent hover:text-accent/80 transition-colors"
                 >
                   Terms of Service
                 </button>{" "}
                 and{" "}
                 <button
                   type="button"
-                  className="text-accent hover:text-accent/80"
+                  className="text-accent hover:text-accent/80 transition-colors"
                 >
                   Privacy Policy
                 </button>
@@ -363,7 +365,7 @@ export function SignUp({ type }: { type: string }) {
             <button
               disabled={!formData.terms || isLoading}
               type="submit"
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 disabled:grayscale active:scale-95"
+              className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-bold hover:bg-primary/90 transition-all disabled:opacity-50 disabled:grayscale active:scale-95 shadow-xl shadow-primary/20"
             >
               {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
               {isLoading ? "Creating Account..." : "Create Account"}

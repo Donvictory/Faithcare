@@ -79,7 +79,10 @@ export function FollowUps() {
 
   return (
     <div className="min-h-full">
-      <Header title="Follow Ups" subtitle="Track and manage pastor follow-ups with members" />
+      <Header
+        title="Follow Ups"
+        subtitle="Track and manage pastor follow-ups with members"
+      />
       <div className="p-4 md:p-8 space-y-4">
         {followUpsData.map((followUp) => (
           <div
@@ -98,18 +101,28 @@ export function FollowUps() {
                     <User className="w-5 h-5 text-accent" />
                   </div>
                   <div>
-                    <p className="text-foreground font-medium">{followUp.name}</p>
+                    <p className="text-foreground font-medium">
+                      {followUp.name}
+                    </p>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className={getTypeColor(followUp.type)}>
+                      <Badge
+                        variant="outline"
+                        className={getTypeColor(followUp.type)}
+                      >
                         {followUp.type}
                       </Badge>
-                      <Badge variant="outline" className={getPriorityColor(followUp.priority)}>
+                      <Badge
+                        variant="outline"
+                        className={getPriorityColor(followUp.priority)}
+                      >
                         {followUp.priority}
                       </Badge>
                     </div>
                   </div>
                 </div>
-                <p className="text-muted-foreground ml-[52px] mb-3">{followUp.note}</p>
+                <p className="text-muted-foreground ml-[52px] mb-3">
+                  {followUp.note}
+                </p>
                 <div className="flex items-center gap-2 ml-[52px] text-sm text-muted-foreground">
                   <Clock className="w-4 h-4" />
                   <span>Due {followUp.dueDate}</span>

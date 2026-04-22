@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { verifyOTP, resendOTP } from "@/api/auth";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../providers/AuthProvider";
+import { LoadingScreen } from "./LoadingScreen";
 
 export function OTPVerification() {
   const navigate = useNavigate();
@@ -117,27 +118,33 @@ export function OTPVerification() {
     }
   };
 
+  if (isVerifying) {
+    return <LoadingScreen churchName="FaithCare" />;
+  }
+
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex font-sans">
       {/* Left Side - Hero */}
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-accent/10 to-accent/5 items-center justify-center p-16">
         <div className="max-w-lg">
-          <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 border border-accent/20">
-            <ShieldCheck className="w-8 h-8" style={{ color: "#d4a574" }} />
+          <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 border border-accent/20 shadow-xl shadow-accent/5">
+            <ShieldCheck className="w-8 h-8 text-accent" />
           </div>
-          <h2 className="text-foreground mb-4">Security is our priority</h2>
+          <h2 className="text-4xl font-bold text-foreground mb-6">
+            Security is our priority
+          </h2>
           <p className="text-muted-foreground text-lg leading-relaxed mb-8">
             We've sent a 6-digit verification code to your email. This helps us
             ensure your account stays secure and private.
           </p>
 
-          <div className="bg-white rounded-xl p-6 border border-accent/20">
+          <div className="bg-card rounded-2xl p-6 border border-accent/20 shadow-lg">
             <div className="flex items-center gap-4 text-muted-foreground">
-              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
                 <ShieldCheck className="w-6 h-6 text-accent" />
               </div>
               <div>
-                <p className="font-medium text-foreground">
+                <p className="font-bold text-foreground">
                   Two-Factor Authentication
                 </p>
                 <p className="text-sm">
@@ -151,27 +158,31 @@ export function OTPVerification() {
 
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          <div className="flex items-center gap-2 mb-8">
-            <Sparkles className="w-8 h-8" style={{ color: "#d4a574" }} />
-            <h1 className="text-foreground">FaithCare</h1>
+          <div className="flex items-center gap-3 mb-10">
+            <Sparkles className="w-8 h-8 text-accent" />
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">
+              FaithCare
+            </h1>
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-foreground mb-2">Verify your email</h2>
-            <p className="text-muted-foreground">
+          <div className="mb-10">
+            <h2 className="text-3xl font-bold text-foreground mb-3">
+              Verify your email
+            </h2>
+            <p className="text-muted-foreground leading-relaxed">
               Enter the 6-digit code sent to{" "}
-              <span className="text-foreground font-medium">{email}</span>
+              <span className="text-foreground font-bold">{email}</span>
             </p>
             <button
               onClick={() => navigate(-1)}
-              className="text-xs text-accent hover:underline mt-1"
+              className="text-xs text-accent hover:underline mt-2 inline-block font-bold"
             >
               Entered the wrong email?
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="flex justify-between gap-2">
+          <form onSubmit={handleSubmit} className="space-y-10">
+            <div className="flex justify-between gap-3">
               {otp.map((digit, index) => (
                 <input
                   key={index}
@@ -181,18 +192,18 @@ export function OTPVerification() {
                   value={digit}
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-14 text-center text-2xl font-bold bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground"
+                  className="w-12 h-16 text-center text-3xl font-bold bg-secondary/30 border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground shadow-sm"
                 />
               ))}
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               <button
                 type="submit"
                 disabled={isVerifying}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-bold hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
               >
-                {isVerifying ? "Verifying..." : "Verify Code"}
+                Verify Code
                 <ArrowRight className="w-5 h-5" />
               </button>
 
@@ -201,7 +212,7 @@ export function OTPVerification() {
                   type="button"
                   onClick={handleResend}
                   disabled={!canResend}
-                  className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent/80 transition-colors disabled:text-muted-foreground"
+                  className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent/80 transition-all font-bold disabled:text-muted-foreground"
                 >
                   <RefreshCw
                     className={`w-4 h-4 ${!canResend ? "animate-none" : ""}`}
@@ -212,7 +223,7 @@ export function OTPVerification() {
             </div>
           </form>
 
-          <p className="mt-8 text-center text-sm text-muted-foreground">
+          <p className="mt-12 text-center text-sm text-muted-foreground italic">
             Didn't receive the code? Check your spam folder or contact support.
           </p>
         </div>

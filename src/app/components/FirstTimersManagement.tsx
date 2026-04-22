@@ -3,7 +3,11 @@ import { Badge } from "./ui/badge";
 import { useState } from "react";
 import { Header } from "./Header";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getFirstTimers, createFollowUp, updateFirstTimerStatus } from "@/api/church";
+import {
+  getFirstTimers,
+  createFollowUp,
+  updateFirstTimerStatus,
+} from "@/api/church";
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
 
@@ -22,7 +26,7 @@ export function FirstTimersManagement() {
   const { accessToken, user } = useAuth();
   const queryClient = useQueryClient();
   const organizationId = user?.id || "";
-  
+
   // States for filters
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -30,15 +34,22 @@ export function FirstTimersManagement() {
 
   // Status update mutation
   const statusMutation = useMutation({
-    mutationFn: ({ id, status, notes }: { id: string; status: string; notes: string }) => 
-      updateFirstTimerStatus(id, { status, notes }),
+    mutationFn: ({
+      id,
+      status,
+      notes,
+    }: {
+      id: string;
+      status: string;
+      notes: string;
+    }) => updateFirstTimerStatus(id, { status, notes }),
     onSuccess: () => {
       toast.success("Status updated");
       queryClient.invalidateQueries({ queryKey: ["first-timers"] });
     },
     onError: (error: any) => {
       toast.error(error.message || "Update failed");
-    }
+    },
   });
 
   const followUpMutation = useMutation({
@@ -65,20 +76,21 @@ export function FirstTimersManagement() {
   };
 
   const handleStatusChange = (id: string, newStatus: string) => {
-    statusMutation.mutate({ 
-      id, 
-      status: newStatus, 
-      notes: `Status changed to ${newStatus} from dashboard` 
+    statusMutation.mutate({
+      id,
+      status: newStatus,
+      notes: `Status changed to ${newStatus} from dashboard`,
     });
   };
 
   const { data: firstTimersResponse, isLoading } = useQuery({
     queryKey: ["first-timers", statusFilter, searchTerm],
-    queryFn: () => getFirstTimers({
-      status: statusFilter === "all" ? "all" : (statusFilter as any),
-      search: searchTerm,
-      organizationId: organizationId
-    }),
+    queryFn: () =>
+      getFirstTimers({
+        status: statusFilter === "all" ? "all" : (statusFilter as any),
+        search: searchTerm,
+        organizationId: organizationId,
+      }),
     enabled: !!organizationId,
   });
 
@@ -90,8 +102,8 @@ export function FirstTimersManagement() {
         email: ft.email || "N/A",
         prayerRequest: ft.prayerRequest || "None",
         status: ft.status || "PENDING",
-        sunday: ft.serviceDate || ft.createdAt?.split('T')[0] || "N/A",
-        visitType: ft.visitType || "first_time"
+        sunday: ft.serviceDate || ft.createdAt?.split("T")[0] || "N/A",
+        visitType: ft.visitType || "first_time",
       }))
     : [];
 
@@ -217,69 +229,104 @@ export function FirstTimersManagement() {
             <table className="w-full">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Visitor</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Prayer Request</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Visit Info</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Actions</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Visitor
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Prayer Request
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Visit Info
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {isLoading ? (
-                   <tr>
-                     <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
-                       Loading your visitor records...
-                     </td>
-                   </tr>
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="px-6 py-12 text-center text-muted-foreground"
+                    >
+                      Loading your visitor records...
+                    </td>
+                  </tr>
                 ) : displayedData.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                    <td
+                      colSpan={5}
+                      className="px-6 py-12 text-center text-muted-foreground"
+                    >
                       No visitor records found.
                     </td>
                   </tr>
-                ) : displayedData.map((person) => (
-                  <tr key={person.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-foreground">{person.name}</span>
-                        <span className="text-xs text-muted-foreground">{person.phone}</span>
-                        <span className="text-xs text-muted-foreground">{person.email}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-muted-foreground line-clamp-2 max-w-xs italic">
-                        "{person.prayerRequest}"
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-xs text-foreground font-medium uppercase">{person.visitType.replace('_', ' ')}</span>
-                        <span className="text-xs text-muted-foreground">{person.sunday}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <select
-                        value={person.status.toUpperCase()}
-                        onChange={(e) => handleStatusChange(person.id, e.target.value)}
-                        className={`text-xs font-medium px-3 py-1.5 rounded-full border border-transparent focus:ring-2 focus:ring-accent outline-none cursor-pointer ${getStatusColor(person.status)}`}
-                      >
-                        <option value="PENDING">Pending</option>
-                        <option value="CONTACTED">Contacted</option>
-                        <option value="FOLLOWED_UP">Followed Up</option>
-                      </select>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                       <button
-                        onClick={() => handleSendFollowUp(person)}
-                        disabled={followUpMutation.isPending}
-                        className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 shadow-sm"
-                      >
-                        <Send className="w-4 h-4" />
-                        {followUpMutation.isPending ? "Syncing..." : "Assign Follow Up"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                ) : (
+                  displayedData.map((person) => (
+                    <tr
+                      key={person.id}
+                      className="hover:bg-muted/30 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-foreground">
+                            {person.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {person.phone}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {person.email}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm text-muted-foreground line-clamp-2 max-w-xs italic">
+                          "{person.prayerRequest}"
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-xs text-foreground font-medium uppercase">
+                            {person.visitType.replace("_", " ")}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {person.sunday}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <select
+                          value={person.status.toUpperCase()}
+                          onChange={(e) =>
+                            handleStatusChange(person.id, e.target.value)
+                          }
+                          className={`text-xs font-medium px-3 py-1.5 rounded-full border border-transparent focus:ring-2 focus:ring-accent outline-none cursor-pointer ${getStatusColor(person.status)}`}
+                        >
+                          <option value="PENDING">Pending</option>
+                          <option value="CONTACTED">Contacted</option>
+                          <option value="FOLLOWED_UP">Followed Up</option>
+                        </select>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => handleSendFollowUp(person)}
+                          disabled={followUpMutation.isPending}
+                          className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 shadow-sm"
+                        >
+                          <Send className="w-4 h-4" />
+                          {followUpMutation.isPending
+                            ? "Syncing..."
+                            : "Assign Follow Up"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

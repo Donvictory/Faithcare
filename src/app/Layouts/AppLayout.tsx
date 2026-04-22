@@ -3,10 +3,11 @@ import { Sidebar } from "../components/Sidebar";
 import { LayoutProvider, useLayout } from "../contexts/LayoutContext";
 import { useAuth } from "../providers/AuthProvider";
 import { useNavigate } from "react-router-dom";
+import { LoadingScreen } from "../components/LoadingScreen";
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const { isSidebarOpen, closeSidebar } = useLayout();
-  const { accessToken, isLoading } = useAuth();
+  const { accessToken, isLoading, user } = useAuth();
   const navigate = useNavigate();
 
   // Global theme persistence
@@ -27,11 +28,19 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   }, [accessToken, isLoading, navigate]);
 
   if (isLoading) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    // Try to get church name from stored user data for the loading screen
+    let churchName = "FaithCare";
+    try {
+      const storedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        churchName = parsed.churchName || parsed.organizationName || "FaithCare";
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    return <LoadingScreen churchName={churchName} />;
   }
 
   if (!accessToken) return null;

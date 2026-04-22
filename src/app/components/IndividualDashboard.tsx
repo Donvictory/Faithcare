@@ -8,6 +8,7 @@ import {
   getTimerSessions,
 } from "@/api/individual";
 import { Link } from "react-router-dom";
+import { LoadingScreen } from "./LoadingScreen";
 
 export function IndividualDashboard() {
   const { user, accessToken } = useAuth();
@@ -71,7 +72,7 @@ export function IndividualDashboard() {
     },
     {
       title: "Scriptures Read",
-      value: metadata?.scripturesCount || "12",
+      value: (metadata?.scripturesCount || 0).toString(),
       icon: Sparkles,
       color: "#3b82f6",
     },
@@ -85,12 +86,7 @@ export function IndividualDashboard() {
 
   if (isMetadataLoading || isJournalsLoading || isTimerLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen space-y-4 bg-background">
-        <Loader2 className="w-10 h-10 text-accent animate-spin" />
-        <p className="text-muted-foreground font-medium animate-pulse">
-          Syncing your spiritual journey...
-        </p>
-      </div>
+      <LoadingScreen churchName={user?.churchName || user?.organizationName} />
     );
   }
 

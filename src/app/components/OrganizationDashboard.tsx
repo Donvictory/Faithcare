@@ -1,15 +1,10 @@
 import { useAuth } from "../providers/AuthProvider";
 import { useQuery } from "@tanstack/react-query";
 import { getDashboardTrends, getFirstTimers, getFollowUps } from "@/api/church";
-import {
-  UserPlus,
-  CheckCircle,
-  Heart,
-  TrendingUp,
-  Loader2,
-} from "lucide-react";
+import { UserPlus, CheckCircle, Heart, TrendingUp } from "lucide-react";
 import { Header } from "./Header";
 import { DashboardOverview } from "./DashboardOverview";
+import { LoadingScreen } from "./LoadingScreen";
 
 export function OrganizationDashboard() {
   const { accessToken, user } = useAuth();
@@ -74,6 +69,10 @@ export function OrganizationDashboard() {
         }))
       : [];
 
+  if (leadsLoading) {
+    return <LoadingScreen churchName={user?.churchName || user?.name} />;
+  }
+
   return (
     <div className="min-h-full font-sans">
       <Header
@@ -91,7 +90,7 @@ export function OrganizationDashboard() {
               <h3 className="text-lg font-bold text-foreground">
                 Recent Activity
               </h3>
-              <button className="text-xs font-semibold text-accent hover:underline uppercase tracking-wider">
+              <button className="text-[10px] text-accent hover:underline uppercase tracking-widest bg-accent/5 px-3 py-1.5 rounded-full">
                 Live Feed
               </button>
             </div>
@@ -106,14 +105,12 @@ export function OrganizationDashboard() {
                       <UserPlus className="w-6 h-6 text-accent" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-foreground">
-                        {activity.name}
-                      </p>
+                      <p className="text-sm text-foreground">{activity.name}</p>
                       <p className="text-xs text-muted-foreground">
                         Successfully {activity.action} in the system
                       </p>
                     </div>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase bg-muted/50 px-2 py-1 rounded">
+                    <span className="text-[10px] text-muted-foreground uppercase bg-muted/50 px-2 py-1 rounded">
                       {activity.time}
                     </span>
                   </div>
@@ -148,7 +145,7 @@ export function OrganizationDashboard() {
                     className={`p-5 rounded-xl border-l-4 shadow-sm ${fu.status === "overdue" ? "border-l-red-500 bg-red-50/30" : "border-l-accent bg-accent/5"}`}
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <p className="text-sm font-bold text-foreground italic">
+                      <p className="text-sm text-foreground italic">
                         "{fu.name}"
                       </p>
                       <span
@@ -172,7 +169,7 @@ export function OrganizationDashboard() {
                 </div>
               )}
             </div>
-            <button className="w-full mt-6 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-all shadow-lg active:scale-95">
+            <button className="w-full mt-6 px-4 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg active:scale-95">
               Manage All Follow Ups
             </button>
           </div>

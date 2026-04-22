@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { Save, BookOpen, Calendar, Loader2, Trash2, Plus, Edit3 } from "lucide-react";
+import {
+  Save,
+  BookOpen,
+  Calendar,
+  Loader2,
+  Trash2,
+  Plus,
+  Edit3,
+} from "lucide-react";
 import { Header } from "./Header";
 import {
   createJournalEntry,
@@ -32,7 +40,7 @@ export function SundayJournal() {
   // Debug Helper to identify the data structure
   const extractEntries = (data: any): JournalEntry[] => {
     console.log("Journal API Response Data:", data);
-    
+
     if (Array.isArray(data)) return data;
     if (data?.entries && Array.isArray(data.entries)) return data.entries;
     if (data?.data && Array.isArray(data.data)) return data.data;
@@ -46,7 +54,7 @@ export function SundayJournal() {
       console.warn("Journal: No userId found in user object:", user);
       return;
     }
-    
+
     setIsFetching(true);
     try {
       const res = await getJournalEntries({ userId });
@@ -72,7 +80,7 @@ export function SundayJournal() {
 
   const handleSave = async () => {
     const userId = user?.id || user?._id || user?.userId;
-    
+
     if (!userId) {
       toast.error("Auth session missing. Please try logging in again.");
       return;
@@ -172,7 +180,9 @@ export function SundayJournal() {
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm text-muted-foreground ml-1">Message Title</label>
+              <label className="text-sm text-muted-foreground ml-1">
+                Message Title
+              </label>
               <input
                 type="text"
                 placeholder="What was the sermon title?"
@@ -183,7 +193,9 @@ export function SundayJournal() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm text-muted-foreground ml-1">Scripture Reference</label>
+              <label className="text-sm text-muted-foreground ml-1">
+                Scripture Reference
+              </label>
               <div className="relative">
                 <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
                 <input
@@ -197,7 +209,9 @@ export function SundayJournal() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm text-muted-foreground ml-1">Your Reflections</label>
+              <label className="text-sm text-muted-foreground ml-1">
+                Your Reflections
+              </label>
               <textarea
                 placeholder="Write down key takeaways and how you plan to apply them..."
                 value={content}
@@ -230,16 +244,20 @@ export function SundayJournal() {
               <Calendar className="w-5 h-5 text-accent" />
               Message Records
             </h3>
-            
+
             <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar">
               {isFetching ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-accent mb-2" />
-                  <p className="text-sm text-muted-foreground">Syncing records...</p>
+                  <p className="text-sm text-muted-foreground">
+                    Syncing records...
+                  </p>
                 </div>
               ) : entries.length === 0 ? (
                 <div className="text-center py-12 px-4 border-2 border-dashed border-border rounded-2xl">
-                  <p className="text-sm text-muted-foreground">No records found. Start your first journal entry!</p>
+                  <p className="text-sm text-muted-foreground">
+                    No records found. Start your first journal entry!
+                  </p>
                 </div>
               ) : (
                 entries.map((entry) => {
@@ -257,26 +275,42 @@ export function SundayJournal() {
                     >
                       <div className="flex flex-col gap-1">
                         <div className="flex justify-between items-start">
-                          <p className={`transition-colors truncate pr-4 ${
-                            isActive ? "text-accent" : "text-foreground group-hover:text-accent"
-                          }`}>
+                          <p
+                            className={`transition-colors truncate pr-4 ${
+                              isActive
+                                ? "text-accent"
+                                : "text-foreground group-hover:text-accent"
+                            }`}
+                          >
                             {entry.title || "Untitled"}
                           </p>
                           <div className="flex items-center gap-2">
-                             <span className="text-[10px] uppercase tracking-tighter text-muted-foreground">
-                               {entry.createdAt ? new Date(entry.createdAt).toLocaleDateString("en-US", { month: 'short', day: 'numeric' }) : "New"}
-                             </span>
+                            <span className="text-[10px] uppercase tracking-tighter text-muted-foreground">
+                              {entry.createdAt
+                                ? new Date(entry.createdAt).toLocaleDateString(
+                                    "en-US",
+                                    { month: "short", day: "numeric" },
+                                  )
+                                : "New"}
+                            </span>
                           </div>
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5 text-xs text-muted-foreground italic">
                             <BookOpen className="w-3 h-3 text-accent/60" />
-                            <span className="truncate">{entry.scriptureReference || "No reference"}</span>
+                            <span className="truncate">
+                              {entry.scriptureReference || "No reference"}
+                            </span>
                           </div>
-                          
-                          <div className={`flex items-center gap-1 transition-all ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+
+                          <div
+                            className={`flex items-center gap-1 transition-all ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                          >
                             <button
-                              onClick={(e) => { e.stopPropagation(); selectEntry(entry); }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                selectEntry(entry);
+                              }}
                               className="p-1.5 rounded-md hover:bg-accent/10 text-accent transition-colors"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
@@ -296,14 +330,15 @@ export function SundayJournal() {
               )}
             </div>
           </div>
-          
+
           <div className="bg-accent/5 rounded-2xl border border-accent/10 p-6">
             <h4 className="text-accent font-bold text-sm mb-2 flex items-center gap-2">
               <Edit3 className="w-4 h-4" />
               Spiritual Habit
             </h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Consistently recording your Sunday messages helps you retain 80% more of what you learned. Review your records weekly!
+              Consistently recording your Sunday messages helps you retain 80%
+              more of what you learned. Review your records weekly!
             </p>
           </div>
         </div>

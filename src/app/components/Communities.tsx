@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getCommunities, createCommunity, deleteCommunity, updateCommunity } from "@/api/church";
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
+import { LoadingScreen } from "./LoadingScreen";
 
 interface CommunityMember {
   id: string | number;
@@ -109,13 +110,16 @@ export function Communities() {
     }
   };
 
+  if (isLoading) {
+    return <LoadingScreen churchName={user?.churchName || user?.name} />;
+  }
   return (
     <div className="min-h-full font-sans">
       <Header title="Communities" subtitle="Manage your church groups and fellowships" />
       
       <div className="p-4 md:p-8 space-y-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
              <Users className="w-5 h-5 text-accent" />
              Active Groups
           </h2>
@@ -130,10 +134,10 @@ export function Communities() {
 
         {showNewCommunityForm && (
           <div className="bg-card rounded-xl border border-border p-8 shadow-md">
-            <h3 className="text-lg font-medium text-foreground mb-6">Create New Fellowship Group</h3>
+            <h3 className="text-lg font-bold text-foreground mb-6">Create New Fellowship Group</h3>
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Group Name</label>
+                <label className="text-sm text-muted-foreground uppercase tracking-wider ml-1">Group Name</label>
                 <input
                   type="text"
                   value={newCommunity.name}
@@ -143,7 +147,7 @@ export function Communities() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Description</label>
+                <label className="text-sm text-muted-foreground uppercase tracking-wider ml-1">Description</label>
                 <input
                   type="text"
                   value={newCommunity.description}
@@ -157,7 +161,7 @@ export function Communities() {
               <button
                 onClick={handleCreateCommunity}
                 disabled={createMutation.isPending}
-                className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all font-medium disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
               >
                 {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                 {createMutation.isPending ? "Creating..." : "Save Fellowship"}
@@ -172,60 +176,53 @@ export function Communities() {
           </div>
         )}
 
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 space-y-4">
-            <Loader2 className="w-10 h-10 text-accent animate-spin" />
-            <p className="text-muted-foreground">Syncing your church communities...</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {communities.length === 0 ? (
-              <div className="col-span-full py-16 text-center bg-muted/20 rounded-2xl border-2 border-dashed border-border">
-                <p className="text-muted-foreground italic mb-4">No communities set up yet.</p>
-                <button onClick={() => setShowNewCommunityForm(true)} className="text-primary hover:underline font-medium">Create your first group</button>
-              </div>
-            ) : communities.map((community) => (
-              <div
-                key={community.id}
-                onClick={() => setSelectedCommunity(community)}
-                className={`group relative bg-card rounded-2xl border p-6 transition-all cursor-pointer hover:border-accent hover:shadow-xl ${selectedCommunity?.id === community.id ? 'border-accent ring-1 ring-accent bg-accent/5' : 'border-border'}`}
-              >
-                <div className="flex items-start justify-between mb-6">
-                  <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center overflow-hidden border border-accent/20">
-                    {community.profileImage ? (
-                      <img src={community.profileImage} alt={community.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <Users className="w-7 h-7 text-accent" />
-                    )}
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm(`Delete "${community.name}" group?`)) deleteMutation.mutate(community.id);
-                    }}
-                    className="p-2 text-muted-foreground hover:bg-red-50 hover:text-red-500 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {communities.length === 0 ? (
+            <div className="col-span-full py-16 text-center bg-muted/20 rounded-2xl border-2 border-dashed border-border">
+              <p className="text-muted-foreground italic mb-4">No communities set up yet.</p>
+              <button onClick={() => setShowNewCommunityForm(true)} className="text-primary hover:underline">Create your first group</button>
+            </div>
+          ) : communities.map((community) => (
+            <div
+              key={community.id}
+              onClick={() => setSelectedCommunity(community)}
+              className={`group relative bg-card rounded-2xl border p-6 transition-all cursor-pointer hover:border-accent hover:shadow-xl ${selectedCommunity?.id === community.id ? 'border-accent ring-1 ring-accent bg-accent/5' : 'border-border'}`}
+            >
+              <div className="flex items-start justify-between mb-6">
+                <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center overflow-hidden border border-accent/20">
+                  {community.profileImage ? (
+                    <img src={community.profileImage} alt={community.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Users className="w-7 h-7 text-accent" />
+                  )}
                 </div>
-                <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-accent transition-colors">{community.name}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px] mb-6">
-                  {community.description}
-                </p>
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
-                      {community.memberCount} Members
-                    </Badge>
-                  </div>
-                  <span className="text-xs font-medium text-muted-foreground bg-muted p-1 px-2 rounded-md">
-                    Since {community.createdDate}
-                  </span>
-                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm(`Delete "${community.name}" group?`)) deleteMutation.mutate(community.id);
+                  }}
+                  className="p-2 text-muted-foreground hover:bg-red-50 hover:text-red-500 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
-            ))}
-          </div>
-        )}
+              <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-accent transition-colors">{community.name}</h3>
+              <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px] mb-6">
+                {community.description}
+              </p>
+              <div className="flex items-center justify-between pt-4 border-t border-border">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                    {community.memberCount} Members
+                  </Badge>
+                </div>
+                <span className="text-xs text-muted-foreground bg-muted p-1 px-2 rounded-md">
+                  Since {community.createdDate}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
 
         {selectedCommunity && (
           <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-2xl animate-in slide-in-from-bottom-5 duration-300">

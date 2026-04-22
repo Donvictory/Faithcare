@@ -5,7 +5,9 @@ import { useAuth } from "../providers/AuthProvider";
 
 export function Settings() {
   const { user, logout } = useAuth();
-  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light",
+  );
 
   // Sync theme with document class
   useEffect(() => {
@@ -19,12 +21,14 @@ export function Settings() {
 
   const userName = user?.fullName || user?.name || "Admin User";
   const userEmail = user?.email || "admin@faithcare.com";
-  const userRole = user?.role || (user?.organizationName ? "Organization Admin" : "Individual User");
+  const userRole =
+    user?.role ||
+    (user?.organizationName ? "Organization Admin" : "Individual User");
 
   return (
     <div className="min-h-full space-y-6 pb-12">
       <Header title="Settings" subtitle="Manage your account and preferences" />
-      
+
       {/* Profile Settings */}
       <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
         <div className="flex items-center justify-between mb-6">
@@ -32,7 +36,7 @@ export function Settings() {
             <User className="w-5 h-5 text-accent" />
             <h3 className="text-foreground font-bold">Profile Settings</h3>
           </div>
-          <button 
+          <button
             onClick={logout}
             className="flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-xl transition-all"
           >
@@ -90,8 +94,8 @@ export function Settings() {
               <button
                 onClick={() => setTheme("light")}
                 className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                  theme === "light" 
-                    ? "border-accent bg-accent/5 text-accent" 
+                  theme === "light"
+                    ? "border-accent bg-accent/5 text-accent"
                     : "border-border hover:border-accent/40 text-muted-foreground"
                 }`}
               >
@@ -101,8 +105,8 @@ export function Settings() {
               <button
                 onClick={() => setTheme("dark")}
                 className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                  theme === "dark" 
-                    ? "border-accent bg-accent/5 text-accent" 
+                  theme === "dark"
+                    ? "border-accent bg-accent/5 text-accent"
                     : "border-border hover:border-accent/40 text-muted-foreground"
                 }`}
               >
@@ -163,7 +167,9 @@ export function Settings() {
           </button>
           <button className="w-full px-6 py-4 bg-muted/30 border-2 border-transparent hover:border-accent/40 rounded-xl transition-all text-left text-foreground flex items-center justify-between group">
             Two-Factor Authentication
-            <span className="px-3 py-1 bg-warning/10 text-warning text-[10px] uppercase rounded-full">Recommended</span>
+            <span className="px-3 py-1 bg-warning/10 text-warning text-[10px] uppercase rounded-full">
+              Recommended
+            </span>
           </button>
         </div>
       </div>

@@ -22,6 +22,7 @@ import {
   getTimerSessions,
 } from "@/api/individual";
 import { toast } from "react-hot-toast";
+import { LoadingScreen } from "./LoadingScreen";
 
 interface TimerSession {
   _id: string;
@@ -263,11 +264,7 @@ export function FocusTimer() {
   const safeProgress = totalDuration > 0 ? ((totalDuration - timeLeft) / totalDuration) * 100 : 0;
 
   if (isInitializing) {
-    return (
-      <div className="min-h-full flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-accent" />
-      </div>
-    );
+    return <LoadingScreen churchName={user?.churchName || user?.organizationName} />;
   }
 
   return (
