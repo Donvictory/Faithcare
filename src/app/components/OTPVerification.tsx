@@ -3,17 +3,22 @@ import { Sparkles, ArrowRight, ShieldCheck, RefreshCw } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { verifyOTP, resendOTP } from "@/api/auth";
 import { toast } from "react-hot-toast";
+import { useAuth } from "../providers/AuthProvider";
 
 export function OTPVerification() {
   const navigate = useNavigate();
   const location = useLocation();
-  const email = location.state?.email || "your email";
-  
+  const { setUser, setAccessToken } = useAuth();
+  const email =
+    location.state?.email ||
+    localStorage.getItem("pendingEmail") ||
+    "your email";
+
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isVerifying, setIsVerifying] = useState(false);
   const [resendTimer, setResendTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
-  
+
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -30,7 +35,7 @@ export function OTPVerification() {
 
   const handleChange = (index: number, value: string) => {
     if (isNaN(Number(value))) return;
-    
+
     const newOtp = [...otp];
     newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
@@ -41,7 +46,10 @@ export function OTPVerification() {
     }
   };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
@@ -61,6 +69,29 @@ export function OTPVerification() {
 
     if (res.success) {
       toast.success("Verification successful!");
+
+      // If the backend returns tokens/user on verification, set them in context
+      // AND persist them to storage so AuthProvider can restore the session
+      // without needing a refresh token cookie (which may not exist yet).
+      if (res.data?.data?.accessToken) {
+        const newAccessToken = res.data.data.accessToken;
+        const newUser = res.data.data.user;
+
+        setAccessToken(newAccessToken);
+        setUser(newUser);
+
+        // Persist to storage — use sessionStorage by default after sign-up
+        // (no "remember me" preference is set at this point)
+        const rememberMe = localStorage.getItem("rememberMe") === "true";
+        if (rememberMe) {
+          localStorage.setItem("accessToken", newAccessToken);
+          if (newUser) localStorage.setItem("user", JSON.stringify(newUser));
+        } else {
+          sessionStorage.setItem("accessToken", newAccessToken);
+          if (newUser) sessionStorage.setItem("user", JSON.stringify(newUser));
+        }
+      }
+
       const userType = localStorage.getItem("userType");
       if (userType === "individual") {
         navigate("/individual-onboarding");
@@ -74,12 +105,13 @@ export function OTPVerification() {
 
   const handleResend = async () => {
     if (!canResend) return;
-    
+
+    setResendTimer(30);
+    setCanResend(false);
+
     const res = await resendOTP(email);
     if (res.success) {
       toast.success("OTP resent successfully");
-      setResendTimer(30);
-      setCanResend(false);
     } else {
       toast.error(res.error || "Failed to resend OTP");
     }
@@ -93,11 +125,10 @@ export function OTPVerification() {
           <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 border border-accent/20">
             <ShieldCheck className="w-8 h-8" style={{ color: "#d4a574" }} />
           </div>
-          <h2 className="text-foreground mb-4">
-            Security is our priority
-          </h2>
+          <h2 className="text-foreground mb-4">Security is our priority</h2>
           <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-            We've sent a 6-digit verification code to your email. This helps us ensure your account stays secure and private.
+            We've sent a 6-digit verification code to your email. This helps us
+            ensure your account stays secure and private.
           </p>
 
           <div className="bg-white rounded-xl p-6 border border-accent/20">
@@ -106,18 +137,20 @@ export function OTPVerification() {
                 <ShieldCheck className="w-6 h-6 text-accent" />
               </div>
               <div>
-                <p className="font-medium text-foreground">Two-Factor Authentication</p>
-                <p className="text-sm">Protecting your spiritual journey and data.</p>
+                <p className="font-medium text-foreground">
+                  Two-Factor Authentication
+                </p>
+                <p className="text-sm">
+                  Protecting your spiritual journey and data.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Right Side - OTP Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          {/* Logo */}
           <div className="flex items-center gap-2 mb-8">
             <Sparkles className="w-8 h-8" style={{ color: "#d4a574" }} />
             <h1 className="text-foreground">FaithCare</h1>
@@ -126,9 +159,10 @@ export function OTPVerification() {
           <div className="mb-8">
             <h2 className="text-foreground mb-2">Verify your email</h2>
             <p className="text-muted-foreground">
-              Enter the 6-digit code sent to <span className="text-foreground font-medium">{email}</span>
+              Enter the 6-digit code sent to{" "}
+              <span className="text-foreground font-medium">{email}</span>
             </p>
-            <button 
+            <button
               onClick={() => navigate(-1)}
               className="text-xs text-accent hover:underline mt-1"
             >
@@ -169,7 +203,9 @@ export function OTPVerification() {
                   disabled={!canResend}
                   className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent/80 transition-colors disabled:text-muted-foreground"
                 >
-                  <RefreshCw className={`w-4 h-4 ${!canResend ? "animate-none" : ""}`} />
+                  <RefreshCw
+                    className={`w-4 h-4 ${!canResend ? "animate-none" : ""}`}
+                  />
                   {canResend ? "Resend Code" : `Resend in ${resendTimer}s`}
                 </button>
               </div>

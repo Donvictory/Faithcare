@@ -1,25 +1,38 @@
 import { baseUrl } from "@/constants/api";
+import { apiRequest } from "./helper";
 
 export async function login({
   email,
   password,
+  rememberMe,
 }: {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }) {
   try {
     const response = await fetch(`${baseUrl}/auth/login`, {
       method: "POST",
-      //   credentials: "include",
       body: JSON.stringify({ email, password }),
       headers: {
         "Content-Type": "application/json",
       },
     });
     const data = await response.json();
-    console.log(data);
 
     if (!response.ok) throw new Error(data.message || "Invalid credentials");
+
+    // Store rememberMe preference
+    if (rememberMe) {
+      localStorage.setItem("rememberMe", "true");
+      if (data.data.accessToken) localStorage.setItem("accessToken", data.data.accessToken);
+      if (data.data.user) localStorage.setItem("user", JSON.stringify(data.data.user));
+    } else {
+      localStorage.removeItem("rememberMe");
+      if (data.data.accessToken) sessionStorage.setItem("accessToken", data.data.accessToken);
+      if (data.data.user) sessionStorage.setItem("user", JSON.stringify(data.data.user));
+    }
+
     return {
       success: true,
       data: data?.data,
@@ -44,17 +57,14 @@ export async function signUpUser({
   phoneNumber: string;
 }) {
   try {
-    const response = await fetch(`${baseUrl}/auth/register/user`, {
+    const response = await apiRequest("/auth/register/user", {
       method: "POST",
       body: JSON.stringify({ email, password, fullName, phoneNumber }),
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
     const data = await response.json();
 
-    if (!response.ok) throw new Error("Fetch failed");
+    if (!response.ok) throw new Error(data.message || "Registration failed");
     return {
       success: true,
       data,
@@ -70,19 +80,23 @@ export async function signUpUser({
 export async function signUpOrg({
   email,
   password,
+  fullName,
+  phoneNumber,
 }: {
   email: string;
   password: string;
+  fullName: string;
+  phoneNumber: string;
 }) {
   try {
-    const response = await fetch(`${baseUrl}/auth/register/admin`, {
+    const response = await apiRequest("/auth/register/admin", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, fullName, phoneNumber }),
     });
 
     const data = await response.json();
 
-    if (!response.ok) throw new Error("Fetch failed");
+    if (!response.ok) throw new Error(data.message || "Registration failed");
     return {
       success: true,
       data,
@@ -97,7 +111,7 @@ export async function signUpOrg({
 
 export async function logout() {
   try {
-    const response = await fetch(`${baseUrl}/auth/logout`, {
+    const response = await apiRequest("/auth/logout", {
       method: "POST",
       credentials: "include",
     });
@@ -148,12 +162,9 @@ export async function verifyOTP({
   otp: string;
 }) {
   try {
-    const response = await fetch(`${baseUrl}/auth/verify-otp`, {
+    const response = await apiRequest("/auth/verify-email", {
       method: "POST",
       body: JSON.stringify({ email, otp }),
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
     const data = await response.json();
@@ -173,17 +184,15 @@ export async function verifyOTP({
 
 export async function resendOTP(email: string) {
   try {
-    const response = await fetch(`${baseUrl}/auth/resend-otp`, {
+    const response = await apiRequest("/auth/resend-otp", {
       method: "POST",
-      body: JSON.stringify({ email }),
-      headers: {
-        "Content-Type": "application/json",
-      },
+      body: JSON.stringify({ email, type: "email_verification" }),
     });
 
     const data = await response.json();
-
-    if (!response.ok) throw new Error(data.message || "Failed to resend OTP");
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to resend OTP");
+    }
     return {
       success: true,
       data,
@@ -196,3 +205,27 @@ export async function resendOTP(email: string) {
   }
 }
 
+export async function switchOrganization(organizationId: string) {
+  try {
+    const response = await apiRequest(
+      `/auth/switch-organization/${organizationId}`,
+      {
+        method: "POST",
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok)
+      throw new Error(data.message || "Failed to switch organization");
+    return {
+      success: true,
+      data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}

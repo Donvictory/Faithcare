@@ -1,245 +1,183 @@
-import { useState } from "react";
-import { Sparkles, ArrowRight, User, Mail, MapPin, Check } from "lucide-react";
+import React, { useState } from "react";
+import { Sparkles, ArrowRight, User, Mail, MapPin, Check, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
- 
-
- 
+import { completeIndividualOnboarding } from "@/api/individual";
+import { useAuth } from "../providers/AuthProvider";
+import { toast } from "react-hot-toast";
 
 export function IndividualOnboarding() {
+  const { user, accessToken } = useAuth();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
     location: "",
-    church: "",
+    churchId: "",
+    churchName: "",
     goals: [] as string[],
   });
 
   const goalOptions = [
-    "Daily Bible reading",
-    "Consistent prayer life",
-    "Scripture memorization",
-    "Spiritual journaling",
-    "Better time management",
-    "Deeper faith",
+    { label: "Daily Bible reading", key: "dailyBibleReading" },
+    { label: "Daily prayer", key: "dailyPrayer" },
+    { label: "Consistent prayer life", key: "consistentPrayerLife" },
+    { label: "Scripture memorization", key: "scriptureMemorization" },
+    { label: "Spiritual journaling", key: "scripturalJournaling" },
+    { label: "Better time management", key: "betterTimeManagement" },
+    { label: "Deeper faith", key: "deeperFaith" },
   ];
 
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
   };
 
-  const toggleGoal = (goal: string) => {
-    if (formData.goals.includes(goal)) {
+  const toggleGoal = (goalKey: string) => {
+    if (formData.goals.includes(goalKey)) {
       setFormData({
         ...formData,
-        goals: formData.goals.filter((g) => g !== goal),
+        goals: formData.goals.filter((g) => g !== goalKey),
       });
     } else {
       setFormData({
         ...formData,
-        goals: [...formData.goals, goal],
+        goals: [...formData.goals, goalKey],
       });
     }
   };
-  const navigate = useNavigate();
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/dashboard");
-     
+    setIsLoading(true);
+
+    const spiritualGoals = {
+      dailyBibleReading: formData.goals.includes("dailyBibleReading"),
+      dailyPrayer: formData.goals.includes("dailyPrayer"),
+      consistentPrayerLife: formData.goals.includes("consistentPrayerLife"),
+      scriptureMemorization: formData.goals.includes("scriptureMemorization"),
+      scripturalJournaling: formData.goals.includes("scripturalJournaling"),
+      betterTimeManagement: formData.goals.includes("betterTimeManagement"),
+      deeperFaith: formData.goals.includes("deeperFaith"),
+    };
+
+    const payload = {
+      userId: user?.id || "",
+      location: formData.location,
+      organization: formData.churchId || "64a1f2c3e4b5d6e7f8a9b0c1", // Fallback ID
+      churchName: formData.churchName,
+      spiritualGoals: [spiritualGoals],
+      dailyBibleReadingStreakCount: 0,
+    };
+
+    const res = await completeIndividualOnboarding(payload);
+
+    if (res.success) {
+      toast.success("Welcome to FaithCare!");
+      navigate("/dashboard");
+    } else {
+      toast.error(res.error || "Failed to complete setup");
+    }
+    
+    setIsLoading(false);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex font-sans">
       {/* Left Side - Info */}
-      <div className="hidden lg:flex flex-col w-96 bg-gradient-to-br from-accent/10 to-accent/5 p-12">
+      <div className="hidden lg:flex flex-col w-96 bg-gradient-to-br from-accent/20 via-accent/10 to-background p-12 border-r border-border">
         <div className="mb-12">
           <div className="flex items-center gap-2 mb-8">
-            <Sparkles className="w-8 h-8" style={{ color: '#d4a574' }} />
-            <h1 className="text-foreground">FaithCare</h1>
+            <Sparkles className="w-8 h-8 text-accent shadow-sm" />
+            <h1 className="text-foreground font-bold tracking-tight">FaithCare</h1>
           </div>
-          <h2 className="text-foreground mb-3">Welcome to your spiritual journey</h2>
-          <p className="text-muted-foreground">
-            Let's personalize your FaithCare experience to help you grow spiritually
+          <h2 className="text-2xl font-bold text-foreground mb-4">Start your journey</h2>
+          <p className="text-muted-foreground leading-relaxed">
+            Personalize your experience so we can help you stay consistent in your walk with God.
           </p>
         </div>
 
-        {/* Features */}
         <div className="space-y-6 flex-1">
-          <div className="bg-white rounded-lg p-6 border border-accent/20">
-            <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
-              <Sparkles className="w-6 h-6 text-accent" />
-            </div>
-            <h4 className="text-foreground mb-2">Daily Scripture</h4>
-            <p className="text-sm text-muted-foreground">
-              Start each day with God's Word and inspiring devotionals
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 border border-accent/20">
-            <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-            <h4 className="text-foreground mb-2">Journal Your Growth</h4>
-            <p className="text-sm text-muted-foreground">
-              Reflect on Sunday messages and track your spiritual journey
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 border border-accent/20">
-            <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h4 className="text-foreground mb-2">Stay Focused</h4>
-            <p className="text-sm text-muted-foreground">
-              Use the focus timer to be intentional with your time
-            </p>
+          <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
+             <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-4">
+                <Check className="w-5 h-5 text-accent" />
+             </div>
+             <h4 className="font-bold text-foreground mb-1">Stay Consistent</h4>
+             <p className="text-xs text-muted-foreground">Track your streaks and daily habits.</p>
           </div>
         </div>
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-center p-8 md:p-16">
         <div className="w-full max-w-xl">
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center gap-2 mb-8">
-            <Sparkles className="w-8 h-8" style={{ color: '#d4a574' }} />
-            <h1 className="text-foreground">FaithCare</h1>
+          <div className="mb-10 text-center md:text-left">
+            <h2 className="text-3xl font-black text-foreground mb-3">Tell us about yourself</h2>
+            <p className="text-muted-foreground">We'll use this to tailor your daily devotionals.</p>
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-foreground mb-2">Tell us about yourself</h2>
-            <p className="text-muted-foreground">
-              This helps us create a personalized experience for you
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name Fields */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-muted-foreground mb-2 block">
-                  First Name *
-                </label>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="grid md:grid-cols-2 gap-6">
+               <div className="space-y-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block">Location</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
-                    placeholder="John"
-                    value={formData.firstName}
-                    onChange={(e) => handleInputChange("firstName", e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                    required
+                    placeholder="Lagos, Nigeria"
+                    value={formData.location}
+                    onChange={(e) => handleInputChange("location", e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-border rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
                   />
                 </div>
               </div>
-              <div>
-                <label className="text-sm text-muted-foreground mb-2 block">
-                  Last Name *
-                </label>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block">Your Church</label>
                 <input
                   type="text"
-                  placeholder="Doe"
-                  value={formData.lastName}
-                  onChange={(e) => handleInputChange("lastName", e.target.value)}
-                  className="w-full px-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  required
+                  placeholder="e.g. Grace Chapel"
+                  value={formData.churchName}
+                  onChange={(e) => handleInputChange("churchName", e.target.value)}
+                  className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all"
                 />
               </div>
             </div>
 
-            {/* Email */}
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">
-                Email Address *
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Location */}
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">
-                Location
-              </label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="San Francisco, CA"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange("location", e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Church */}
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">
-                Your Church (Optional)
-              </label>
-              <input
-                type="text"
-                placeholder="Grace Community Church"
-                value={formData.church}
-                onChange={(e) => handleInputChange("church", e.target.value)}
-                className="w-full px-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-              />
-            </div>
-
-            {/* Goals */}
-            <div>
-              <label className="text-sm text-muted-foreground mb-3 block">
-                What are your spiritual goals?
-              </label>
-              <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-4">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block">What are your spiritual goals?</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {goalOptions.map((goal) => (
                   <button
-                    key={goal}
+                    key={goal.key}
                     type="button"
-                    onClick={() => toggleGoal(goal)}
-                    className={`p-4 rounded-lg border-2 transition-all text-left ${
-                      formData.goals.includes(goal)
-                        ? "border-accent bg-accent/10"
-                        : "border-border hover:border-accent/50"
+                    onClick={() => toggleGoal(goal.key)}
+                    className={`p-4 rounded-2xl border-2 transition-all text-left flex items-center justify-between group ${
+                      formData.goals.includes(goal.key)
+                        ? "border-accent bg-accent/5 ring-1 ring-accent"
+                        : "border-border hover:border-accent/40 bg-card"
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-foreground">{goal}</span>
-                      {formData.goals.includes(goal) && (
-                        <Check className="w-4 h-4 text-accent" />
-                      )}
+                    <span className={`text-sm font-medium ${formData.goals.includes(goal.key) ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"}`}>
+                      {goal.label}
+                    </span>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${formData.goals.includes(goal.key) ? "bg-accent border-accent" : "border-muted group-hover:border-accent/40"}`}>
+                       {formData.goals.includes(goal.key) && <Check className="w-3 h-3 text-white" />}
                     </div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Submit Button */}
             <button
+              disabled={isLoading}
               type="submit"
-              className="w-full flex items-center justify-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all font-bold shadow-xl active:scale-95 disabled:opacity-50"
             >
-              Get Started
-              <ArrowRight className="w-5 h-5" />
+              {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
+              {isLoading ? "Setting up your journey..." : "Get Started"}
+              {!isLoading && <ArrowRight className="w-5 h-5" />}
             </button>
           </form>
         </div>
       </div>
-    </form>
+    </div>
   );
 }

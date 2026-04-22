@@ -1,11 +1,16 @@
 import { useState } from "react";
 import { Sparkles, ArrowRight, ArrowLeft, Building2, Users, MapPin, Phone, Globe, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../providers/AuthProvider";
+import { completeOrganizationOnboarding } from "@/api/church";
+import { toast } from "react-hot-toast";
  
 
-export function OrganizationOnboarding () {
+export function OrganizationOnboarding() {
   const navigate = useNavigate();
+  const { accessToken, user, setUser } = useAuth();
   const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     churchName: "",
     denomination: "",
@@ -38,12 +43,38 @@ export function OrganizationOnboarding () {
       setStep(step - 1);
     }
   };
-  const handleSubmit = (e: React.FormEvent) => {
-    
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step === totalSteps) {
-      console.log("Form submitted:", formData);
-      navigate("/dashboard");
+      setIsLoading(true);
+      const payload = {
+        name: formData.churchName,
+        slug: formData.churchName.toLowerCase().replace(/ /g, "-").replace(/[^\w-]+/g, ""),
+        email: user?.email || localStorage.getItem("pendingEmail") || "",
+        denomination: formData.denomination.toUpperCase(),
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode,
+        phoneNumber: formData.phone,
+        websiteUrl: formData.website,
+        memberCountRange: formData.memberCount,
+        organizationRole: formData.role.toUpperCase().replace(/-/g, "_"),
+      };
+
+      const res = await completeOrganizationOnboarding(payload);
+      setIsLoading(false);
+
+      if (res.success) {
+        // Update user context with organization data if returned
+        if (res.data) {
+          setUser({ ...user, organizationId: res.data.id });
+        }
+        toast.success("Profile set up successfully!");
+        navigate("/dashboard");
+      } else {
+        toast.error(res.error || "Failed to complete setup");
+      }
     } else {
       handleNext();
     }
@@ -423,12 +454,11 @@ export function OrganizationOnboarding () {
             )}
 
             <button
-
               type="submit"
-              className="flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors ml-auto"
+              disabled={isLoading}
+              className="flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors ml-auto disabled:opacity-50"
             >
-              {step === totalSteps ? "Complete Setup" : "Continue" 
-                }
+              {isLoading ? "Saving..." : step === totalSteps ? "Complete Setup" : "Continue"}
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>

@@ -20,15 +20,12 @@ import { FollowUps } from "./components/FollowUps";
 import { SalvationRecords } from "./components/SalvationRecords";
 import { SecondTimers } from "./components/SecondTimers";
 import { Communities } from "./components/Communities";
-import { useState } from "react";
 
 export default function App() {
-  const [auth, setAuth] = useState<null | any>(null);
-
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<SignIn setAuth={setAuth} auth={auth} />} />
+        <Route path="/" element={<SignIn />} />
         <Route path="/sign-up-individual" element={<SignUpIndividual />} />
         <Route path="/sign-up-organization" element={<SignUpOrganization />} />
         <Route path="/sign-up-choice" element={<SignUpChoice />} />

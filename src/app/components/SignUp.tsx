@@ -1,7 +1,18 @@
 import { signUpOrg, signUpUser } from "@/api/auth";
-import { Sparkles, Mail, Lock, User, ArrowRight } from "lucide-react";
+import {
+  Sparkles,
+  Mail,
+  Lock,
+  User,
+  ArrowRight,
+  Phone,
+  Loader2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 export function SignUp({ type }: { type: string }) {
   const navigate = useNavigate();
@@ -10,14 +21,30 @@ export function SignUp({ type }: { type: string }) {
     fullName: "",
     email: "",
     password: "",
+    confirmPassword: "",
     phoneNumber: "",
     terms: false,
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setEmailError(null);
+    setPasswordError(null);
 
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+
+    setIsLoading(true);
     localStorage.setItem("userType", type);
+
     if (type === "individual") {
       const res = await signUpUser({
         email: formData.email,
@@ -26,22 +53,54 @@ export function SignUp({ type }: { type: string }) {
         phoneNumber: formData.phoneNumber,
       });
       if (res.success) {
+        localStorage.setItem("pendingEmail", formData.email);
         navigate("/otp-verification", { state: { email: formData.email } });
+      } else {
+        const errMsg = res.error || "Registration failed";
+        if (
+          errMsg.toLowerCase().includes("already exists") ||
+          errMsg.toLowerCase().includes("already registered") ||
+          errMsg.toLowerCase().includes("email is taken") ||
+          errMsg.toLowerCase().includes("duplicate")
+        ) {
+          setEmailError(
+            "An account with this email already exists. Please sign in instead.",
+          );
+        } else {
+          toast.error(errMsg);
+        }
       }
     } else {
       const res = await signUpOrg({
         email: formData.email,
         password: formData.password,
+        fullName: formData.fullName,
+        phoneNumber: formData.phoneNumber,
       });
       if (res.success) {
+        localStorage.setItem("pendingEmail", formData.email);
         navigate("/otp-verification", { state: { email: formData.email } });
+      } else {
+        const errMsg = res.error || "Registration failed";
+        if (
+          errMsg.toLowerCase().includes("already exists") ||
+          errMsg.toLowerCase().includes("already registered") ||
+          errMsg.toLowerCase().includes("email is taken") ||
+          errMsg.toLowerCase().includes("duplicate")
+        ) {
+          setEmailError(
+            "An account with this email already exists. Please sign in instead.",
+          );
+        } else {
+          toast.error(errMsg);
+        }
       }
     }
+    setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Left Side - Hero */}
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-accent/10 to-accent/5 items-center justify-center p-16">
         <div className="max-w-lg">
           <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 border border-accent/20">
@@ -55,7 +114,6 @@ export function SignUp({ type }: { type: string }) {
             your community and grow spiritually.
           </p>
 
-          {/* Testimonial */}
           <div className="bg-white rounded-xl p-6 border border-accent/20">
             <p className="text-muted-foreground italic mb-4">
               "FaithCare has revolutionized how we care for our members. The
@@ -79,13 +137,11 @@ export function SignUp({ type }: { type: string }) {
 
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          {/* Logo */}
           <div className="flex items-center gap-2 mb-8">
             <Sparkles className="w-8 h-8" style={{ color: "#d4a574" }} />
             <h1 className="text-foreground">FaithCare</h1>
           </div>
 
-          {/* Heading */}
           <div className="mb-8">
             <h2 className="text-foreground mb-2">Create your account</h2>
             <p className="text-muted-foreground">
@@ -93,7 +149,6 @@ export function SignUp({ type }: { type: string }) {
             </p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">
@@ -122,22 +177,53 @@ export function SignUp({ type }: { type: string }) {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setEmailError(null);
+                    setFormData({ ...formData, email: e.target.value });
+                  }}
                   type="email"
                   placeholder="you@example.com"
-                  className="w-full pl-11 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                  className={`w-full pl-11 pr-4 py-3 bg-input-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all ${
+                    emailError
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-border"
+                  }`}
                   required
                 />
               </div>
+              {emailError && (
+                <div className="mt-2 flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                  <svg
+                    className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <div>
+                    <p className="text-sm text-red-500 font-medium">
+                      {emailError}
+                    </p>
+                    <Link
+                      to="/"
+                      className="text-xs text-accent hover:underline mt-0.5 inline-block"
+                    >
+                      Sign in instead →
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">
                 Phone Number
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   value={formData.phoneNumber}
                   onChange={(e) =>
@@ -159,23 +245,95 @@ export function SignUp({ type }: { type: string }) {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                  type="password"
+                  onChange={(e) => {
+                    setPasswordError(null);
+                    setFormData({ ...formData, password: e.target.value });
+                  }}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Create a strong password"
-                  className="w-full pl-11 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                  className="w-full pl-11 pr-11 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
                 Must be at least 8 characters with letters and numbers
               </p>
             </div>
 
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <input
+                  value={formData.confirmPassword}
+                  onChange={(e) => {
+                    setPasswordError(null);
+                    setFormData({
+                      ...formData,
+                      confirmPassword: e.target.value,
+                    });
+                  }}
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Re-enter your password"
+                  className={`w-full pl-11 pr-11 py-3 bg-input-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all ${
+                    passwordError
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-border"
+                  }`}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                  aria-label={
+                    showConfirmPassword ? "Hide password" : "Show password"
+                  }
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              {passwordError && (
+                <p className="text-xs text-red-500 mt-2 flex items-center gap-1">
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  {passwordError}
+                </p>
+              )}
+            </div>
+
             <div className="flex items-start gap-2">
               <input
-                value={formData.terms as any}
+                checked={formData.terms}
                 onChange={(e) =>
                   setFormData({ ...formData, terms: e.target.checked })
                 }
@@ -203,16 +361,16 @@ export function SignUp({ type }: { type: string }) {
             </div>
 
             <button
-              disabled={!formData.terms}
+              disabled={!formData.terms || isLoading}
               type="submit"
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 disabled:grayscale active:scale-95"
             >
-              Create Account
-              <ArrowRight className="w-5 h-5" />
+              {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
+              {isLoading ? "Creating Account..." : "Create Account"}
+              {!isLoading && <ArrowRight className="w-5 h-5" />}
             </button>
           </form>
 
-          {/* Divider */}
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border"></div>
@@ -224,7 +382,6 @@ export function SignUp({ type }: { type: string }) {
             </div>
           </div>
 
-          {/* Social Sign Up */}
           <div className="grid grid-cols-2 gap-4 mb-8">
             <button className="flex items-center justify-center gap-2 px-4 py-3 border border-border rounded-lg hover:bg-muted/30 transition-colors text-foreground">
               <svg className="w-5 h-5" viewBox="0 0 24 24">
