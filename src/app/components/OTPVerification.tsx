@@ -9,7 +9,7 @@ import { LoadingScreen } from "./LoadingScreen";
 export function OTPVerification() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { setUser, setAccessToken } = useAuth();
+  const { login } = useAuth();
   const email =
     location.state?.email ||
     localStorage.getItem("pendingEmail") ||
@@ -71,29 +71,17 @@ export function OTPVerification() {
     if (res.success) {
       toast.success("Verification successful!");
 
-      // If the backend returns tokens/user on verification, set them in context
-      // AND persist them to storage so AuthProvider can restore the session
-      // without needing a refresh token cookie (which may not exist yet).
+      // Use the centralized login method from useAuth
       if (res.data?.data?.accessToken) {
         const newAccessToken = res.data.data.accessToken;
         const newUser = res.data.data.user;
-
-        setAccessToken(newAccessToken);
-        setUser(newUser);
-
-        // Persist to storage — use sessionStorage by default after sign-up
-        // (no "remember me" preference is set at this point)
         const rememberMe = localStorage.getItem("rememberMe") === "true";
-        if (rememberMe) {
-          localStorage.setItem("accessToken", newAccessToken);
-          if (newUser) localStorage.setItem("user", JSON.stringify(newUser));
-        } else {
-          sessionStorage.setItem("accessToken", newAccessToken);
-          if (newUser) sessionStorage.setItem("user", JSON.stringify(newUser));
-        }
+        
+        login(newUser, newAccessToken, rememberMe);
       }
 
-      const userType = localStorage.getItem("userType");
+      // userType is now synchronized in AuthProvider.login
+      const userType = localStorage.getItem("userType") || "individual";
       if (userType === "individual") {
         navigate("/individual-onboarding");
       } else {

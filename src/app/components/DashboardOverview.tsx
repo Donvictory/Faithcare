@@ -41,7 +41,7 @@ export function DashboardOverview() {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 pt-6 border-t border-border/50">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-4 sm:px-6 md:px-8 py-6 border-t border-border/50">
       {isLoading ? (
         <div className="col-span-full py-8 text-center text-muted-foreground flex items-center justify-center gap-2">
           <Loader2 className="w-4 h-4 animate-spin" />

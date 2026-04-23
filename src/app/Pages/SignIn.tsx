@@ -1,4 +1,4 @@
-import { login } from "@/api/auth";
+import { login as apiLogin } from "@/api/auth";
 import { Sparkles, Mail, Lock, ArrowRight, EyeOff, Eye } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -21,7 +21,7 @@ export function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { setUser, setAccessToken } = useAuth();
+  const { login } = useAuth();
 
   const {
     register,
@@ -41,7 +41,7 @@ export function SignIn() {
     setError(null);
     try {
       const normalizedEmail = data.email.toLowerCase();
-      const result = await login({
+      const result = await apiLogin({
         email: normalizedEmail,
         password: data.password,
         rememberMe: data.rememberMe,
@@ -49,8 +49,7 @@ export function SignIn() {
       setIsLoading(false);
 
       if (result.success === true) {
-        setUser(result.data.user);
-        setAccessToken(result.data.accessToken);
+        login(result.data.user, result.data.accessToken, data.rememberMe || false);
         navigate("/dashboard");
       } else {
         setError(result.error || "Login failed");
