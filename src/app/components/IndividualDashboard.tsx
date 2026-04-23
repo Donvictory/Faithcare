@@ -276,7 +276,7 @@ export function IndividualDashboard() {
   // Calculate progress percentages based on realistic targets
   const journalProgress = Math.min(100, (journalCount / 7) * 100);
   const focusProgress = Math.min(100, (focusCount / 5) * 100);
-  const readingProgress = metadata?.readingProgress || 45;
+  const readingProgress = metadata?.readingProgress || 0;
 
   const stats = [
     {
