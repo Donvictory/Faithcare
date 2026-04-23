@@ -110,7 +110,7 @@ export async function getMetadataByUserId(userId: string) {
       throw new Error(data.message || "Failed to fetch user metadata");
     return {
       success: true,
-      data: data?.data,
+      data: data?.data || data,
     };
   } catch (error: any) {
     return {

@@ -7,6 +7,10 @@ interface LayoutContextType {
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
   closeSidebar: () => void;
+  notifications: any[];
+  addNotification: (notification: any) => void;
+  markNotificationAsRead: (id: string) => void;
+  markAllNotificationsAsRead: () => void;
 }
 
 const LayoutContext = createContext<LayoutContextType | undefined>(undefined);
@@ -15,6 +19,15 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
   const [title, setTitleState] = useState('Dashboard');
   const [subtitle, setSubtitleState] = useState<string | undefined>('Welcome back');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>(() => {
+    const saved = localStorage.getItem('app_notifications');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Persist notifications
+  React.useEffect(() => {
+    localStorage.setItem('app_notifications', JSON.stringify(notifications));
+  }, [notifications]);
 
   const setHeader = (newTitle: string, newSubtitle?: string) => {
     setTitleState(newTitle);
@@ -24,6 +37,27 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
   const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
   const closeSidebar = () => setIsSidebarOpen(false);
 
+  const addNotification = (n: any) => {
+    const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    setNotifications(prev => {
+      // Prevent duplicates of the same type of streak message on the same day
+      const isDuplicate = prev.some(existing => 
+        existing.title === n.title && 
+        new Date(existing.id.split('-')[0] * 1).toDateString() === new Date().toDateString()
+      );
+      if (isDuplicate) return prev;
+      return [{ ...n, id, status: 'unread' }, ...prev];
+    });
+  };
+
+  const markNotificationAsRead = (id: string) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, status: 'read' } : n));
+  };
+
+  const markAllNotificationsAsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, status: 'read' })));
+  };
+
   return (
     <LayoutContext.Provider value={{
       title,
@@ -31,7 +65,11 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
       setHeader,
       isSidebarOpen,
       toggleSidebar,
-      closeSidebar
+      closeSidebar,
+      notifications,
+      addNotification,
+      markNotificationAsRead,
+      markAllNotificationsAsRead
     }}>
       {children}
     </LayoutContext.Provider>

@@ -22,7 +22,11 @@ export function DailyScripture() {
     enabled: !!accessToken && !!userId,
   });
 
-  const metadata = metadataResponse?.success ? metadataResponse.data : null;
+  const metadataRaw = metadataResponse?.data;
+  const metadata = Array.isArray(metadataRaw) 
+    ? metadataRaw[0] 
+    : (metadataRaw?.data ? metadataRaw.data : metadataRaw);
+  
   const currentCount = metadata?.scripturesCount || 0;
 
   const markAsReadMutation = useMutation({

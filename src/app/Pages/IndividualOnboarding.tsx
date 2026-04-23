@@ -10,12 +10,15 @@ import {
   Building2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { completeIndividualOnboarding } from "@/api/individual";
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
 
 export function IndividualOnboarding() {
   const { user, accessToken } = useAuth();
+  const userId = user?.id || user?._id || user?.userId || "";
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -69,7 +72,7 @@ export function IndividualOnboarding() {
     };
 
     const payload = {
-      userId: user?.id || "",
+      userId: user?.id || user?._id || user?.userId || "",
       location: formData.location,
       organization: formData.churchId || "64a1f2c3e4b5d6e7f8a9b0c1", // Fallback ID
       churchName: formData.churchName,
