@@ -83,12 +83,15 @@ export async function apiRequest(
             return fetch(url, { ...config, headers: retryHeaders });
           } else {
             isRefreshing = false;
-            // Handle refresh failure (e.g., logout)
+            // Handle refresh failure
             localStorage.removeItem("accessToken");
             localStorage.removeItem("user");
             sessionStorage.removeItem("accessToken");
             sessionStorage.removeItem("user");
-            window.location.href = "/";
+
+            if (window.location.pathname !== "/") {
+              window.location.href = "/";
+            }
             return response;
           }
         } catch (error) {

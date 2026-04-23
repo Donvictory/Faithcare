@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { refreshToken as callRefreshTokenAPI, logout as callLogoutAPI } from "@/api/auth";
+import {
+  refreshToken as callRefreshTokenAPI,
+  logout as callLogoutAPI,
+} from "@/api/auth";
 
 interface AuthContextType {
   user: any;
@@ -33,7 +36,10 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (result.data.data.accessToken)
             sessionStorage.setItem("accessToken", result.data.data.accessToken);
           if (result.data.data.user)
-            sessionStorage.setItem("user", JSON.stringify(result.data.data.user));
+            sessionStorage.setItem(
+              "user",
+              JSON.stringify(result.data.data.user),
+            );
         }
       } else {
         // Only log out if there is NO existing stored session to fall back on.
@@ -58,8 +64,10 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const response = await callLogoutAPI();
       // If the logout endpoint doesn't exist (404), we just log it as info and move on
       // since the finally block clears the local session anyway.
-      if (response && 'status' in response && response.status === 404) {
-        console.info("Logout API endpoint not found, proceeding with local cleanup");
+      if (response && "status" in response && response.status === 404) {
+        console.info(
+          "Logout API endpoint not found, proceeding with local cleanup",
+        );
       }
     } catch (error) {
       console.warn("API logout call failed, cleaning up local session", error);
@@ -75,7 +83,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    // Check if we already have a stored session
     const storedToken =
       localStorage.getItem("accessToken") ||
       sessionStorage.getItem("accessToken");
@@ -89,9 +96,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(JSON.parse(storedUser));
         setIsLoading(false);
 
-        // Then try to refresh in the background.
-        // Pass hasStoredSession=true — if the refresh fails (e.g. no cookie yet
-        // after a fresh sign-up) we keep the stored token rather than logging out.
+        // Then verify the session in the background.
         initializeSession(true);
       } catch (e) {
         console.error("Error parsing stored user data", e);

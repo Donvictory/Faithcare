@@ -117,9 +117,18 @@ export async function signUpOrg({
 
 export async function logout() {
   try {
-    const response = await apiRequest("/auth/logout", {
+    // Use fetch instead of apiRequest to avoid the 401 redirect loop
+    const token =
+      localStorage.getItem("accessToken") ||
+      sessionStorage.getItem("accessToken");
+
+    const response = await fetch(`${baseUrl}/auth/logout`, {
       method: "POST",
       credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
     });
 
     // If it's a 404, the backend might not have the endpoint,
