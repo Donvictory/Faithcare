@@ -4,27 +4,47 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import { LoadingScreen } from "../components/LoadingScreen";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+const signInSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  rememberMe: z.boolean().optional(),
+});
+
+type SignInValues = z.infer<typeof signInSchema>;
 
 export function SignIn() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { setUser, setAccessToken } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignInValues>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
+  });
+
+  const onSubmit = async (data: SignInValues) => {
     setIsLoading(true);
     setError(null);
     try {
-      const normalizedEmail = email.toLowerCase();
+      const normalizedEmail = data.email.toLowerCase();
       const result = await login({
         email: normalizedEmail,
-        password,
-        rememberMe,
+        password: data.password,
+        rememberMe: data.rememberMe,
       });
       setIsLoading(false);
 
@@ -66,7 +86,7 @@ export function SignIn() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm text-muted-foreground ml-1">
                 Email Address
@@ -74,13 +94,19 @@ export function SignIn() {
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
                 <input
-                  onChange={(e) => setEmail(e.target.value)}
+                  {...register("email")}
                   type="email"
                   placeholder="you@example.com"
-                  className="w-full pl-12 pr-5 py-4 bg-secondary/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg"
-                  required
+                  className={`w-full pl-12 pr-5 py-4 bg-secondary/30 border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg ${
+                    errors.email ? "border-destructive" : "border-border"
+                  }`}
                 />
               </div>
+              {errors.email && (
+                <p className="text-xs text-destructive ml-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -90,11 +116,12 @@ export function SignIn() {
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
                 <input
-                  onChange={(e) => setPassword(e.target.value)}
+                  {...register("password")}
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className="w-full pl-12 pr-5 py-4 bg-secondary/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg"
-                  required
+                  className={`w-full pl-12 pr-5 py-4 bg-secondary/30 border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg ${
+                    errors.password ? "border-destructive" : "border-border"
+                  }`}
                 />
                 <button
                   type="button"
@@ -110,14 +137,18 @@ export function SignIn() {
                   )}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-xs text-destructive ml-1">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             <div className="flex items-center justify-between px-1">
               <label className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
+                  {...register("rememberMe")}
                   className="w-4 h-4 rounded border-border text-accent focus:ring-accent transition-all"
                 />
                 <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
@@ -140,6 +171,7 @@ export function SignIn() {
 
             <button
               disabled={isLoading}
+              type="submit"
               className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-bold hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
             >
               Sign In

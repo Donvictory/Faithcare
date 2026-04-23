@@ -77,6 +77,8 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
       localStorage.removeItem("rememberMe");
+      localStorage.removeItem("userType");
+      localStorage.removeItem("pendingEmail");
       sessionStorage.removeItem("accessToken");
       sessionStorage.removeItem("user");
     }

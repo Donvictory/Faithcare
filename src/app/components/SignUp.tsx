@@ -13,93 +13,92 @@ import {
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+const signUpSchema = z
+  .object({
+    fullName: z.string().min(2, "Full name is required"),
+    email: z.string().email("Invalid email address"),
+    phoneNumber: z.string().min(10, "Valid phone number is required"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[a-zA-Z]/, "Password must contain letters")
+      .regex(/[0-9]/, "Password must contain numbers"),
+    confirmPassword: z.string(),
+    terms: z.boolean().refine((val) => val === true, {
+      message: "You must agree to the terms",
+    }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type SignUpValues = z.infer<typeof signUpSchema>;
 
 export function SignUp({ type }: { type: string }) {
   const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    phoneNumber: "",
-    terms: false,
-  });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [serverEmailError, setServerEmailError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setEmailError(null);
-    setPasswordError(null);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignUpValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      phoneNumber: "",
+      password: "",
+      confirmPassword: "",
+      terms: false,
+    },
+  });
 
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setPasswordError("Passwords do not match");
-      return;
-    }
-
+  const onSubmit = async (data: SignUpValues) => {
     setIsLoading(true);
+    setServerEmailError(null);
     localStorage.setItem("userType", type);
 
     // Normalize email to lowercase for case-insensitive uniqueness
-    const normalizedEmail = formData.email.toLowerCase();
+    const normalizedEmail = data.email.toLowerCase();
 
-    if (type === "individual") {
-      const res = await signUpUser({
-        email: normalizedEmail,
-        password: formData.password,
-        fullName: formData.fullName,
-        phoneNumber: formData.phoneNumber,
-      });
-      if (res.success) {
-        localStorage.setItem("pendingEmail", normalizedEmail);
-        navigate("/otp-verification", { state: { email: normalizedEmail } });
-      } else {
-        const errMsg = res.error || "Registration failed";
-        if (
-          errMsg.toLowerCase().includes("already exists") ||
-          errMsg.toLowerCase().includes("already registered") ||
-          errMsg.toLowerCase().includes("email is taken") ||
-          errMsg.toLowerCase().includes("duplicate")
-        ) {
-          setEmailError(
-            "An account with this email already exists. Please sign in instead.",
-          );
-        } else {
-          toast.error(errMsg);
-        }
-      }
+    const signUpFn = type === "individual" ? signUpUser : signUpOrg;
+
+    const res = await signUpFn({
+      email: normalizedEmail,
+      password: data.password,
+      fullName: data.fullName,
+      phoneNumber: data.phoneNumber,
+    });
+
+    setIsLoading(false);
+
+    if (res.success) {
+      localStorage.setItem("pendingEmail", normalizedEmail);
+      navigate("/otp-verification", { state: { email: normalizedEmail } });
     } else {
-      const res = await signUpOrg({
-        email: normalizedEmail,
-        password: formData.password,
-        fullName: formData.fullName,
-        phoneNumber: formData.phoneNumber,
-      });
-      if (res.success) {
-        localStorage.setItem("pendingEmail", normalizedEmail);
-        navigate("/otp-verification", { state: { email: normalizedEmail } });
+      const errMsg = res.error || "Registration failed";
+      if (
+        errMsg.toLowerCase().includes("already exists") ||
+        errMsg.toLowerCase().includes("already registered") ||
+        errMsg.toLowerCase().includes("email is taken") ||
+        errMsg.toLowerCase().includes("duplicate")
+      ) {
+        setServerEmailError(
+          "An account with this email already exists. Please sign in instead.",
+        );
       } else {
-        const errMsg = res.error || "Registration failed";
-        if (
-          errMsg.toLowerCase().includes("already exists") ||
-          errMsg.toLowerCase().includes("already registered") ||
-          errMsg.toLowerCase().includes("email is taken") ||
-          errMsg.toLowerCase().includes("duplicate")
-        ) {
-          setEmailError(
-            "An account with this email already exists. Please sign in instead.",
-          );
-        } else {
-          toast.error(errMsg);
-        }
+        toast.error(errMsg);
       }
     }
-    setIsLoading(false);
   };
 
   return (
@@ -154,7 +153,7 @@ export function SignUp({ type }: { type: string }) {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">
                 Full Name
@@ -162,16 +161,19 @@ export function SignUp({ type }: { type: string }) {
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
-                  value={formData.fullName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, fullName: e.target.value })
-                  }
+                  {...register("fullName")}
                   type="text"
                   placeholder="John Doe"
-                  className="w-full pl-11 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  required
+                  className={`w-full pl-11 pr-4 py-3 bg-input-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all ${
+                    errors.fullName ? "border-red-500" : "border-border"
+                  }`}
                 />
               </div>
+              {errors.fullName && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.fullName.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -181,22 +183,17 @@ export function SignUp({ type }: { type: string }) {
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
-                  value={formData.email}
-                  onChange={(e) => {
-                    setEmailError(null);
-                    setFormData({ ...formData, email: e.target.value });
-                  }}
+                  {...register("email")}
                   type="email"
                   placeholder="you@example.com"
                   className={`w-full pl-11 pr-4 py-3 bg-input-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all ${
-                    emailError
+                    errors.email || serverEmailError
                       ? "border-red-500 focus:ring-red-400"
                       : "border-border"
                   }`}
-                  required
                 />
               </div>
-              {emailError && (
+              {(errors.email || serverEmailError) && (
                 <div className="mt-2 flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
                   <svg
                     className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0"
@@ -211,14 +208,16 @@ export function SignUp({ type }: { type: string }) {
                   </svg>
                   <div>
                     <p className="text-sm text-red-500 font-bold">
-                      {emailError}
+                      {errors.email?.message || serverEmailError}
                     </p>
-                    <Link
-                      to="/"
-                      className="text-xs text-accent hover:underline mt-0.5 inline-block"
-                    >
-                      Sign in instead →
-                    </Link>
+                    {serverEmailError && (
+                      <Link
+                        to="/"
+                        className="text-xs text-accent hover:underline mt-0.5 inline-block"
+                      >
+                        Sign in instead →
+                      </Link>
+                    )}
                   </div>
                 </div>
               )}
@@ -230,16 +229,19 @@ export function SignUp({ type }: { type: string }) {
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
-                  value={formData.phoneNumber}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phoneNumber: e.target.value })
-                  }
+                  {...register("phoneNumber")}
                   type="text"
                   placeholder="xxxxxxx"
-                  className="w-full pl-11 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  required
+                  className={`w-full pl-11 pr-4 py-3 bg-input-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all ${
+                    errors.phoneNumber ? "border-red-500" : "border-border"
+                  }`}
                 />
               </div>
+              {errors.phoneNumber && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.phoneNumber.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -249,15 +251,12 @@ export function SignUp({ type }: { type: string }) {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
-                  value={formData.password}
-                  onChange={(e) => {
-                    setPasswordError(null);
-                    setFormData({ ...formData, password: e.target.value });
-                  }}
+                  {...register("password")}
                   type={showPassword ? "text" : "password"}
                   placeholder="Create a strong password"
-                  className="w-full pl-11 pr-11 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  required
+                  className={`w-full pl-11 pr-11 py-3 bg-input-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all ${
+                    errors.password ? "border-red-500" : "border-border"
+                  }`}
                 />
                 <button
                   type="button"
@@ -273,9 +272,15 @@ export function SignUp({ type }: { type: string }) {
                   )}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Must be at least 8 characters with letters and numbers
-              </p>
+              {errors.password ? (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.password.message}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Must be at least 8 characters with letters and numbers
+                </p>
+              )}
             </div>
 
             <div>
@@ -285,22 +290,12 @@ export function SignUp({ type }: { type: string }) {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
-                  value={formData.confirmPassword}
-                  onChange={(e) => {
-                    setPasswordError(null);
-                    setFormData({
-                      ...formData,
-                      confirmPassword: e.target.value,
-                    });
-                  }}
+                  {...register("confirmPassword")}
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Re-enter your password"
                   className={`w-full pl-11 pr-11 py-3 bg-input-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all ${
-                    passwordError
-                      ? "border-red-500 focus:ring-red-400"
-                      : "border-border"
+                    errors.confirmPassword ? "border-red-500" : "border-border"
                   }`}
-                  required
                 />
                 <button
                   type="button"
@@ -318,7 +313,7 @@ export function SignUp({ type }: { type: string }) {
                   )}
                 </button>
               </div>
-              {passwordError && (
+              {errors.confirmPassword && (
                 <p className="text-xs text-red-500 mt-2 flex items-center gap-1">
                   <svg
                     className="w-3.5 h-3.5"
@@ -331,21 +326,17 @@ export function SignUp({ type }: { type: string }) {
                       clipRule="evenodd"
                     />
                   </svg>
-                  {passwordError}
+                  {errors.confirmPassword.message}
                 </p>
               )}
             </div>
 
             <div className="flex items-start gap-2">
               <input
-                checked={formData.terms}
-                onChange={(e) =>
-                  setFormData({ ...formData, terms: e.target.checked })
-                }
+                {...register("terms")}
                 type="checkbox"
                 id="terms"
                 className="w-4 h-4 rounded border-border text-accent focus:ring-accent mt-1"
-                required
               />
               <label htmlFor="terms" className="text-sm text-muted-foreground">
                 I agree to the{" "}
@@ -364,9 +355,12 @@ export function SignUp({ type }: { type: string }) {
                 </button>
               </label>
             </div>
+            {errors.terms && (
+              <p className="text-xs text-red-500">{errors.terms.message}</p>
+            )}
 
             <button
-              disabled={!formData.terms || isLoading}
+              disabled={isLoading}
               type="submit"
               className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-bold hover:bg-primary/90 transition-all disabled:opacity-50 disabled:grayscale active:scale-95 shadow-xl shadow-primary/20"
             >
