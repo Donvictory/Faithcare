@@ -16,7 +16,10 @@ function onRrefreshed(token: string) {
   refreshSubscribers = [];
 }
 
-export async function apiRequest(endpoint: string, options: RequestOptions = {}): Promise<Response> {
+export async function apiRequest(
+  endpoint: string,
+  options: RequestOptions = {},
+): Promise<Response> {
   const { params, headers, ...rest } = options;
 
   // Build URL with query params
@@ -27,7 +30,9 @@ export async function apiRequest(endpoint: string, options: RequestOptions = {})
   }
 
   // Get token from storage
-  const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+  const token =
+    localStorage.getItem("accessToken") ||
+    sessionStorage.getItem("accessToken");
 
   const defaultHeaders: HeadersInit = {
     "Content-Type": "application/json",
@@ -41,7 +46,9 @@ export async function apiRequest(endpoint: string, options: RequestOptions = {})
   };
 
   try {
+    // console.log(`[API Request] ${url}`);
     const response = await fetch(url, config);
+    // console.log(`[API Response] ${url} - Status: ${response.status}`);
 
     if (response.status === 401) {
       if (!isRefreshing) {
@@ -57,7 +64,7 @@ export async function apiRequest(endpoint: string, options: RequestOptions = {})
           if (refreshResponse.ok) {
             const data = await refreshResponse.json();
             const newToken = data.data.accessToken;
-            
+
             // Store new token
             if (localStorage.getItem("accessToken")) {
               localStorage.setItem("accessToken", newToken);

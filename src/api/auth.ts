@@ -11,6 +11,7 @@ export async function login({
   rememberMe?: boolean;
 }) {
   try {
+    console.log(`[Login Request] ${baseUrl}/auth/login`);
     const response = await fetch(`${baseUrl}/auth/login`, {
       method: "POST",
       body: JSON.stringify({ email, password }),
@@ -18,6 +19,7 @@ export async function login({
         "Content-Type": "application/json",
       },
     });
+    console.log(`[Login Response] Status: ${response.status}`);
     const data = await response.json();
 
     if (!response.ok) throw new Error(data.message || "Invalid credentials");
@@ -25,12 +27,16 @@ export async function login({
     // Store rememberMe preference
     if (rememberMe) {
       localStorage.setItem("rememberMe", "true");
-      if (data.data.accessToken) localStorage.setItem("accessToken", data.data.accessToken);
-      if (data.data.user) localStorage.setItem("user", JSON.stringify(data.data.user));
+      if (data.data.accessToken)
+        localStorage.setItem("accessToken", data.data.accessToken);
+      if (data.data.user)
+        localStorage.setItem("user", JSON.stringify(data.data.user));
     } else {
       localStorage.removeItem("rememberMe");
-      if (data.data.accessToken) sessionStorage.setItem("accessToken", data.data.accessToken);
-      if (data.data.user) sessionStorage.setItem("user", JSON.stringify(data.data.user));
+      if (data.data.accessToken)
+        sessionStorage.setItem("accessToken", data.data.accessToken);
+      if (data.data.user)
+        sessionStorage.setItem("user", JSON.stringify(data.data.user));
     }
 
     return {
@@ -116,9 +122,15 @@ export async function logout() {
       credentials: "include",
     });
 
-    const data = await response.json();
+    // If it's a 404, the backend might not have the endpoint,
+    // but we still want to clear local state.
+    if (response.status === 404) {
+      return { success: true, status: 404 };
+    }
 
-    if (!response.ok) throw new Error("Fetch failed");
+    const data = await response.json();
+    if (!response.ok) throw new Error("Logout failed");
+
     return {
       success: true,
       data,
@@ -133,11 +145,12 @@ export async function logout() {
 
 export async function refreshToken() {
   try {
+    // console.log(`[Refresh Token Request] ${baseUrl}/auth/refresh`);
     const response = await fetch(`${baseUrl}/auth/refresh`, {
       method: "POST",
       credentials: "include",
     });
-
+    // console.log(`[Refresh Token Response] Status: ${response.status}`);
     const data = await response.json();
 
     if (!response.ok)

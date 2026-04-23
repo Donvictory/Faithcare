@@ -55,9 +55,14 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
-      await callLogoutAPI();
+      const response = await callLogoutAPI();
+      // If the logout endpoint doesn't exist (404), we just log it as info and move on
+      // since the finally block clears the local session anyway.
+      if (response && 'status' in response && response.status === 404) {
+        console.info("Logout API endpoint not found, proceeding with local cleanup");
+      }
     } catch (error) {
-      console.error("API logout failed", error);
+      console.warn("API logout call failed, cleaning up local session", error);
     } finally {
       setAccessToken(null);
       setUser(null);
