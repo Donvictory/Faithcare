@@ -29,7 +29,7 @@ interface Community {
 export function Communities() {
   const { accessToken, user } = useAuth();
   const queryClient = useQueryClient();
-  const organizationId = user?.organizationId || user?.id || "";
+  const organizationId = user?.organizationId || user?.id || user?._id || "";
 
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
   const [showNewCommunityForm, setShowNewCommunityForm] = useState(false);
@@ -46,23 +46,28 @@ export function Communities() {
     enabled: !!organizationId,
   });
 
-  const communities: Community[] = communitiesResponse?.success
-    ? communitiesResponse.data.map((c: any) => ({
-        id: c.id,
-        name: c.name,
-        description: c.description || "No description provided",
-        memberCount: c.members?.length || 0,
-        members: (c.members || []).map((m: any) => ({
-          id: m.id,
-          name: m.fullName || m.name || "Unknown",
-          phone: m.phoneNumber || "N/A",
-          email: m.email || "N/A",
-          joinDate: m.createdAt?.split('T')[0] || "N/A"
-        })),
-        profileImage: c.profileImage,
-        createdDate: c.createdAt?.split('T')[0] || "N/A",
-      }))
-    : [];
+  const communitiesRaw = communitiesResponse?.data || [];
+  const communitiesData = Array.isArray(communitiesRaw)
+    ? communitiesRaw
+    : communitiesRaw?.data && Array.isArray(communitiesRaw.data)
+      ? communitiesRaw.data
+      : [];
+
+  const communities: Community[] = communitiesData.map((c: any) => ({
+    id: c.id || c._id,
+    name: c.name,
+    description: c.description || "No description provided",
+    memberCount: c.members?.length || 0,
+    members: (c.members || []).map((m: any) => ({
+      id: m.id || m._id,
+      name: m.fullName || m.name || "Unknown",
+      phone: m.phoneNumber || "N/A",
+      email: m.email || "N/A",
+      joinDate: m.createdAt?.split("T")[0] || "N/A",
+    })),
+    profileImage: c.profileImage,
+    createdDate: c.createdAt?.split("T")[0] || "N/A",
+  }));
 
   // Mutations
   const createMutation = useMutation({

@@ -25,7 +25,7 @@ interface FirstTimer {
 export function FirstTimersManagement() {
   const { accessToken, user } = useAuth();
   const queryClient = useQueryClient();
-  const organizationId = user?.id || "";
+  const organizationId = user?.organizationId || user?.id || user?._id || "";
 
   // States for filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -94,18 +94,23 @@ export function FirstTimersManagement() {
     enabled: !!organizationId,
   });
 
-  const firstTimersList: FirstTimer[] = firstTimersResponse?.success
-    ? firstTimersResponse.data.map((ft: any) => ({
-        id: ft.id,
-        name: ft.fullName || ft.name || "N/A",
-        phone: ft.phoneNumber || ft.phone || "N/A",
-        email: ft.email || "N/A",
-        prayerRequest: ft.prayerRequest || "None",
-        status: ft.status || "PENDING",
-        sunday: ft.serviceDate || ft.createdAt?.split("T")[0] || "N/A",
-        visitType: ft.visitType || "first_time",
-      }))
-    : [];
+  const firstTimersRaw = firstTimersResponse?.data || [];
+  const firstTimersData = Array.isArray(firstTimersRaw)
+    ? firstTimersRaw
+    : firstTimersRaw?.data && Array.isArray(firstTimersRaw.data)
+      ? firstTimersRaw.data
+      : [];
+
+  const firstTimersList: FirstTimer[] = firstTimersData.map((ft: any) => ({
+    id: ft.id || ft._id,
+    name: ft.fullName || ft.name || "N/A",
+    phone: ft.phoneNumber || ft.phone || "N/A",
+    email: ft.email || "N/A",
+    prayerRequest: ft.prayerRequest || "None",
+    status: ft.status || "PENDING",
+    sunday: ft.serviceDate || ft.createdAt?.split("T")[0] || "N/A",
+    visitType: ft.visitType || "first_time",
+  }));
 
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
