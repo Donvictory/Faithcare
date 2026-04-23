@@ -19,7 +19,7 @@ export async function login({
         "Content-Type": "application/json",
       },
     });
-    console.log(`[Login Response] Status: ${response.status}`);
+    // console.log(`[Login Response] Status: ${response.status}`);
     const data = await response.json();
 
     if (!response.ok) throw new Error(data.message || "Invalid credentials");
