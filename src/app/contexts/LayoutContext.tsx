@@ -24,9 +24,23 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Persist notifications
+  // Persist notifications and cleanup mock ones
   React.useEffect(() => {
-    localStorage.setItem('app_notifications', JSON.stringify(notifications));
+    const mockTitles = [
+      "Streak Maintained!",
+      "New Journal Entry",
+      "New Prayer Request",
+      "Follow-up Due",
+      "New Member Alert",
+      "New First Timer"
+    ];
+    
+    const cleaned = notifications.filter(n => !mockTitles.includes(n.title));
+    if (cleaned.length !== notifications.length) {
+      setNotifications(cleaned);
+    }
+    
+    localStorage.setItem('app_notifications', JSON.stringify(cleaned));
   }, [notifications]);
 
   const setHeader = (newTitle: string, newSubtitle?: string) => {

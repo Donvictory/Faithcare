@@ -57,17 +57,19 @@ interface HeaderProps {
 }
 
 export function Header({ title, subtitle }: HeaderProps) {
-  const { 
-    toggleSidebar, 
-    notifications, 
-    markAllNotificationsAsRead, 
+  const {
+    toggleSidebar,
+    notifications,
+    markAllNotificationsAsRead,
     markNotificationAsRead,
-    addNotification 
+    addNotification,
   } = useLayout();
   const [open, setOpen] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
   const navigate = useNavigate();
-  const userType = (localStorage.getItem("userType") as "individual" | "organization") || "individual";
+  const userType =
+    (localStorage.getItem("userType") as "individual" | "organization") ||
+    "individual";
 
   // Keyboard shortcut for search
   React.useEffect(() => {
@@ -81,63 +83,15 @@ export function Header({ title, subtitle }: HeaderProps) {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  // Seed initial notifications if empty
-  React.useEffect(() => {
-    if (notifications.length === 0) {
-      const initialNotes = [
-        {
-          title: "New Prayer Request",
-          description: "Sarah J. submitted a new prayer request for her family.",
-          time: "5m ago",
-          icon: "Heart",
-          color: "text-blue-500",
-          bg: "bg-blue-500/10",
-          type: "organization",
-        },
-        {
-          title: "Follow-up Due",
-          description: "Follow-up with John Doe is scheduled for today.",
-          time: "1h ago",
-          icon: "MessageSquare",
-          color: "text-green-500",
-          bg: "bg-green-500/10",
-          type: "organization",
-        },
-        {
-          title: "New First Timer",
-          description: "Michael B. registered after the Sunday service.",
-          time: "2h ago",
-          icon: "UserPlus",
-          color: "text-accent",
-          bg: "bg-accent/10",
-          type: "organization",
-        },
-        {
-          title: "Streak Maintained!",
-          description: "You've read your daily scripture for 5 days in a row.",
-          time: "10m ago",
-          icon: "Sparkles",
-          color: "text-accent",
-          bg: "bg-accent/10",
-          type: "individual",
-        },
-        {
-          title: "New Journal Entry",
-          description: "Your meditation from yesterday has been saved.",
-          time: "1d ago",
-          icon: "BookOpen",
-          color: "text-blue-500",
-          bg: "bg-blue-500/10",
-          type: "individual",
-        },
-      ];
-      initialNotes.forEach(n => addNotification(n));
-    }
-  }, []);
+  // Notifications are now dynamic and populated by system events
 
-  const filteredNotifications = notifications.filter((n) => n.type === userType);
-  const hasUnread = filteredNotifications.some(n => n.status === 'unread');
-  const allRead = filteredNotifications.length > 0 && filteredNotifications.every(n => n.status === 'read');
+  const filteredNotifications = notifications.filter(
+    (n) => n.type === userType,
+  );
+  const hasUnread = filteredNotifications.some((n) => n.status === "unread");
+  const allRead =
+    filteredNotifications.length > 0 &&
+    filteredNotifications.every((n) => n.status === "read");
 
   return (
     <header className="bg-card border-b border-border px-4 md:px-8 py-4 md:py-5 w-full sticky top-0 z-50 shadow-sm backdrop-blur-md bg-card/95">
@@ -191,8 +145,8 @@ export function Header({ title, subtitle }: HeaderProps) {
           >
             <Bell className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
             {(hasUnread || allRead) && (
-              <span 
-                className={`absolute top-1.5 right-1.5 w-2 h-2 rounded-full ring-2 ring-card animate-pulse transition-colors duration-500 ${hasUnread ? 'bg-red-500' : 'bg-green-500'}`}
+              <span
+                className={`absolute top-1.5 right-1.5 w-2 h-2 rounded-full ring-2 ring-card animate-pulse transition-colors duration-500 ${hasUnread ? "bg-red-500" : "bg-green-500"}`}
               ></span>
             )}
           </button>
@@ -339,9 +293,9 @@ export function Header({ title, subtitle }: HeaderProps) {
                     <div
                       key={n.id}
                       onClick={() => markNotificationAsRead(n.id)}
-                      className={`p-6 transition-colors cursor-pointer group relative ${n.status === 'unread' ? 'bg-accent/5' : 'hover:bg-muted/30'}`}
+                      className={`p-6 transition-colors cursor-pointer group relative ${n.status === "unread" ? "bg-accent/5" : "hover:bg-muted/30"}`}
                     >
-                      {n.status === 'unread' && (
+                      {n.status === "unread" && (
                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
                       )}
                       <div className="flex gap-4">
@@ -352,14 +306,18 @@ export function Header({ title, subtitle }: HeaderProps) {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-1">
-                            <p className={`text-sm font-semibold truncate group-hover:text-accent transition-colors ${n.status === 'unread' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                            <p
+                              className={`text-sm font-semibold truncate group-hover:text-accent transition-colors ${n.status === "unread" ? "text-foreground" : "text-muted-foreground"}`}
+                            >
                               {n.title}
                             </p>
                             <span className="text-[10px] text-muted-foreground uppercase whitespace-nowrap">
                               {n.time}
                             </span>
                           </div>
-                          <p className={`text-xs leading-relaxed ${n.status === 'unread' ? 'text-foreground/80' : 'text-muted-foreground'}`}>
+                          <p
+                            className={`text-xs leading-relaxed ${n.status === "unread" ? "text-foreground/80" : "text-muted-foreground"}`}
+                          >
                             {n.description}
                           </p>
                         </div>
