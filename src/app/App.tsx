@@ -21,10 +21,13 @@ import { SalvationRecords } from "./components/SalvationRecords";
 import { SecondTimers } from "./components/SecondTimers";
 import { Communities } from "./components/Communities";
 
+import AuthProvider from "./providers/AuthProvider";
+
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
+      <AuthProvider>
+        <Routes>
         <Route path="/" element={<SignIn />} />
         <Route path="/sign-up-individual" element={<SignUpIndividual />} />
         <Route path="/sign-up-organization" element={<SignUpOrganization />} />
@@ -129,7 +132,8 @@ export default function App() {
             </AppLayout>
           }
         />
-      </Routes>
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

@@ -50,7 +50,7 @@ export async function signUpUser({
   phoneNumber: string;
 }) {
   try {
-    const response = await apiRequest("/auth/register/individual", {
+    const response = await apiRequest("/auth/register/user", {
       method: "POST",
       body: JSON.stringify({ email, password, fullName, phoneNumber }),
       credentials: "include",
@@ -146,31 +146,39 @@ export async function refreshToken() {
       method: "POST",
       credentials: "include",
     });
-    
+
     const status = response.status;
     const data = await response.json();
 
     if (!response.ok)
       throw new Error(data.message || "Failed to refresh token");
-    
+
     return {
       success: true,
       data,
       status,
     };
   } catch (error: any) {
-    const isAuthError = error.message?.toLowerCase().includes("unauthorized") || error.message?.includes("401");
+    const isAuthError =
+      error.message?.toLowerCase().includes("unauthorized") ||
+      error.message?.includes("401");
     return {
       success: false,
       error: error.message,
-      status: isAuthError ? 401 : (error.status || 500),
+      status: isAuthError ? 401 : error.status || 500,
     };
   }
 }
 
-export async function verifyOTP({ email, otp }: { email: string; otp: string }) {
+export async function verifyOTP({
+  email,
+  otp,
+}: {
+  email: string;
+  otp: string;
+}) {
   try {
-    const response = await fetch(`${baseUrl}/auth/verify-otp`, {
+    const response = await fetch(`${baseUrl}/auth/verify-email`, {
       method: "POST",
       body: JSON.stringify({ email, otp }),
       headers: { "Content-Type": "application/json" },
@@ -230,7 +238,8 @@ export async function forgotPassword(email: string) {
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Failed to send reset link");
+    if (!response.ok)
+      throw new Error(data.message || "Failed to send reset link");
 
     return {
       success: true,
@@ -256,7 +265,8 @@ export async function resetPassword(payload: any) {
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Failed to reset password");
+    if (!response.ok)
+      throw new Error(data.message || "Failed to reset password");
 
     return {
       success: true,
@@ -280,7 +290,8 @@ export async function switchOrganization(organizationId: string) {
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Failed to switch organization");
+    if (!response.ok)
+      throw new Error(data.message || "Failed to switch organization");
 
     return {
       success: true,
