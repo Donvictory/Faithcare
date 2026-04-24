@@ -180,12 +180,12 @@ export function IndividualDashboard() {
               queryKey: ["individual-metadata", userId],
             });
             addNotification({
-              title: "First Login Streak!",
-              description: "Welcome! Your 1st day login streak has started.",
+              title: "Welcome to FaithCare!",
+              description: "We're glad to have you. Your journey of spiritual growth starts today.",
               time: "Just now",
-              icon: "TrendingUp",
-              color: "text-green-500",
-              bg: "bg-green-500/10",
+              icon: "Sparkles",
+              color: "text-accent",
+              bg: "bg-accent/10",
               type: "individual",
             });
           }

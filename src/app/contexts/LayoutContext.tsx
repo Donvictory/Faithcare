@@ -32,15 +32,27 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
       "New Prayer Request",
       "Follow-up Due",
       "New Member Alert",
-      "New First Timer"
+      "New First Timer",
+      "Journaling Streak",
+      "First Login Streak!",
+      "First Login Streak",
+      "Login Maintained"
     ];
     
-    const cleaned = notifications.filter(n => !mockTitles.includes(n.title));
-    if (cleaned.length !== notifications.length) {
-      setNotifications(cleaned);
-    }
-    
-    localStorage.setItem('app_notifications', JSON.stringify(cleaned));
+    // One-time cleanup of all mock data
+    setNotifications(prev => {
+      const filtered = prev.filter(n => !mockTitles.includes(n.title));
+      if (filtered.length !== prev.length) {
+        localStorage.setItem('app_notifications', JSON.stringify(filtered));
+        return filtered;
+      }
+      return prev;
+    });
+  }, []);
+
+  // Sync to localStorage whenever notifications change
+  React.useEffect(() => {
+    localStorage.setItem('app_notifications', JSON.stringify(notifications));
   }, [notifications]);
 
   const setHeader = (newTitle: string, newSubtitle?: string) => {
