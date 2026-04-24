@@ -5,9 +5,11 @@ import { UserPlus, CheckCircle, Heart, TrendingUp } from "lucide-react";
 import { Header } from "./Header";
 import { DashboardOverview } from "./DashboardOverview";
 import { LoadingScreen } from "./LoadingScreen";
+import { useSearch } from "../contexts/SearchContext";
 
 export function OrganizationDashboard() {
-  const { accessToken, user } = useAuth();
+  const { user } = useAuth();
+  const { searchTerm } = useSearch();
   const organizationId = user?.organizationId || user?.id || "";
 
   const { data: trendsData, isLoading: leadsLoading } = useQuery({
@@ -28,40 +30,9 @@ export function OrganizationDashboard() {
     enabled: !!organizationId,
   });
 
-  const statsData = [
-    {
-      title: "First Timers This Week",
-      value: trendsData?.data?.firstTimersCount || "0",
-      icon: UserPlus,
-      color: "#d4a574",
-      change: trendsData?.data?.firstTimersChange || "--",
-    },
-    {
-      title: "Pending Follow Ups",
-      value: trendsData?.data?.pendingFollowUps || "0",
-      icon: CheckCircle,
-      color: "#22c55e",
-      change: trendsData?.data?.followUpsChange || "--",
-    },
-    {
-      title: "Active Prayer Requests",
-      value: trendsData?.data?.activePrayers || "0",
-      icon: Heart,
-      color: "#3b82f6",
-      change: trendsData?.data?.prayersChange || "--",
-    },
-    {
-      title: "Follow Up Rate",
-      value: trendsData?.data?.followUpRate || "0%",
-      icon: TrendingUp,
-      color: "#a855f7",
-      change: trendsData?.data?.rateChange || "--",
-    },
-  ];
-
-  const recentActivity =
+  const recentActivityRaw =
     firstTimersData?.success && Array.isArray(firstTimersData?.data)
-      ? firstTimersData.data.slice(0, 4).map((ft: any) => ({
+      ? firstTimersData.data.map((ft: any) => ({
           type: "First Timer",
           name: ft.fullName || ft.name || "Unknown",
           action: "registered",
@@ -69,8 +40,23 @@ export function OrganizationDashboard() {
         }))
       : [];
 
+  const followUpsRaw = 
+    followUpsData?.success && Array.isArray(followUpsData?.data)
+      ? followUpsData.data
+      : [];
+
+  // Filter based on global search
+  const filteredActivity = recentActivityRaw.filter((a: any) => 
+    a.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredFollowUps = followUpsRaw.filter((fu: any) => 
+    fu.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (fu.description || fu.notes || "").toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (leadsLoading) {
-    return <LoadingScreen churchName={user?.churchName || user?.name} />;
+    return <LoadingScreen churchName={user?.churchName || user?.name || "FaithCare"} />;
   }
 
   return (
@@ -81,22 +67,20 @@ export function OrganizationDashboard() {
       />
       <DashboardOverview />
       <div className="p-4 md:p-8 space-y-8">
-        {/* Real-time Stats Grid */}
-
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Active Activity Log */}
           <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-foreground">
-                Recent Activity
+                {searchTerm ? `Activity: "${searchTerm}"` : "Recent Activity"}
               </h3>
-              <button className="text-[10px] text-accent hover:underline uppercase tracking-widest bg-accent/5 px-3 py-1.5 rounded-full">
+              <button className="text-[10px] text-accent hover:underline uppercase tracking-widest bg-accent/5 px-3 py-1.5 rounded-full font-bold">
                 Live Feed
               </button>
             </div>
             <div className="space-y-4">
-              {recentActivity.length > 0 ? (
-                recentActivity.map((activity: any, index: number) => (
+              {filteredActivity.length > 0 ? (
+                filteredActivity.slice(0, 4).map((activity: any, index: number) => (
                   <div
                     key={index}
                     className="flex items-start gap-4 p-4 rounded-xl hover:bg-muted/30 transition-all border border-transparent hover:border-border"
@@ -105,12 +89,12 @@ export function OrganizationDashboard() {
                       <UserPlus className="w-6 h-6 text-accent" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-foreground">{activity.name}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-sm font-bold text-foreground">{activity.name}</p>
+                      <p className="text-xs text-muted-foreground font-medium">
                         Successfully {activity.action} in the system
                       </p>
                     </div>
-                    <span className="text-[10px] text-muted-foreground uppercase bg-muted/50 px-2 py-1 rounded">
+                    <span className="text-[10px] text-muted-foreground font-bold uppercase bg-muted/50 px-2 py-1 rounded">
                       {activity.time}
                     </span>
                   </div>
@@ -118,7 +102,7 @@ export function OrganizationDashboard() {
               ) : (
                 <div className="py-12 text-center">
                   <p className="text-sm text-muted-foreground italic">
-                    No recent activity recorded yet.
+                    {searchTerm ? "No activities match your search." : "No recent activity recorded yet."}
                   </p>
                 </div>
               )}
@@ -129,23 +113,19 @@ export function OrganizationDashboard() {
           <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-foreground">
-                Upcoming Follow Ups
+                {searchTerm ? `Follow-ups: "${searchTerm}"` : "Upcoming Follow Ups"}
               </h3>
-              <Badge variant="outline" className="border-accent text-accent">
-                Active
-              </Badge>
+              <Badge className="border-accent text-accent">Active</Badge>
             </div>
             <div className="space-y-4">
-              {followUpsData?.success &&
-              Array.isArray(followUpsData?.data) &&
-              followUpsData.data.length > 0 ? (
-                followUpsData.data.slice(0, 3).map((fu: any, idx: number) => (
+              {filteredFollowUps.length > 0 ? (
+                filteredFollowUps.slice(0, 3).map((fu: any, idx: number) => (
                   <div
                     key={idx}
                     className={`p-5 rounded-xl border-l-4 shadow-sm ${fu.status === "overdue" ? "border-l-red-500 bg-red-50/30" : "border-l-accent bg-accent/5"}`}
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <p className="text-sm text-foreground italic">
+                      <p className="text-sm font-bold text-foreground italic">
                         "{fu.name}"
                       </p>
                       <span
@@ -154,7 +134,7 @@ export function OrganizationDashboard() {
                         {fu.dueDate || "Planned"}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
+                    <p className="text-xs text-muted-foreground leading-relaxed font-medium">
                       {fu.description ||
                         fu.notes ||
                         "Follow up action required for this member."}
@@ -164,24 +144,22 @@ export function OrganizationDashboard() {
               ) : (
                 <div className="py-12 text-center">
                   <p className="text-sm text-muted-foreground italic">
-                    Your follow-up list is currently clear.
+                    {searchTerm ? "No follow-ups match your search." : "Your follow-up list is currently clear."}
                   </p>
                 </div>
               )}
             </div>
-            <button className="w-full mt-6 px-4 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg active:scale-95">
+            <button className="w-full mt-6 px-4 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg active:scale-95 font-bold">
               Manage All Follow Ups
             </button>
           </div>
         </div>
-
-        {/* Original Overview Chart Component */}
       </div>
     </div>
   );
 }
 
-function Badge({ children, className, variant = "default" }: any) {
+function Badge({ children, className }: any) {
   return (
     <span
       className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${className}`}

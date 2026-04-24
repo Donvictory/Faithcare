@@ -1,4 +1,4 @@
-import { Send, QrCode, Calendar, Search, Filter } from "lucide-react";
+import { Send, QrCode, Calendar, Filter } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { useState } from "react";
 import { Header } from "./Header";
@@ -10,6 +10,7 @@ import {
 } from "@/api/church";
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
+import { useSearch } from "../contexts/SearchContext";
 
 interface FirstTimer {
   id: string;
@@ -23,12 +24,12 @@ interface FirstTimer {
 }
 
 export function FirstTimersManagement() {
-  const { accessToken, user } = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { searchTerm } = useSearch();
   const organizationId = user?.organizationId || user?.id || user?._id || "";
 
   // States for filters
-  const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedSunday, setSelectedSunday] = useState<string | null>(null);
 
@@ -170,60 +171,50 @@ export function FirstTimersManagement() {
           </div>
         </div>
 
-        {/* Filters and Search */}
+        {/* Filters section (Search removed, handled by Header) */}
         <div className="bg-card rounded-xl border border-border p-6 shadow-sm space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent transition-all"
-              />
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+             <div className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-muted-foreground" />
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setSelectedSunday(null)}
+                  className={`px-3 py-1.5 rounded-full text-xs transition-colors ${
+                    selectedSunday === null
+                      ? "bg-primary text-primary-foreground font-medium"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  All Sundays
+                </button>
+                {sundays.map((sunday) => (
+                  <button
+                    key={sunday}
+                    onClick={() => setSelectedSunday(sunday)}
+                    className={`px-3 py-1.5 rounded-full text-xs transition-colors ${
+                      selectedSunday === sunday
+                        ? "bg-primary text-primary-foreground font-medium"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    }`}
+                  >
+                    {sunday}
+                  </button>
+                ))}
+              </div>
             </div>
+            
             <div className="flex items-center gap-2">
               <Filter className="w-5 h-5 text-muted-foreground" />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-foreground"
+                className="px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-foreground text-sm"
               >
                 <option value="all">All Statuses</option>
                 <option value="PENDING">Pending</option>
                 <option value="CONTACTED">Contacted</option>
                 <option value="FOLLOWED_UP">Followed Up</option>
               </select>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-muted-foreground" />
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setSelectedSunday(null)}
-                className={`px-3 py-1.5 rounded-full text-xs transition-colors ${
-                  selectedSunday === null
-                    ? "bg-primary text-primary-foreground font-medium"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-                }`}
-              >
-                All Sundays
-              </button>
-              {sundays.map((sunday) => (
-                <button
-                  key={sunday}
-                  onClick={() => setSelectedSunday(sunday)}
-                  className={`px-3 py-1.5 rounded-full text-xs transition-colors ${
-                    selectedSunday === sunday
-                      ? "bg-primary text-primary-foreground font-medium"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                >
-                  {sunday}
-                </button>
-              ))}
             </div>
           </div>
         </div>

@@ -23,6 +23,7 @@ import {
 } from "@/api/individual";
 import { toast } from "react-hot-toast";
 import { LoadingScreen } from "./LoadingScreen";
+import { useSearch } from "../contexts/SearchContext";
 
 interface TimerSession {
   _id: string;
@@ -35,6 +36,7 @@ interface TimerSession {
 
 export function FocusTimer() {
   const { user } = useAuth();
+  const { searchTerm } = useSearch();
   const [timeLeft, setTimeLeft] = useState<number>(25 * 60);
   const [totalDuration, setTotalDuration] = useState<number>(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
@@ -48,7 +50,7 @@ export function FocusTimer() {
   const sessionIdRef = useRef<string | null>(null);
   const timeLeftRef = useRef(timeLeft);
   const totalDurationRef = useRef(totalDuration);
-  const isRunningRef = useRef(isRunning); // Safety ref to stop sync instantly
+  const isRunningRef = useRef(isRunning);
 
   useEffect(() => {
     timeLeftRef.current = timeLeft;
@@ -68,8 +70,6 @@ export function FocusTimer() {
         const res = await getActiveTimerSession(userId);
         if (res.success && res.data) {
           const session = res.data;
-
-          // Only restore if the session is not already completed
           if (session.status !== "COMPLETED") {
             const durationSecs = (session.duration || 25) * 60;
             const progress = session.currentProgress || 0;
@@ -143,8 +143,6 @@ export function FocusTimer() {
     if (isRunning && sessionId) {
       syncInterval = window.setInterval(async () => {
         const userId = user?.id || user?._id || user?.userId;
-
-        // Final safety check: don't sync if the timer was just stopped
         if (!isRunningRef.current || !sessionIdRef.current) return;
 
         const currentProgress = Math.round(
@@ -222,7 +220,6 @@ export function FocusTimer() {
   };
 
   const handleComplete = async () => {
-    // STOP EVERYTHING FIRST
     setIsRunning(false);
     isRunningRef.current = false;
     setIsCompleted(true);
@@ -231,7 +228,6 @@ export function FocusTimer() {
     const currentSessionId = sessionId || sessionIdRef.current;
 
     if (currentSessionId) {
-      // Optimistic UI update
       setHistory((prev) =>
         prev.map((s) =>
           s._id === currentSessionId || s.id === currentSessionId
@@ -239,13 +235,9 @@ export function FocusTimer() {
             : s,
         ),
       );
-
-      // Mark as null immediately to prevent any more syncs
       setSessionId(null);
       sessionIdRef.current = null;
-
       await completeTimerSession(currentSessionId);
-
       if (userId) {
         setTimeout(() => fetchHistory(userId), 1500);
       }
@@ -280,8 +272,6 @@ export function FocusTimer() {
       toast.success("Record deleted");
       const userId = user?.id || user?._id || user?.userId;
       if (userId) fetchHistory(userId);
-    } else {
-      toast.error("Failed to delete record");
     }
   };
 
@@ -293,6 +283,12 @@ export function FocusTimer() {
 
   const safeProgress =
     totalDuration > 0 ? ((totalDuration - timeLeft) / totalDuration) * 100 : 0;
+
+  // Filter history based on search
+  const filteredHistory = history.filter((session) =>
+    session.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    session.duration.toString().includes(searchTerm)
+  );
 
   if (isInitializing) {
     return (
@@ -326,13 +322,13 @@ export function FocusTimer() {
                 <h2 className="text-3xl font-bold text-foreground mb-4">
                   Well done!
                 </h2>
-                <blockquote className="text-xl text-foreground leading-relaxed mb-6 italic opacity-80">
+                <blockquote className="text-xl text-foreground leading-relaxed mb-6 italic opacity-80 font-medium">
                   "Whatever you do, work at it with all your heart, as working
                   for the Lord..."
                 </blockquote>
                 <button
                   onClick={handleReset}
-                  className="px-12 py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all font-bold shadow-lg shadow-primary/20"
+                  className="px-12 py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all font-bold shadow-lg shadow-primary/20 active:scale-95"
                 >
                   Start New Session
                 </button>
@@ -340,7 +336,7 @@ export function FocusTimer() {
             ) : (
               <>
                 <div className="mb-10">
-                  <p className="text-xs text-muted-foreground mb-6 uppercase tracking-[0.2em]">
+                  <p className="text-[10px] text-muted-foreground mb-6 uppercase tracking-[0.2em] font-bold">
                     Focus Session
                   </p>
                   <div className="relative inline-block">
@@ -364,7 +360,7 @@ export function FocusTimer() {
                         strokeDasharray="283"
                         strokeDashoffset={283 * (1 - safeProgress / 100)}
                         strokeLinecap="round"
-                        className="text-accent transition-all duration-1000"
+                        className="text-accent transition-all duration-1000 shadow-lg shadow-accent/50"
                         style={{
                           strokeDasharray: "283",
                           strokeDashoffset: 283 * (1 - safeProgress / 100),
@@ -382,7 +378,7 @@ export function FocusTimer() {
                 <div className="flex items-center justify-center gap-6">
                   <button
                     onClick={handleStartPause}
-                    className="flex items-center gap-3 px-12 py-5 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95"
+                    className="flex items-center gap-3 px-12 py-5 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 font-bold"
                   >
                     {isRunning ? (
                       <>
@@ -396,7 +392,7 @@ export function FocusTimer() {
                   </button>
                   <button
                     onClick={handleReset}
-                    className="p-5 border-2 border-border rounded-2xl hover:bg-muted transition-all text-foreground"
+                    className="p-5 border-2 border-border rounded-2xl hover:bg-muted transition-all text-foreground active:scale-90"
                     title="Reset Timer"
                   >
                     <RotateCcw className="w-6 h-6" />
@@ -408,13 +404,13 @@ export function FocusTimer() {
 
           {!isRunning && !isCompleted && (
             <div className="w-full max-w-2xl mt-8 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-                <label className="block text-sm text-muted-foreground mb-4 uppercase tracking-wider">
+              <div className="bg-card rounded-3xl border border-border p-8 shadow-sm">
+                <label className="block text-xs font-bold text-muted-foreground mb-6 uppercase tracking-widest text-center">
                   Set Custom Duration
                 </label>
-                <div className="flex gap-4">
+                <div className="flex flex-col md:flex-row gap-4">
                   <div className="relative flex-1">
-                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
                     <input
                       type="number"
                       value={customMinutes}
@@ -425,7 +421,7 @@ export function FocusTimer() {
                         setTimeLeft(mins * 60);
                         setTotalDuration(mins * 60);
                       }}
-                      className="w-full pl-12 pr-4 py-4 bg-muted/50 border-2 border-transparent focus:border-accent rounded-xl outline-none transition-all text-lg"
+                      className="w-full pl-12 pr-4 py-4 bg-muted/50 border-2 border-transparent focus:border-accent rounded-2xl outline-none transition-all text-xl font-bold"
                       placeholder="Minutes"
                     />
                   </div>
@@ -438,7 +434,7 @@ export function FocusTimer() {
                           setTimeLeft(mins * 60);
                           setTotalDuration(mins * 60);
                         }}
-                        className={`px-4 py-4 rounded-xl border transition-all ${parseInt(customMinutes) === mins ? "bg-accent border-accent text-white" : "bg-card border-border hover:border-accent/40"}`}
+                        className={`flex-1 px-4 py-4 rounded-2xl border-2 transition-all font-bold ${parseInt(customMinutes) === mins ? "bg-accent border-accent text-white shadow-lg shadow-accent/20" : "bg-card border-border hover:border-accent/40"}`}
                       >
                         {mins}m
                       </button>
@@ -455,37 +451,39 @@ export function FocusTimer() {
             <div className="p-6 border-b border-border flex items-center justify-between bg-muted/30">
               <div className="flex items-center gap-2">
                 <History className="w-5 h-5 text-accent" />
-                <h3 className="font-bold text-foreground">Session History</h3>
+                <h3 className="font-bold text-foreground">
+                  {searchTerm ? "Search Results" : "Session History"}
+                </h3>
               </div>
-              <span className="text-xs px-2 py-1 bg-accent/10 text-accent rounded-full">
-                {history.length} {history.length === 1 ? "Record" : "Records"}
+              <span className="text-[10px] font-bold px-3 py-1 bg-accent/10 text-accent rounded-full uppercase tracking-widest">
+                {filteredHistory.length} Records
               </span>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
               {isLoadingHistory ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                   <Loader2 className="w-8 h-8 animate-spin mb-4" />
-                  <p className="text-sm">Loading records...</p>
+                  <p className="text-sm font-bold">Syncing history...</p>
                 </div>
-              ) : history.length === 0 ? (
+              ) : filteredHistory.length === 0 ? (
                 <div className="text-center py-12 px-6">
                   <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                    <History className="w-8 h-8 text-muted-foreground/50" />
+                    <History className="w-8 h-8 text-muted-foreground/30" />
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    No records yet
+                  <p className="text-sm text-muted-foreground font-medium italic">
+                    {searchTerm ? "No matches found." : "No records yet."}
                   </p>
                 </div>
               ) : (
-                history.map((session) => (
+                filteredHistory.map((session) => (
                   <div
                     key={session._id || session.id}
-                    className="group bg-muted/40 hover:bg-muted/80 border border-border/50 rounded-2xl p-4 transition-all duration-300"
+                    className="group bg-muted/40 hover:bg-muted/80 border border-border/50 rounded-2xl p-4 transition-all duration-300 shadow-sm"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex gap-3">
                         <div
-                          className={`mt-1 p-2 rounded-lg ${session.status === "COMPLETED" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}
+                          className={`mt-1 p-2 rounded-lg ${session.status === "COMPLETED" ? "bg-green-500/10 text-green-500" : "bg-yellow-500/10 text-yellow-500"}`}
                         >
                           {session.status === "COMPLETED" ? (
                             <CheckCircle2 className="w-4 h-4" />
@@ -495,18 +493,16 @@ export function FocusTimer() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="text-foreground">
-                              {session.duration === 1
-                                ? `${session.duration} min`
-                                : `${session.duration} mins`}{" "}
+                            <span className="text-foreground font-bold">
+                              {session.duration} mins
                             </span>
                             <span
-                              className={`text-[10px] uppercase px-2 py-0.5 rounded ${session.status === "COMPLETED" ? "bg-success/20 text-success" : "bg-warning/20 text-warning"}`}
+                              className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded tracking-widest ${session.status === "COMPLETED" ? "bg-green-500/20 text-green-600" : "bg-yellow-500/20 text-yellow-600"}`}
                             >
                               {session.status}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-[10px] text-muted-foreground mt-1 font-bold">
                             {new Date(session.createdAt).toLocaleDateString(
                               undefined,
                               {
@@ -523,7 +519,7 @@ export function FocusTimer() {
                         onClick={() =>
                           handleDeleteHistory(session._id || session.id!)
                         }
-                        className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                        className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

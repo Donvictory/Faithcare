@@ -11,42 +11,29 @@ export async function login({
   rememberMe?: boolean;
 }) {
   try {
-    console.log(`[Login Request] ${baseUrl}/auth/login`);
     const response = await fetch(`${baseUrl}/auth/login`, {
       method: "POST",
       body: JSON.stringify({ email, password }),
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include", // Essential for saving the refresh cookie
     });
-    // console.log(`[Login Response] Status: ${response.status}`);
+
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || "Invalid credentials");
-
-    // Store rememberMe preference
-    if (rememberMe) {
-      localStorage.setItem("rememberMe", "true");
-      if (data.data.accessToken)
-        localStorage.setItem("accessToken", data.data.accessToken);
-      if (data.data.user)
-        localStorage.setItem("user", JSON.stringify(data.data.user));
-    } else {
-      localStorage.removeItem("rememberMe");
-      if (data.data.accessToken)
-        sessionStorage.setItem("accessToken", data.data.accessToken);
-      if (data.data.user)
-        sessionStorage.setItem("user", JSON.stringify(data.data.user));
-    }
+    if (!response.ok) throw new Error(data.message || "Login failed");
 
     return {
       success: true,
-      data: data?.data,
+      data,
+      status: response.status,
     };
   } catch (error: any) {
     return {
       success: false,
       error: error.message,
+      status: error.status || 500,
     };
   }
 }
@@ -63,9 +50,10 @@ export async function signUpUser({
   phoneNumber: string;
 }) {
   try {
-    const response = await apiRequest("/auth/register/user", {
+    const response = await apiRequest("/auth/register/individual", {
       method: "POST",
       body: JSON.stringify({ email, password, fullName, phoneNumber }),
+      credentials: "include",
     });
 
     const data = await response.json();
@@ -74,11 +62,13 @@ export async function signUpUser({
     return {
       success: true,
       data,
+      status: response.status,
     };
   } catch (error: any) {
     return {
       success: false,
       error: error.message,
+      status: error.status || 500,
     };
   }
 }
@@ -98,6 +88,7 @@ export async function signUpOrg({
     const response = await apiRequest("/auth/register/admin", {
       method: "POST",
       body: JSON.stringify({ email, password, fullName, phoneNumber }),
+      credentials: "include",
     });
 
     const data = await response.json();
@@ -106,33 +97,28 @@ export async function signUpOrg({
     return {
       success: true,
       data,
+      status: response.status,
     };
   } catch (error: any) {
     return {
       success: false,
       error: error.message,
+      status: error.status || 500,
     };
   }
 }
 
 export async function logout() {
   try {
-    // Use fetch instead of apiRequest to avoid the 401 redirect loop
-    const token =
-      localStorage.getItem("accessToken") ||
-      sessionStorage.getItem("accessToken");
-
+    // Note: We don't need manual headers if we rely on cookies, but we keep it for now
     const response = await fetch(`${baseUrl}/auth/logout`, {
       method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
 
-    // If it's a 404, the backend might not have the endpoint,
-    // but we still want to clear local state.
     if (response.status === 404) {
       return { success: true, status: 404 };
     }
@@ -143,111 +129,169 @@ export async function logout() {
     return {
       success: true,
       data,
+      status: response.status,
     };
   } catch (error: any) {
     return {
       success: false,
       error: error.message,
+      status: error.status || 500,
     };
   }
 }
 
 export async function refreshToken() {
   try {
-    // console.log(`[Refresh Token Request] ${baseUrl}/auth/refresh`);
     const response = await fetch(`${baseUrl}/auth/refresh`, {
       method: "POST",
       credentials: "include",
     });
-    // console.log(`[Refresh Token Response] Status: ${response.status}`);
+    
+    const status = response.status;
     const data = await response.json();
 
     if (!response.ok)
       throw new Error(data.message || "Failed to refresh token");
+    
     return {
       success: true,
       data,
+      status,
     };
   } catch (error: any) {
+    const isAuthError = error.message?.toLowerCase().includes("unauthorized") || error.message?.includes("401");
     return {
       success: false,
       error: error.message,
+      status: isAuthError ? 401 : (error.status || 500),
     };
   }
 }
 
-export async function verifyOTP({
-  email,
-  otp,
-}: {
-  email: string;
-  otp: string;
-}) {
+export async function verifyOTP({ email, otp }: { email: string; otp: string }) {
   try {
-    const response = await apiRequest("/auth/verify-email", {
+    const response = await fetch(`${baseUrl}/auth/verify-otp`, {
       method: "POST",
       body: JSON.stringify({ email, otp }),
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
     });
 
     const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Verification failed");
 
-    if (!response.ok) throw new Error(data.message || "Invalid OTP");
     return {
       success: true,
       data,
+      status: response.status,
     };
   } catch (error: any) {
     return {
       success: false,
       error: error.message,
+      status: error.status || 500,
     };
   }
 }
 
-export async function resendOTP(email: string) {
+export async function resendOTP({ email }: { email: string }) {
   try {
-    const response = await apiRequest("/auth/resend-otp", {
+    const response = await fetch(`${baseUrl}/auth/resend-otp`, {
       method: "POST",
-      body: JSON.stringify({ email, type: "email_verification" }),
+      body: JSON.stringify({ email }),
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
     });
 
     const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to resend OTP");
-    }
+    if (!response.ok) throw new Error(data.message || "Failed to resend OTP");
+
     return {
       success: true,
       data,
+      status: response.status,
     };
   } catch (error: any) {
     return {
       success: false,
       error: error.message,
+      status: error.status || 500,
+    };
+  }
+}
+
+export async function forgotPassword(email: string) {
+  try {
+    const response = await fetch(`${baseUrl}/auth/forgot-password`, {
+      method: "POST",
+      body: JSON.stringify({ email }),
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to send reset link");
+
+    return {
+      success: true,
+      data,
+      status: response.status,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+      status: error.status || 500,
+    };
+  }
+}
+
+export async function resetPassword(payload: any) {
+  try {
+    const response = await fetch(`${baseUrl}/auth/reset-password`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to reset password");
+
+    return {
+      success: true,
+      data,
+      status: response.status,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+      status: error.status || 500,
     };
   }
 }
 
 export async function switchOrganization(organizationId: string) {
   try {
-    const response = await apiRequest(
-      `/auth/switch-organization/${organizationId}`,
-      {
-        method: "POST",
-      },
-    );
+    const response = await apiRequest("/auth/switch-organization", {
+      method: "POST",
+      body: JSON.stringify({ organizationId }),
+    });
 
     const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to switch organization");
 
-    if (!response.ok)
-      throw new Error(data.message || "Failed to switch organization");
     return {
       success: true,
-      data,
+      data: data?.data || data,
+      status: response.status,
     };
   } catch (error: any) {
     return {
       success: false,
       error: error.message,
+      status: error.status || 500,
     };
   }
 }

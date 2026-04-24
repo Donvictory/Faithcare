@@ -4,8 +4,13 @@ type RequestOptions = RequestInit & {
   params?: Record<string, string>;
 };
 
+let inMemoryToken: string | null = null;
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
+
+export function setInMemoryToken(token: string | null) {
+  inMemoryToken = token;
+}
 
 function subscribeTokenRefresh(cb: (token: string) => void) {
   refreshSubscribers.push(cb);
@@ -29,10 +34,11 @@ export async function apiRequest(
     url += `?${searchParams.toString()}`;
   }
 
-  // Get token from storage
-  const token =
-    localStorage.getItem("accessToken") ||
-    sessionStorage.getItem("accessToken");
+  // Use in-memory token, with storage as a fallback during transition if needed
+  // but we'll prioritize inMemoryToken
+  const token = inMemoryToken || 
+                localStorage.getItem("accessToken") || 
+                sessionStorage.getItem("accessToken");
 
   const defaultHeaders: HeadersInit = {
     "Content-Type": "application/json",
@@ -43,12 +49,11 @@ export async function apiRequest(
   const config: RequestInit = {
     ...rest,
     headers: defaultHeaders,
+    credentials: "include", // Ensure cookies are sent with all requests
   };
 
   try {
-    // console.log(`[API Request] ${url}`);
     const response = await fetch(url, config);
-    // console.log(`[API Response] ${url} - Status: ${response.status}`);
 
     if (response.status === 401) {
       if (!isRefreshing) {
@@ -57,7 +62,6 @@ export async function apiRequest(
           const refreshResponse = await fetch(`${baseUrl}/auth/refresh`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            // In many setups, the refresh token is in a cookie, so we need credentials: "include"
             credentials: "include",
           });
 
@@ -65,12 +69,11 @@ export async function apiRequest(
             const data = await refreshResponse.json();
             const newToken = data.data.accessToken;
 
-            // Store new token
-            if (localStorage.getItem("accessToken")) {
-              localStorage.setItem("accessToken", newToken);
-            } else {
-              sessionStorage.setItem("accessToken", newToken);
-            }
+            // Update memory token
+            setInMemoryToken(newToken);
+            
+            // Note: We'll let AuthProvider handle the persistent user state, 
+            // but we update the in-memory token here for the retry.
 
             onRrefreshed(newToken);
             isRefreshing = false;
@@ -83,15 +86,11 @@ export async function apiRequest(
             return fetch(url, { ...config, headers: retryHeaders });
           } else {
             isRefreshing = false;
-            // Handle refresh failure
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("user");
-            sessionStorage.removeItem("accessToken");
-            sessionStorage.removeItem("user");
-
-            if (window.location.pathname !== "/") {
-              window.location.href = "/";
-            }
+            // Clear memory on failure
+            setInMemoryToken(null);
+            
+            // We don't force a redirect here; let the component/hook handle it
+            // or AuthProvider will pick up the 401 via some other means
             return response;
           }
         } catch (error) {

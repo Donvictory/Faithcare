@@ -72,9 +72,10 @@ export function OTPVerification() {
       toast.success("Verification successful!");
 
       // Use the centralized login method from useAuth
-      if (res.data?.data?.accessToken) {
-        const newAccessToken = res.data.data.accessToken;
-        const newUser = res.data.data.user;
+      const sessionData = res.data?.data || res.data;
+      if (sessionData?.accessToken) {
+        const newAccessToken = sessionData.accessToken;
+        const newUser = sessionData.user;
         const rememberMe = localStorage.getItem("rememberMe") === "true";
         
         login(newUser, newAccessToken, rememberMe);

@@ -16,11 +16,25 @@ import {
   UserCheck,
   Award,
   Users,
+  ChevronRight,
+  X,
+  Loader2,
 } from "lucide-react";
 import { useLayout } from "../contexts/LayoutContext";
 import * as React from "react";
+import { createPortal } from "react-dom";
+import { useQuery } from "@tanstack/react-query";
+import { 
+  getFirstTimers, 
+  getPrayerRequests, 
+  getCommunities, 
+} from "@/api/church";
+import { getJournalEntries } from "@/api/individual";
+import { useAuth } from "../providers/AuthProvider";
+import { useNavigate } from "react-router-dom";
+import { useSearch } from "../contexts/SearchContext";
 
-// Icon mapping for serialization safety
+// Icon mapping for notifications
 const iconMap: Record<string, any> = {
   Heart,
   MessageSquare,
@@ -33,6 +47,7 @@ const iconMap: Record<string, any> = {
   UserCheck,
   Award,
 };
+
 import {
   CommandDialog,
   CommandEmpty,
@@ -49,7 +64,6 @@ import {
   SheetTitle,
   SheetDescription,
 } from "./ui/sheet";
-import { useNavigate } from "react-router-dom";
 
 interface HeaderProps {
   title: string;
@@ -62,227 +76,240 @@ export function Header({ title, subtitle }: HeaderProps) {
     notifications,
     markAllNotificationsAsRead,
     markNotificationAsRead,
-    addNotification,
   } = useLayout();
+  const { user } = useAuth();
+  const { searchTerm, setSearchTerm } = useSearch();
   const [open, setOpen] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
+  const [showResults, setShowResults] = React.useState(false);
+  const searchRef = React.useRef<HTMLDivElement>(null);
+  const mobileSearchRef = React.useRef<HTMLDivElement>(null);
+  const [dropdownPos, setDropdownPos] = React.useState({ top: 0, left: 0, width: 0 });
+  
   const navigate = useNavigate();
-  const userType =
-    (localStorage.getItem("userType") as "individual" | "organization") ||
-    "individual";
+  const organizationId = user?.organizationId || user?.id || user?._id || "";
+  const userType = (localStorage.getItem("userType") as "individual" | "organization") || "individual";
 
-  // Keyboard shortcut for search
+  // Pre-fetch global data for instant results
+  const { data: firstTimersResponse } = useQuery({
+    queryKey: ["global-first-timers", organizationId],
+    queryFn: () => getFirstTimers({ organizationId }),
+    enabled: userType === "organization" && !!organizationId,
+  });
+
+  const { data: prayersResponse } = useQuery({
+    queryKey: ["global-prayers", organizationId],
+    queryFn: () => getPrayerRequests(organizationId),
+    enabled: userType === "organization" && !!organizationId,
+  });
+
+  const { data: communitiesResponse } = useQuery({
+    queryKey: ["global-communities", organizationId],
+    queryFn: () => getCommunities(organizationId),
+    enabled: userType === "organization" && !!organizationId,
+  });
+
+  const { data: journalsResponse } = useQuery({
+    queryKey: ["global-journals", user?.id],
+    queryFn: () => getJournalEntries({ userId: user?.id || user?._id || "" }),
+    enabled: userType === "individual" && !!(user?.id || user?._id),
+  });
+
+  const extractDataArray = (response: any) => {
+    if (!response) return [];
+    if (Array.isArray(response.data)) return response.data;
+    if (response.data?.data && Array.isArray(response.data.data)) return response.data.data;
+    if (response.data?.entries && Array.isArray(response.data.entries)) return response.data.entries;
+    return Array.isArray(response) ? response : [];
+  };
+
+  const searchResults = React.useMemo(() => {
+    if (!searchTerm || searchTerm.length < 2) return null;
+    const results: any = { members: [], prayers: [], communities: [], journals: [] };
+
+    if (userType === "organization") {
+      results.members = extractDataArray(firstTimersResponse).filter((m: any) => (m.fullName || m.name || "").toLowerCase().includes(searchTerm.toLowerCase())).slice(0, 3);
+      results.prayers = extractDataArray(prayersResponse).filter((p: any) => (p.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || (p.description || p.request || "").toLowerCase().includes(searchTerm.toLowerCase())).slice(0, 3);
+      results.communities = extractDataArray(communitiesResponse).filter((c: any) => (c.name || "").toLowerCase().includes(searchTerm.toLowerCase())).slice(0, 3);
+    } else {
+      results.journals = extractDataArray(journalsResponse).filter((j: any) => (j.title || "").toLowerCase().includes(searchTerm.toLowerCase()) || (j.content || "").toLowerCase().includes(searchTerm.toLowerCase())).slice(0, 3);
+    }
+    return Object.values(results).some((arr: any) => arr.length > 0) ? results : null;
+  }, [searchTerm, firstTimersResponse, prayersResponse, communitiesResponse, journalsResponse, userType]);
+
   React.useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen((open) => !open);
-      }
-    };
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, []);
+    const activeRef = window.innerWidth >= 768 ? searchRef : mobileSearchRef;
+    if (showResults && activeRef.current) {
+      const rect = activeRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 8, left: rect.left, width: rect.width });
+    }
+  }, [showResults, searchTerm]);
 
-  // Notifications are now dynamic and populated by system events
+  React.useEffect(() => {
+    if (searchTerm.length >= 2) setShowResults(true);
+    else setShowResults(false);
+  }, [searchTerm]);
 
-  const filteredNotifications = notifications.filter(
-    (n) => n.type === userType,
-  );
+  const filteredNotifications = notifications.filter((n) => n.type === userType);
   const hasUnread = filteredNotifications.some((n) => n.status === "unread");
-  const allRead =
-    filteredNotifications.length > 0 &&
-    filteredNotifications.every((n) => n.status === "read");
+  const allRead = filteredNotifications.length > 0 && filteredNotifications.every((n) => n.status === "read");
 
   return (
     <header className="bg-card border-b border-border px-4 md:px-8 py-4 md:py-5 w-full sticky top-0 z-50 shadow-sm backdrop-blur-md bg-card/95">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <button
-            onClick={toggleSidebar}
-            className="lg:hidden p-2 hover:bg-muted rounded-lg transition-colors border border-border"
-            aria-label="Toggle Menu"
-          >
+          <button onClick={toggleSidebar} className="lg:hidden p-2 hover:bg-muted rounded-lg transition-colors border border-border">
             <Menu className="w-6 h-6 text-foreground" />
           </button>
           <div className="min-w-0">
-            <h1 className="text-lg md:text-2xl font-bold text-foreground truncate">
-              {title}
-            </h1>
-            {subtitle && (
-              <p className="text-xs md:text-sm text-muted-foreground mt-0.5 truncate hidden sm:block">
-                {subtitle}
-              </p>
-            )}
+            <h1 className="text-lg md:text-2xl font-bold text-foreground truncate tracking-tight">{title}</h1>
+            {subtitle && <p className="text-xs md:text-sm text-muted-foreground mt-0.5 truncate hidden sm:block opacity-70">{subtitle}</p>}
           </div>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-4">
-          {/* Search Trigger */}
-          <div
-            onClick={() => setOpen(true)}
-            className="relative hidden md:block cursor-pointer group"
-          >
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-hover:text-accent transition-colors" />
-            <div className="pl-10 pr-4 py-2 bg-input-background border border-border rounded-lg text-sm text-muted-foreground w-48 lg:w-64 transition-all group-hover:border-accent/50 flex justify-between items-center">
-              <span>Search...</span>
-              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                <span className="text-xs">⌘</span>K
-              </kbd>
+        <div className="flex items-center gap-2 md:gap-4 flex-1 justify-end">
+          {/* Desktop Search */}
+          <div ref={searchRef} className="relative hidden md:flex items-center gap-2 max-w-sm w-full lg:max-w-md">
+            <div className="relative flex-1 group">
+              <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${searchTerm ? 'text-accent' : 'text-muted-foreground group-focus-within:text-accent'}`} />
+              <input
+                type="text"
+                value={searchTerm}
+                onFocus={() => searchTerm.length >= 2 && setShowResults(true)}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search everything..."
+                className="w-full pl-11 pr-12 py-2.5 bg-secondary/30 border border-border rounded-2xl text-sm text-foreground transition-all focus:outline-none focus:ring-4 focus:ring-accent/10 focus:border-accent/40 placeholder:text-muted-foreground/50 font-medium"
+              />
+              {searchTerm && <button onClick={() => { setSearchTerm(""); setShowResults(false); }} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full transition-colors"><X className="w-3 h-3 text-muted-foreground" /></button>}
             </div>
+            <button onClick={() => setShowResults(!showResults)} className="p-2.5 bg-primary text-primary-foreground rounded-2xl shadow-lg hover:bg-primary/90 transition-all active:scale-95 group">
+              <Search className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            </button>
           </div>
 
-          <button
-            onClick={() => setOpen(true)}
-            className="md:hidden p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground"
-          >
-            <Search className="w-5 h-5" />
-          </button>
+          {/* Mobile Search - Now with Button */}
+          <div ref={mobileSearchRef} className="relative md:hidden flex items-center gap-1 flex-1 max-w-[180px]">
+             <div className="relative flex-1">
+               <input
+                type="text"
+                value={searchTerm}
+                onFocus={() => searchTerm.length >= 2 && setShowResults(true)}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search..."
+                className="w-full pl-8 pr-2 py-1.5 bg-secondary/30 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 font-medium"
+              />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+             </div>
+             <button onClick={() => setShowResults(!showResults)} className="p-2 bg-primary text-primary-foreground rounded-xl shadow-md active:scale-95">
+               <Search className="w-4 h-4" />
+             </button>
+          </div>
 
-          {/* Notifications Trigger */}
-          <button
-            onClick={() => setShowNotifications(true)}
-            className="relative p-2 hover:bg-muted rounded-lg transition-colors border border-border group"
-          >
+          <button onClick={() => setShowNotifications(true)} className="relative p-2.5 hover:bg-muted rounded-xl transition-all border border-border group active:scale-95">
             <Bell className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
-            {(hasUnread || allRead) && (
-              <span
-                className={`absolute top-1.5 right-1.5 w-2 h-2 rounded-full ring-2 ring-card animate-pulse transition-colors duration-500 ${hasUnread ? "bg-red-500" : "bg-green-500"}`}
-              ></span>
-            )}
+            {(hasUnread || allRead) && <span className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full ring-2 ring-card transition-colors duration-500 ${hasUnread ? "bg-red-500 animate-pulse" : "bg-green-500"}`}></span>}
           </button>
         </div>
       </div>
 
-      {/* Search Palette */}
-      <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Type to search or command..." />
-        <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          <CommandGroup heading="Navigation">
-            <CommandItem
-              onSelect={() => {
-                navigate("/dashboard");
-                setOpen(false);
-              }}
-            >
-              <Menu className="mr-2 h-4 w-4" />
-              <span>Dashboard</span>
-            </CommandItem>
+      {/* PORTAL FOR RESULTS - Only show if we actually have results to display */}
+      {showResults && searchTerm.length >= 2 && searchResults && (
+        Object.values(searchResults).some((arr: any) => arr?.length > 0)
+      ) && createPortal(
+        <div 
+          style={{ 
+            position: 'fixed', 
+            top: dropdownPos.top, 
+            left: dropdownPos.left, 
+            width: Math.max(dropdownPos.width, 280), 
+            zIndex: 9999,
+            transform: window.innerWidth < 768 ? 'translateX(-40px)' : 'none'
+          }}
+          className="bg-card border border-accent/20 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.3)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 backdrop-blur-xl bg-card/98"
+        >
+          <div className="max-h-[400px] overflow-y-auto p-4 custom-scrollbar">
+            <div className="space-y-6">
+                {searchResults.members?.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold text-accent uppercase tracking-widest px-3 mb-3 flex items-center gap-2">
+                      <UserPlus className="w-3.5 h-3.5" /> Members
+                    </p>
+                    <div className="space-y-1">
+                      {searchResults.members.map((m: any) => (
+                        <button key={m.id || m._id} onClick={() => { navigate("/first-timers"); setShowResults(false); setSearchTerm(""); }} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-accent/5 transition-all group text-left">
+                          <span className="text-sm font-bold text-foreground group-hover:text-accent">{m.fullName || m.name}</span>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {searchResults.prayers?.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold text-accent uppercase tracking-widest px-3 mb-3 flex items-center gap-2">
+                      <Heart className="w-3.5 h-3.5" /> Prayer Requests
+                    </p>
+                    <div className="space-y-1">
+                      {searchResults.prayers.map((p: any) => (
+                        <button key={p.id || p._id} onClick={() => { navigate("/prayer-requests"); setShowResults(false); setSearchTerm(""); }} className="w-full p-3 rounded-2xl hover:bg-accent/5 transition-all group text-left">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-bold text-foreground group-hover:text-accent">{p.name || "Anonymous"}</span>
+                            <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate opacity-70 italic font-medium">"{p.description || p.request}"</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {searchResults.communities?.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold text-accent uppercase tracking-widest px-3 mb-3 flex items-center gap-2">
+                      <Users className="w-3.5 h-3.5" /> Communities
+                    </p>
+                    <div className="space-y-1">
+                      {searchResults.communities.map((c: any) => (
+                        <button key={c.id || c._id} onClick={() => { navigate("/communities"); setShowResults(false); setSearchTerm(""); }} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-accent/5 transition-all group text-left">
+                          <span className="text-sm font-bold text-foreground group-hover:text-accent">{c.name}</span>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {searchResults.journals?.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold text-accent uppercase tracking-widest px-3 mb-3 flex items-center gap-2">
+                      <BookOpen className="w-3.5 h-3.5" /> Journal Entries
+                    </p>
+                    <div className="space-y-1">
+                      {searchResults.journals.map((j: any) => (
+                        <button key={j.id || j._id} onClick={() => { navigate("/sunday-journal"); setShowResults(false); setSearchTerm(""); }} className="w-full p-3 rounded-2xl hover:bg-accent/5 transition-all group text-left">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-bold text-foreground group-hover:text-accent">{j.title}</span>
+                            <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate opacity-70 italic font-medium">"{j.content}"</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+          </div>
+          <div className="p-3 bg-muted/5 border-t border-border flex items-center justify-between">
+             <p className="text-[9px] text-muted-foreground font-bold italic opacity-50">Search Results</p>
+             <button onClick={() => setShowResults(false)} className="text-[10px] font-bold text-accent hover:underline uppercase">Hide</button>
+          </div>
+        </div>,
+        document.body
+      )}
 
-            {userType === "individual" && (
-              <>
-                <CommandItem
-                  onSelect={() => {
-                    navigate("/sunday-journal");
-                    setOpen(false);
-                  }}
-                >
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  <span>Sunday Journal</span>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => {
-                    navigate("/daily-scripture");
-                    setOpen(false);
-                  }}
-                >
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  <span>Daily Scripture</span>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => {
-                    navigate("/focus-timer");
-                    setOpen(false);
-                  }}
-                >
-                  <Timer className="mr-2 h-4 w-4" />
-                  <span>Focus Timer</span>
-                </CommandItem>
-              </>
-            )}
-
-            {userType === "organization" && (
-              <>
-                <CommandItem
-                  onSelect={() => {
-                    navigate("/prayer-requests");
-                    setOpen(false);
-                  }}
-                >
-                  <Heart className="mr-2 h-4 w-4" />
-                  <span>Prayer Requests</span>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => {
-                    navigate("/first-timers");
-                    setOpen(false);
-                  }}
-                >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  <span>First Timers</span>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => {
-                    navigate("/follow-ups");
-                    setOpen(false);
-                  }}
-                >
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  <span>Follow Ups</span>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => {
-                    navigate("/second-timers");
-                    setOpen(false);
-                  }}
-                >
-                  <UserCheck className="mr-2 h-4 w-4" />
-                  <span>Second Timers</span>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => {
-                    navigate("/salvation-records");
-                    setOpen(false);
-                  }}
-                >
-                  <Award className="mr-2 h-4 w-4" />
-                  <span>Salvation Records</span>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => {
-                    navigate("/communities");
-                    setOpen(false);
-                  }}
-                >
-                  <Users className="mr-2 h-4 w-4" />
-                  <span>Communities</span>
-                </CommandItem>
-              </>
-            )}
-          </CommandGroup>
-          <CommandSeparator />
-          <CommandGroup heading="Account">
-            <CommandItem
-              onSelect={() => {
-                navigate("/settings");
-                setOpen(false);
-              }}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </CommandItem>
-          </CommandGroup>
-        </CommandList>
-      </CommandDialog>
-
-      {/* Notifications Drawer */}
+      {/* Existing Drawers */}
       <Sheet open={showNotifications} onOpenChange={setShowNotifications}>
-        <SheetContent side="right" className="w-[90%] sm:max-w-md p-0">
-          <SheetHeader className="p-6 border-b border-border">
-            <SheetTitle className="text-xl font-bold">Notifications</SheetTitle>
-            <SheetDescription>
-              Stay updated with your latest church activities.
-            </SheetDescription>
+        <SheetContent side="right" className="w-[90%] sm:max-w-md p-0 rounded-l-[40px] border-l border-border shadow-2xl">
+          <SheetHeader className="p-8 border-b border-border bg-accent/5">
+            <SheetTitle className="text-2xl font-bold tracking-tight">Notifications</SheetTitle>
           </SheetHeader>
           <div className="flex-1 overflow-y-auto">
             {filteredNotifications.length > 0 ? (
@@ -290,36 +317,16 @@ export function Header({ title, subtitle }: HeaderProps) {
                 {filteredNotifications.map((n) => {
                   const Icon = iconMap[n.icon as string] || Bell;
                   return (
-                    <div
-                      key={n.id}
-                      onClick={() => markNotificationAsRead(n.id)}
-                      className={`p-6 transition-colors cursor-pointer group relative ${n.status === "unread" ? "bg-accent/5" : "hover:bg-muted/30"}`}
-                    >
-                      {n.status === "unread" && (
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
-                      )}
+                    <div key={n.id} onClick={() => markNotificationAsRead(n.id)} className={`p-6 transition-all cursor-pointer group relative ${n.status === "unread" ? "bg-accent/5" : "hover:bg-muted/30"}`}>
+                      {n.status === "unread" && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-accent"></div>}
                       <div className="flex gap-4">
-                        <div
-                          className={`w-10 h-10 rounded-full ${n.bg} flex items-center justify-center shrink-0`}
-                        >
-                          <Icon className={`w-5 h-5 ${n.color}`} />
-                        </div>
+                        <div className={`w-12 h-12 rounded-2xl ${n.bg} flex items-center justify-center shrink-0 shadow-sm border border-border/50`}><Icon className={`w-6 h-6 ${n.color}`} /></div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2 mb-1">
-                            <p
-                              className={`text-sm font-semibold truncate group-hover:text-accent transition-colors ${n.status === "unread" ? "text-foreground" : "text-muted-foreground"}`}
-                            >
-                              {n.title}
-                            </p>
-                            <span className="text-[10px] text-muted-foreground uppercase whitespace-nowrap">
-                              {n.time}
-                            </span>
+                          <div className="flex items-center justify-between gap-2 mb-1.5">
+                            <p className={`text-sm font-bold truncate ${n.status === "unread" ? "text-foreground" : "text-muted-foreground"}`}>{n.title}</p>
+                            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter bg-muted px-2 py-0.5 rounded whitespace-nowrap">{n.time}</span>
                           </div>
-                          <p
-                            className={`text-xs leading-relaxed ${n.status === "unread" ? "text-foreground/80" : "text-muted-foreground"}`}
-                          >
-                            {n.description}
-                          </p>
+                          <p className={`text-xs leading-relaxed font-medium ${n.status === "unread" ? "text-foreground/80" : "text-muted-foreground"}`}>{n.description}</p>
                         </div>
                       </div>
                     </div>
@@ -327,24 +334,11 @@ export function Header({ title, subtitle }: HeaderProps) {
                 })}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-64 p-8 text-center">
-                <Bell className="w-12 h-12 text-muted-foreground/20 mb-4" />
-                <p className="text-muted-foreground italic">
-                  No new notifications
-                </p>
-              </div>
+              <div className="flex flex-col items-center justify-center h-96 p-8 text-center"><p className="text-muted-foreground italic font-medium">No notifications</p></div>
             )}
           </div>
-          <div className="p-6 border-t border-border mt-auto">
-            <button
-              onClick={() => {
-                markAllNotificationsAsRead();
-                setShowNotifications(false);
-              }}
-              className="w-full py-3 bg-muted text-foreground rounded-xl text-sm font-medium hover:bg-muted/80 transition-colors"
-            >
-              Mark all as read
-            </button>
+          <div className="p-8 border-t border-border mt-auto bg-card">
+            <button onClick={() => { markAllNotificationsAsRead(); setShowNotifications(false); }} className="w-full py-4 bg-primary text-primary-foreground rounded-2xl text-sm font-bold hover:bg-primary/90 transition-all shadow-lg">Mark all as read</button>
           </div>
         </SheetContent>
       </Sheet>

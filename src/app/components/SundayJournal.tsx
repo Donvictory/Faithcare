@@ -17,6 +17,7 @@ import {
 } from "@/api/individual";
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
+import { useSearch } from "../contexts/SearchContext";
 
 interface JournalEntry {
   _id: string;
@@ -29,6 +30,7 @@ interface JournalEntry {
 
 export function SundayJournal() {
   const { user } = useAuth();
+  const { searchTerm } = useSearch();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -39,31 +41,23 @@ export function SundayJournal() {
 
   // Debug Helper to identify the data structure
   const extractEntries = (data: any): JournalEntry[] => {
-    console.log("Journal API Response Data:", data);
-
     if (Array.isArray(data)) return data;
     if (data?.entries && Array.isArray(data.entries)) return data.entries;
     if (data?.data && Array.isArray(data.data)) return data.data;
-    if (data?.docs && Array.isArray(data.docs)) return data.docs; // common in paginated APIs
+    if (data?.docs && Array.isArray(data.docs)) return data.docs;
     return [];
   };
 
   const fetchEntries = async () => {
     const userId = user?.id || user?._id || user?.userId;
-    if (!userId) {
-      console.warn("Journal: No userId found in user object:", user);
-      return;
-    }
+    if (!userId) return;
 
     setIsFetching(true);
     try {
       const res = await getJournalEntries({ userId });
       if (res.success) {
         const extracted = extractEntries(res.data);
-        console.log("Extracted Entries Array:", extracted);
         setEntries(extracted);
-      } else {
-        console.error("Journal Fetch Error:", res.error);
       }
     } catch (err) {
       console.error("Failed to load entries", err);
@@ -78,9 +72,14 @@ export function SundayJournal() {
     }
   }, [user?.id, user?._id]);
 
+  const filteredEntries = entries.filter((entry) =>
+    (entry.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (entry.content || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (entry.scriptureReference || "").toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const handleSave = async () => {
     const userId = user?.id || user?._id || user?.userId;
-
     if (!userId) {
       toast.error("Auth session missing. Please try logging in again.");
       return;
@@ -110,7 +109,6 @@ export function SundayJournal() {
       if (res.success) {
         toast.success(currentEntryId ? "Entry updated!" : "Entry saved!");
         if (!currentEntryId) handleNewEntry();
-        // Fetch again after a short delay
         setTimeout(fetchEntries, 800);
       } else {
         toast.error(res.error || "Failed to save entry");
@@ -171,7 +169,7 @@ export function SundayJournal() {
             </h2>
             <button
               onClick={handleNewEntry}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-accent hover:bg-accent/10 rounded-full transition-all"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-accent hover:bg-accent/10 rounded-full transition-all font-bold"
             >
               <Plus className="w-4 h-4" />
               Reset Form
@@ -180,7 +178,7 @@ export function SundayJournal() {
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm text-muted-foreground ml-1">
+              <label className="text-sm text-muted-foreground ml-1 font-bold">
                 Message Title
               </label>
               <input
@@ -188,12 +186,12 @@ export function SundayJournal() {
                 placeholder="What was the sermon title?"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full text-2xl text-foreground placeholder:text-muted-foreground/50 bg-secondary/30 border border-border rounded-xl px-5 py-4 focus:ring-2 focus:ring-accent outline-none transition-all"
+                className="w-full text-2xl text-foreground placeholder:text-muted-foreground/50 bg-secondary/30 border border-border rounded-xl px-5 py-4 focus:ring-2 focus:ring-accent outline-none transition-all font-bold"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm text-muted-foreground ml-1">
+              <label className="text-sm text-muted-foreground ml-1 font-bold">
                 Scripture Reference
               </label>
               <div className="relative">
@@ -203,13 +201,13 @@ export function SundayJournal() {
                   placeholder="e.g. Philippians 4:13"
                   value={scripture}
                   onChange={(e) => setScripture(e.target.value)}
-                  className="w-full pl-12 pr-5 py-4 bg-secondary/30 border border-border rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all text-foreground"
+                  className="w-full pl-12 pr-5 py-4 bg-secondary/30 border border-border rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all text-foreground font-medium"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm text-muted-foreground ml-1">
+              <label className="text-sm text-muted-foreground ml-1 font-bold">
                 Your Reflections
               </label>
               <textarea
@@ -225,7 +223,7 @@ export function SundayJournal() {
             <button
               onClick={handleSave}
               disabled={isLoading}
-              className="flex items-center gap-3 px-10 py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-3 px-10 py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 disabled:opacity-50 font-bold"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -242,25 +240,25 @@ export function SundayJournal() {
           <div className="bg-card rounded-2xl border border-border p-6 shadow-sm flex flex-col max-h-[calc(100vh-200px)]">
             <h3 className="text-foreground mb-6 flex items-center gap-2 font-bold text-xl">
               <Calendar className="w-5 h-5 text-accent" />
-              Message Records
+              {searchTerm ? "Search Results" : "Message Records"}
             </h3>
 
             <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar">
               {isFetching ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-accent mb-2" />
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground font-bold">
                     Syncing records...
                   </p>
                 </div>
-              ) : entries.length === 0 ? (
+              ) : filteredEntries.length === 0 ? (
                 <div className="text-center py-12 px-4 border-2 border-dashed border-border rounded-2xl">
-                  <p className="text-sm text-muted-foreground">
-                    No records found. Start your first journal entry!
+                  <p className="text-sm text-muted-foreground italic">
+                    {searchTerm ? `No records matching "${searchTerm}"` : "No records found. Start your first journal entry!"}
                   </p>
                 </div>
               ) : (
-                entries.map((entry) => {
+                filteredEntries.map((entry) => {
                   const id = entry._id || entry.id;
                   const isActive = currentEntryId === id;
                   return (
@@ -270,13 +268,13 @@ export function SundayJournal() {
                       className={`w-full p-4 rounded-xl border transition-all cursor-pointer group relative ${
                         isActive
                           ? "border-accent bg-accent/5 ring-1 ring-accent/20"
-                          : "border-border hover:border-accent/30 bg-secondary/20"
+                          : "border-border hover:border-accent/30 bg-secondary/20 shadow-sm"
                       }`}
                     >
                       <div className="flex flex-col gap-1">
                         <div className="flex justify-between items-start">
                           <p
-                            className={`transition-colors truncate pr-4 ${
+                            className={`transition-colors truncate pr-4 font-bold ${
                               isActive
                                 ? "text-accent"
                                 : "text-foreground group-hover:text-accent"
@@ -285,7 +283,7 @@ export function SundayJournal() {
                             {entry.title || "Untitled"}
                           </p>
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] uppercase tracking-tighter text-muted-foreground">
+                            <span className="text-[10px] uppercase tracking-tighter text-muted-foreground font-bold">
                               {entry.createdAt
                                 ? new Date(entry.createdAt).toLocaleDateString(
                                     "en-US",
@@ -296,7 +294,7 @@ export function SundayJournal() {
                           </div>
                         </div>
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground italic">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground italic font-medium">
                             <BookOpen className="w-3 h-3 text-accent/60" />
                             <span className="truncate">
                               {entry.scriptureReference || "No reference"}
@@ -336,7 +334,7 @@ export function SundayJournal() {
               <Edit3 className="w-4 h-4" />
               Spiritual Habit
             </h4>
-            <p className="text-xs text-muted-foreground leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed font-medium">
               Consistently recording your Sunday messages helps you retain 80%
               more of what you learned. Review your records weekly!
             </p>

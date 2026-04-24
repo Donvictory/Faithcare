@@ -4,6 +4,7 @@ import {
   logout as callLogoutAPI,
 } from "@/api/auth";
 import { useQueryClient } from "@tanstack/react-query";
+import { setInMemoryToken } from "@/api/helper";
 
 interface AuthContextType {
   user: any;
@@ -38,13 +39,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const setAccessToken = (token: string | null) => {
     setAccessTokenState(token);
-    const storage = getStorage();
-    if (token) {
-      storage.setItem("accessToken", token);
-    } else {
-      localStorage.removeItem("accessToken");
-      sessionStorage.removeItem("accessToken");
-    }
+    setInMemoryToken(token);
   };
 
   const setUser = (userData: any) => {
@@ -52,7 +47,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const storage = getStorage();
     if (userData) {
       storage.setItem("user", JSON.stringify(userData));
-      // Sync userType whenever user is set
       const userType = determineUserType(userData);
       localStorage.setItem("userType", userType);
     } else {
@@ -64,7 +58,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = (userData: any, token: string, remember: boolean) => {
     localStorage.setItem("rememberMe", remember ? "true" : "false");
-    // These will now trigger storage updates via the wrappers above
     setAccessToken(token);
     setUser(userData);
   };
@@ -74,10 +67,9 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { switchOrganization: callSwitchOrgAPI } = await import("@/api/auth");
       const result = await callSwitchOrgAPI(orgId);
       if (result.success && result.data) {
-        // Update user and token with new organization data
         const remember = localStorage.getItem("rememberMe") === "true";
         login(result.data.user, result.data.accessToken, remember);
-        queryClient.clear(); // Clear cache after switching
+        queryClient.clear();
       } else {
         throw new Error(result.error || "Failed to switch organization");
       }
@@ -87,23 +79,36 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const initializeSession = async (hasStoredSession = false) => {
+  const initializeSession = async (initialUser: any = null) => {
     try {
       const result = await callRefreshTokenAPI();
-      if (result.success && result.data?.data) {
-        // Use login to update everything consistently
+      const sessionData = result.data?.data || result.data;
+      
+      if (result.success && sessionData?.accessToken) {
         const remember = localStorage.getItem("rememberMe") === "true";
-        login(result.data.data.user, result.data.data.accessToken, remember);
+        
+        // Merge with initialUser (from storage) to prevent data loss on refresh
+        const updatedUser = {
+          ...(initialUser || {}),
+          ...(sessionData.user || {})
+        };
+
+        login(updatedUser, sessionData.accessToken, remember);
       } else {
-        if (!hasStoredSession) {
+        const isAuthError = 
+          result.error?.includes("401") || 
+          result.error?.toLowerCase().includes("unauthorized") ||
+          result.status === 401;
+
+        if (initialUser && isAuthError) {
           await logout();
+        } else {
+          setIsLoading(false);
         }
       }
     } catch (error) {
-      console.error("Failed to initialize session", error);
-      if (!hasStoredSession) {
-        await logout();
-      }
+      console.error("Failed to initialize session:", error);
+      setIsLoading(false);
     } finally {
       setIsLoading(false);
     }
@@ -113,9 +118,10 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       await callLogoutAPI();
     } catch (error) {
-      console.warn("API logout call failed, cleaning up local session", error);
+      console.warn("API logout call failed", error);
     } finally {
       setAccessTokenState(null);
+      setInMemoryToken(null);
       setUserState(null);
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
@@ -124,37 +130,28 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.removeItem("pendingEmail");
       sessionStorage.removeItem("accessToken");
       sessionStorage.removeItem("user");
-      
-      // Clear query cache to prevent data leakage between accounts
       queryClient.clear();
     }
   };
 
   useEffect(() => {
-    const storedToken =
-      localStorage.getItem("accessToken") ||
-      sessionStorage.getItem("accessToken");
-    const storedUser =
-      localStorage.getItem("user") || sessionStorage.getItem("user");
-
-    if (storedToken && storedUser && storedUser !== "undefined") {
+    const storedUserStr = localStorage.getItem("user") || sessionStorage.getItem("user");
+    
+    if (storedUserStr && storedUserStr !== "undefined") {
       try {
-        const parsedUser = JSON.parse(storedUser);
-        setAccessTokenState(storedToken);
+        const parsedUser = JSON.parse(storedUserStr);
         setUserState(parsedUser);
         
-        // Sync userType on load
         const userType = determineUserType(parsedUser);
         localStorage.setItem("userType", userType);
 
-        setIsLoading(false);
-        initializeSession(true);
+        initializeSession(parsedUser);
       } catch (e) {
         console.error("Error parsing stored user data", e);
-        logout();
+        setIsLoading(false);
       }
     } else {
-      initializeSession(false);
+      initializeSession(null);
     }
   }, []);
 

@@ -1,6 +1,7 @@
 import React from "react";
 import { Sidebar } from "../components/Sidebar";
 import { LayoutProvider, useLayout } from "../contexts/LayoutContext";
+import { SearchProvider } from "../contexts/SearchContext";
 import { useAuth } from "../providers/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import { LoadingScreen } from "../components/LoadingScreen";
@@ -80,7 +81,9 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <LayoutProvider>
-      <LayoutContent>{children}</LayoutContent>
+      <SearchProvider>
+        <LayoutContent>{children}</LayoutContent>
+      </SearchProvider>
     </LayoutProvider>
   );
 }

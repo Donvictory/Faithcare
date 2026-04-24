@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { CheckCircle, Send, Calendar, Sparkles } from "lucide-react";
+import { CheckCircle, Send, Calendar } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Header } from "./Header";
+import { useSearch } from "../contexts/SearchContext";
 
 interface FirstTimer {
   id: number;
@@ -85,11 +86,19 @@ const firstTimersData: FirstTimer[] = [
 ];
 
 export function SecondTimers() {
+  const { searchTerm } = useSearch();
   const [timers, setTimers] = useState<FirstTimer[]>(firstTimersData);
   const [selectedSunday, setSelectedSunday] = useState<string | null>(null);
 
-  // Group second timers by Sunday (second visit date)
-  const groupedBySunday = timers.reduce(
+  // Client-side search filtering
+  const filteredBySearch = timers.filter((t) =>
+    t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.prayerRequest.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Group filtered results by Sunday
+  const groupedBySunday = filteredBySearch.reduce(
     (acc, timer) => {
       if (timer.secondVisit) {
         if (!acc[timer.sunday]) {
@@ -102,7 +111,6 @@ export function SecondTimers() {
     {} as Record<string, FirstTimer[]>,
   );
 
-  // Get sorted Sunday dates (most recent first)
   const sundays = Object.keys(groupedBySunday).sort(
     (a, b) => new Date(b).getTime() - new Date(a).getTime(),
   );
@@ -138,8 +146,8 @@ export function SecondTimers() {
   };
 
   const displayedData = selectedSunday
-    ? groupedBySunday[selectedSunday]
-    : timers.filter((t) => t.secondVisit);
+    ? groupedBySunday[selectedSunday] || []
+    : filteredBySearch.filter((t) => t.secondVisit);
 
   const firstTimerCount = timers.filter(
     (t) => t.status === "first-timer",
@@ -157,13 +165,13 @@ export function SecondTimers() {
       <div className="p-4 md:p-8 space-y-6">
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-700 mb-1">
+                <p className="text-sm font-bold text-blue-700 mb-1">
                   First Timers Returned
                 </p>
-                <h3 className="text-3xl text-blue-900">{firstTimerCount}</h3>
+                <h3 className="text-3xl font-bold text-blue-900">{firstTimerCount}</h3>
               </div>
               <div className="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center">
                 <Send className="w-6 h-6 text-blue-700" />
@@ -171,13 +179,13 @@ export function SecondTimers() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-6 border border-green-200">
+          <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-6 border border-green-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-700 mb-1">
+                <p className="text-sm font-bold text-green-700 mb-1">
                   Confirmed Second Timers
                 </p>
-                <h3 className="text-3xl text-green-900">{secondTimerCount}</h3>
+                <h3 className="text-3xl font-bold text-green-900">{secondTimerCount}</h3>
               </div>
               <div className="w-12 h-12 bg-green-200 rounded-full flex items-center justify-center">
                 <CheckCircle className="w-6 h-6 text-green-700" />
@@ -185,13 +193,13 @@ export function SecondTimers() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-xl p-6 border border-accent/20">
+          <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-xl p-6 border border-accent/20 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-accent-foreground/70 mb-1">
+                <p className="text-sm font-bold text-accent-foreground/70 mb-1">
                   Return Rate
                 </p>
-                <h3 className="text-3xl text-accent-foreground">
+                <h3 className="text-3xl font-bold text-accent-foreground">
                   {timers.length > 0
                     ? Math.round(
                         (timers.filter((t) => t.secondVisit).length /
@@ -211,8 +219,8 @@ export function SecondTimers() {
 
         {/* Info Card */}
         <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-xl p-6 border border-accent/20">
-          <h3 className="text-foreground mb-2">Second Timer Tracking</h3>
-          <p className="text-muted-foreground">
+          <h3 className="text-foreground font-bold text-lg mb-2">Second Timer Tracking</h3>
+          <p className="text-muted-foreground leading-relaxed">
             This page shows first-time visitors who have returned for a second
             visit. Mark them as "Second Timers" to celebrate their continued
             engagement and plan appropriate follow-up.
@@ -220,29 +228,31 @@ export function SecondTimers() {
         </div>
 
         {/* Sunday Filter Tabs */}
-        <div className="bg-card rounded-xl border border-border p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Calendar className="w-5 h-5 text-muted-foreground" />
-            <h3 className="text-foreground">Filter by Sunday (Return Date)</h3>
+        <div className="bg-card rounded-xl border border-border p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="w-5 h-5 text-accent" />
+            <h3 className="text-foreground font-bold text-lg">
+              {searchTerm ? `Results for "${searchTerm}" by Return Date` : "Filter by Sunday (Return Date)"}
+            </h3>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setSelectedSunday(null)}
-              className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+              className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
                 selectedSunday === null
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
               }`}
             >
-              All Sundays ({timers.filter((t) => t.secondVisit).length})
+              All Sundays ({displayedData.length})
             </button>
             {sundays.map((sunday) => (
               <button
                 key={sunday}
                 onClick={() => setSelectedSunday(sunday)}
-                className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
                   selectedSunday === sunday
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
                 }`}
               >
@@ -253,83 +263,71 @@ export function SecondTimers() {
         </div>
 
         {/* Second Timers Table */}
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm text-muted-foreground">
-                    Name
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm text-muted-foreground">
-                    Phone
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm text-muted-foreground">
-                    Email
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm text-muted-foreground">
-                    First Visit
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm text-muted-foreground">
-                    Second Visit (Sunday)
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm text-muted-foreground">
-                    Prayer Request
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm text-muted-foreground">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm text-muted-foreground">
-                    Action
-                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">Name</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">Contact</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">Visits</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">Prayer Request</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</th>
+                  <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {displayedData.map((timer) => (
+                {displayedData.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground italic">
+                      No matching records found.
+                    </td>
+                  </tr>
+                ) : displayedData.map((timer) => (
                   <tr
                     key={timer.id}
-                    className="hover:bg-muted/30 transition-colors"
+                    className="hover:bg-muted/30 transition-colors group"
                   >
-                    <td className="px-6 py-4 text-sm text-foreground">
+                    <td className="px-6 py-4 text-sm font-bold text-foreground">
                       {timer.name}
                     </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {timer.phone}
+                    <td className="px-6 py-4 text-xs text-muted-foreground">
+                      <div className="flex flex-col">
+                         <span>{timer.phone}</span>
+                         <span>{timer.email}</span>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {timer.email}
+                    <td className="px-6 py-4 text-xs text-muted-foreground">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-foreground/70">1st: {timer.firstVisit}</span>
+                        <span className="text-accent font-bold">2nd: {timer.secondVisit || "—"}</span>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {timer.firstVisit}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {timer.secondVisit || "—"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground max-w-xs">
-                      {timer.prayerRequest}
+                    <td className="px-6 py-4 text-xs text-muted-foreground max-w-xs italic leading-relaxed">
+                      "{timer.prayerRequest}"
                     </td>
                     <td className="px-6 py-4">
                       <Badge
                         variant="outline"
-                        className={getStatusColor(timer.status)}
+                        className={`${getStatusColor(timer.status)} font-bold text-[10px] uppercase tracking-widest px-2.5 py-1`}
                       >
                         {getStatusLabel(timer.status)}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-right">
                       {timer.status === "first-timer" && timer.secondVisit ? (
                         <button
                           onClick={() => markAsSecondTimer(timer.id)}
-                          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                          className="inline-flex items-center gap-2 px-4 py-2 text-xs bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all font-bold shadow-sm active:scale-95"
                         >
-                          <CheckCircle className="w-4 h-4" />
-                          Mark as Second Timer
+                          <CheckCircle className="w-3 h-3" />
+                          Mark Second Timer
                         </button>
                       ) : (
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest bg-muted/50 px-2 py-1 rounded">
                           {timer.status === "second-timer"
                             ? "Confirmed"
-                            : "Awaiting return"}
+                            : "Awaiting"}
                         </span>
                       )}
                     </td>

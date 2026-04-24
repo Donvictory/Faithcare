@@ -48,8 +48,13 @@ export function SignIn() {
       });
       setIsLoading(false);
 
-      if (result.success === true) {
-        login(result.data.user, result.data.accessToken, data.rememberMe || false);
+      const sessionData = result.data?.data || result.data;
+      if (sessionData?.accessToken) {
+        const newAccessToken = sessionData.accessToken;
+        const newUser = sessionData.user;
+        const rememberMe = data.rememberMe || false;
+        
+        login(newUser, newAccessToken, rememberMe);
         navigate("/dashboard");
       } else {
         setError(result.error || "Login failed");

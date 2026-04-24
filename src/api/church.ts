@@ -180,6 +180,81 @@ export async function createFollowUp(
   }
 }
 
+export async function updateFollowUp(
+  organizationId: string,
+  id: string,
+  payload: any,
+) {
+  try {
+    const response = await apiRequest(
+      `/organizations/${organizationId}/follow-ups/${id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      },
+    );
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(data.message || "Failed to update follow-up");
+    return {
+      success: true,
+      data: data?.data || data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
+export async function deleteFollowUp(organizationId: string, id: string) {
+  try {
+    const response = await apiRequest(
+      `/organizations/${organizationId}/follow-ups/${id}`,
+      {
+        method: "DELETE",
+      },
+    );
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message || "Failed to delete follow-up");
+    }
+    return {
+      success: true,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
+export async function getFollowUpsByMember(
+  organizationId: string,
+  newMemberId: string,
+) {
+  try {
+    const response = await apiRequest(
+      `/organizations/${organizationId}/follow-ups/member/${newMemberId}`,
+    );
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(data.message || "Failed to fetch member follow-ups");
+    return {
+      success: true,
+      data: data?.data || data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
+
 export async function completeOrganizationOnboarding(
   payload: {
     name: string;
@@ -316,5 +391,190 @@ export async function deleteCommunity(
       success: false,
       error: error.message,
     };
+  }
+}
+export async function getPrayerRequests(organizationId: string) {
+  try {
+    const response = await apiRequest(
+      `/organizations/${organizationId}/prayer-requests`,
+    );
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(data.message || "Failed to fetch prayer requests");
+    return {
+      success: true,
+      data: data?.data || data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
+export async function getPrayerRequestById(
+  organizationId: string,
+  id: string,
+) {
+  try {
+    const response = await apiRequest(
+      `/organizations/${organizationId}/prayer-requests/${id}`,
+    );
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(data.message || "Failed to fetch prayer request details");
+    return {
+      success: true,
+      data: data?.data || data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
+export async function updatePrayerRequest(
+  organizationId: string,
+  id: string,
+  payload: any,
+) {
+  try {
+    const response = await apiRequest(
+      `/organizations/${organizationId}/prayer-requests/${id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      },
+    );
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to update prayer request");
+    return {
+      success: true,
+      data: data?.data || data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
+export async function deletePrayerRequest(
+  organizationId: string,
+  id: string,
+) {
+  try {
+    const response = await apiRequest(
+      `/organizations/${organizationId}/prayer-requests/${id}`,
+      {
+        method: "DELETE",
+      },
+    );
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message || "Failed to delete prayer request");
+    }
+    return {
+      success: true,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
+// Organization Management Endpoints
+export async function createOrganization(payload: any) {
+  try {
+    const response = await apiRequest("/organizations", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to create organization");
+    return { success: true, data: data?.data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateOrganization(id: string, payload: any) {
+  try {
+    const response = await apiRequest(`/organizations/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to update organization");
+    return { success: true, data: data?.data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteOrganization(id: string) {
+  try {
+    const response = await apiRequest(`/organizations/${id}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message || "Failed to delete organization");
+    }
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getOrganizationById(id: string) {
+  try {
+    const response = await apiRequest(`/organizations/${id}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to fetch organization");
+    return { success: true, data: data?.data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function regenerateOrganizationQrCode(id: string) {
+  try {
+    const response = await apiRequest(`/organizations/${id}/qr-code/regenerate`, {
+      method: "POST",
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to regenerate QR code");
+    return { success: true, data: data?.data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getMyOrganization() {
+  try {
+    const response = await apiRequest(`/organizations/mine`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to fetch your organization");
+    return { success: true, data: data?.data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getOrganizationBySlug(slug: string) {
+  try {
+    const response = await apiRequest(`/organizations/slug/${slug}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to fetch organization by slug");
+    return { success: true, data: data?.data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 }

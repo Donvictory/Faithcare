@@ -3,10 +3,11 @@ import { Plus, Upload, Users, Send, MessageCircle, Phone, Trash2, Loader2 } from
 import { Badge } from "./ui/badge";
 import { Header } from "./Header";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getCommunities, createCommunity, deleteCommunity, updateCommunity } from "@/api/church";
+import { getCommunities, createCommunity, deleteCommunity } from "@/api/church";
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
 import { LoadingScreen } from "./LoadingScreen";
+import { useSearch } from "../contexts/SearchContext";
 
 interface CommunityMember {
   id: string | number;
@@ -27,8 +28,9 @@ interface Community {
 }
 
 export function Communities() {
-  const { accessToken, user } = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { searchTerm } = useSearch();
   const organizationId = user?.organizationId || user?.id || user?._id || "";
 
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
@@ -68,6 +70,12 @@ export function Communities() {
     profileImage: c.profileImage,
     createdDate: c.createdAt?.split("T")[0] || "N/A",
   }));
+
+  // Client-side filtering based on global search term
+  const filteredCommunities = communities.filter((c) =>
+    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Mutations
   const createMutation = useMutation({
@@ -116,8 +124,9 @@ export function Communities() {
   };
 
   if (isLoading) {
-    return <LoadingScreen churchName={user?.churchName || user?.name} />;
+    return <LoadingScreen churchName={user?.churchName || user?.name || "FaithCare"} />;
   }
+
   return (
     <div className="min-h-full font-sans">
       <Header title="Communities" subtitle="Manage your church groups and fellowships" />
@@ -126,11 +135,11 @@ export function Communities() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
              <Users className="w-5 h-5 text-accent" />
-             Active Groups
+             {searchTerm ? `Search Results for "${searchTerm}"` : "Active Groups"}
           </h2>
           <button
             onClick={() => setShowNewCommunityForm(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all shadow-sm active:scale-95"
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all shadow-sm active:scale-95 font-bold"
           >
             <Plus className="w-4 h-4" />
             New Community
@@ -138,27 +147,27 @@ export function Communities() {
         </div>
 
         {showNewCommunityForm && (
-          <div className="bg-card rounded-xl border border-border p-8 shadow-md">
+          <div className="bg-card rounded-xl border border-border p-8 shadow-md animate-in slide-in-from-top-4 duration-300">
             <h3 className="text-lg font-bold text-foreground mb-6">Create New Fellowship Group</h3>
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div className="space-y-2">
-                <label className="text-sm text-muted-foreground uppercase tracking-wider ml-1">Group Name</label>
+                <label className="text-sm text-muted-foreground uppercase tracking-wider ml-1 font-bold">Group Name</label>
                 <input
                   type="text"
                   value={newCommunity.name}
                   onChange={(e) => setNewCommunity({ ...newCommunity, name: e.target.value })}
                   placeholder="e.g., Young Adults Fellowship"
-                  className="w-full px-4 py-3 bg-secondary/30 border border-border rounded-lg text-foreground focus:ring-2 focus:ring-primary outline-none"
+                  className="w-full px-4 py-3 bg-secondary/30 border border-border rounded-lg text-foreground focus:ring-2 focus:ring-primary outline-none transition-all"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-muted-foreground uppercase tracking-wider ml-1">Description</label>
+                <label className="text-sm text-muted-foreground uppercase tracking-wider ml-1 font-bold">Description</label>
                 <input
                   type="text"
                   value={newCommunity.description}
                   onChange={(e) => setNewCommunity({ ...newCommunity, description: e.target.value })}
                   placeholder="e.g., Connect with believers aged 18-35"
-                  className="w-full px-4 py-3 bg-secondary/30 border border-border rounded-lg text-foreground focus:ring-2 focus:ring-primary outline-none"
+                  className="w-full px-4 py-3 bg-secondary/30 border border-border rounded-lg text-foreground focus:ring-2 focus:ring-primary outline-none transition-all"
                 />
               </div>
             </div>
@@ -166,14 +175,14 @@ export function Communities() {
               <button
                 onClick={handleCreateCommunity}
                 disabled={createMutation.isPending}
-                className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 font-bold shadow-lg shadow-primary/20"
               >
                 {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                 {createMutation.isPending ? "Creating..." : "Save Fellowship"}
               </button>
               <button
                 onClick={() => setShowNewCommunityForm(false)}
-                className="px-6 py-2.5 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-all"
+                className="px-6 py-2.5 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-all font-bold"
               >
                 Cancel
               </button>
@@ -182,19 +191,26 @@ export function Communities() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {communities.length === 0 ? (
-            <div className="col-span-full py-16 text-center bg-muted/20 rounded-2xl border-2 border-dashed border-border">
-              <p className="text-muted-foreground italic mb-4">No communities set up yet.</p>
-              <button onClick={() => setShowNewCommunityForm(true)} className="text-primary hover:underline">Create your first group</button>
+          {filteredCommunities.length === 0 ? (
+            <div className="col-span-full py-24 text-center bg-muted/10 rounded-3xl border-2 border-dashed border-border flex flex-col items-center justify-center space-y-4">
+              <Users className="w-12 h-12 text-muted-foreground/30" />
+              <p className="text-muted-foreground italic">
+                {searchTerm ? `No groups found matching "${searchTerm}"` : "No communities set up yet."}
+              </p>
+              {!searchTerm && (
+                 <button onClick={() => setShowNewCommunityForm(true)} className="text-primary hover:underline font-bold">
+                    Create your first group
+                 </button>
+              )}
             </div>
-          ) : communities.map((community) => (
+          ) : filteredCommunities.map((community) => (
             <div
               key={community.id}
               onClick={() => setSelectedCommunity(community)}
-              className={`group relative bg-card rounded-2xl border p-6 transition-all cursor-pointer hover:border-accent hover:shadow-xl ${selectedCommunity?.id === community.id ? 'border-accent ring-1 ring-accent bg-accent/5' : 'border-border'}`}
+              className={`group relative bg-card rounded-2xl border p-6 transition-all cursor-pointer hover:border-accent hover:shadow-2xl ${selectedCommunity?.id === community.id ? 'border-accent ring-2 ring-accent/20 bg-accent/5 shadow-xl' : 'border-border shadow-sm'}`}
             >
               <div className="flex items-start justify-between mb-6">
-                <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center overflow-hidden border border-accent/20">
+                <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center overflow-hidden border border-accent/20 transition-transform group-hover:scale-110">
                   {community.profileImage ? (
                     <img src={community.profileImage} alt={community.name} className="w-full h-full object-cover" />
                   ) : (
@@ -212,16 +228,16 @@ export function Communities() {
                 </button>
               </div>
               <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-accent transition-colors">{community.name}</h3>
-              <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px] mb-6">
+              <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px] mb-6 leading-relaxed">
                 {community.description}
               </p>
-              <div className="flex items-center justify-between pt-4 border-t border-border">
+              <div className="flex items-center justify-between pt-4 border-t border-border/50">
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                  <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 font-bold px-2.5 py-0.5">
                     {community.memberCount} Members
                   </Badge>
                 </div>
-                <span className="text-xs text-muted-foreground bg-muted p-1 px-2 rounded-md">
+                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider bg-muted/50 p-1 px-2 rounded-md">
                   Since {community.createdDate}
                 </span>
               </div>
@@ -230,20 +246,20 @@ export function Communities() {
         </div>
 
         {selectedCommunity && (
-          <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-2xl animate-in slide-in-from-bottom-5 duration-300">
+          <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-2xl animate-in slide-in-from-bottom-5 duration-500">
             <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-8 border-b border-border">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div>
-                  <h3 className="text-2xl font-bold text-foreground mb-1">{selectedCommunity.name}</h3>
-                  <p className="text-muted-foreground max-w-xl">{selectedCommunity.description}</p>
+                  <h3 className="text-2xl font-bold text-foreground mb-2">{selectedCommunity.name}</h3>
+                  <p className="text-muted-foreground max-w-xl leading-relaxed">{selectedCommunity.description}</p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 px-5 py-2.5 bg-accent text-accent-foreground rounded-xl hover:bg-accent/90 transition-all cursor-pointer font-medium shadow-md">
+                  <label className="flex items-center gap-2 px-6 py-3 bg-accent text-accent-foreground rounded-xl hover:bg-accent/90 transition-all cursor-pointer font-bold shadow-lg shadow-accent/20 active:scale-95">
                     <Upload className="w-4 h-4" />
                     Import Members
                     <input type="file" accept=".xlsx,.csv" onChange={(e) => handleFileUpload(selectedCommunity.id, e)} className="hidden" />
                   </label>
-                  <button onClick={() => setSelectedCommunity(null)} className="px-5 py-2.5 bg-muted text-foreground rounded-xl hover:bg-muted/80 transition-all font-medium">
+                  <button onClick={() => setSelectedCommunity(null)} className="px-6 py-3 bg-muted text-foreground rounded-xl hover:bg-muted/80 transition-all font-bold active:scale-95">
                     Close Details
                   </button>
                 </div>
@@ -254,9 +270,9 @@ export function Communities() {
               <table className="w-full">
                 <thead className="bg-muted/50 border-b border-border">
                   <tr>
-                    <th className="px-8 py-5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Member</th>
-                    <th className="px-8 py-5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Joined</th>
-                    <th className="px-8 py-5 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Follow Up</th>
+                    <th className="px-8 py-5 text-left text-xs font-bold uppercase tracking-widest text-muted-foreground">Member</th>
+                    <th className="px-8 py-5 text-left text-xs font-bold uppercase tracking-widest text-muted-foreground">Joined</th>
+                    <th className="px-8 py-5 text-right text-xs font-bold uppercase tracking-widest text-muted-foreground">Follow Up</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -266,26 +282,26 @@ export function Communities() {
                         <td className="px-8 py-5">
                           <div className="flex flex-col">
                             <span className="text-sm font-bold text-foreground">{member.name}</span>
-                            <span className="text-xs text-muted-foreground">{member.phone} • {member.email}</span>
+                            <span className="text-xs text-muted-foreground font-medium">{member.phone} • {member.email}</span>
                           </div>
                         </td>
                         <td className="px-8 py-5">
-                          <span className="text-xs text-muted-foreground">{member.joinDate}</span>
+                          <span className="text-xs text-muted-foreground font-bold">{member.joinDate}</span>
                         </td>
                         <td className="px-8 py-5 text-right relative">
                           <button
                             onClick={() => setShowFollowUpMenu(showFollowUpMenu === member.id ? null : member.id)}
-                            className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all shadow-sm"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-md shadow-primary/10 font-bold active:scale-95"
                           >
-                            <Send className="w-3.5 h-3.5" />
+                            <Send className="w-4 h-4" />
                             Message
                           </button>
                           
                           {showFollowUpMenu === member.id && (
-                            <div className="absolute right-8 mt-2 w-56 bg-card border border-border rounded-xl shadow-2xl z-50 overflow-hidden py-1 animate-in zoom-in-95 duration-200">
-                               <button onClick={() => {toast.success("SMS Sent!"); setShowFollowUpMenu(null)}} className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted transition-colors"><MessageCircle className="w-4 h-4 text-green-500" /> Send SMS</button>
-                               <button onClick={() => {toast.success("WhatsApp Sent!"); setShowFollowUpMenu(null)}} className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted transition-colors"><Phone className="w-4 h-4 text-green-600" /> WhatsApp</button>
-                               <button onClick={() => {toast.success("Call Initiated!"); setShowFollowUpMenu(null)}} className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted transition-colors"><Phone className="w-4 h-4 text-blue-500" /> Make Call</button>
+                            <div className="absolute right-8 mt-2 w-64 bg-card border border-border rounded-2xl shadow-2xl z-50 overflow-hidden py-2 animate-in zoom-in-95 duration-200">
+                               <button onClick={() => {toast.success("SMS Sent!"); setShowFollowUpMenu(null)}} className="w-full flex items-center gap-3 px-5 py-3 text-sm hover:bg-muted transition-colors font-bold"><MessageCircle className="w-4 h-4 text-green-500" /> Send SMS</button>
+                               <button onClick={() => {toast.success("WhatsApp Sent!"); setShowFollowUpMenu(null)}} className="w-full flex items-center gap-3 px-5 py-3 text-sm hover:bg-muted transition-colors font-bold"><Phone className="w-4 h-4 text-green-600" /> WhatsApp</button>
+                               <button onClick={() => {toast.success("Call Initiated!"); setShowFollowUpMenu(null)}} className="w-full flex items-center gap-3 px-5 py-3 text-sm hover:bg-muted transition-colors font-bold"><Phone className="w-4 h-4 text-blue-500" /> Make Call</button>
                             </div>
                           )}
                         </td>
@@ -293,7 +309,7 @@ export function Communities() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={3} className="px-8 py-16 text-center text-muted-foreground italic">
+                      <td colSpan={3} className="px-8 py-20 text-center text-muted-foreground italic">
                         The "{selectedCommunity.name}" group has no members yet. Use the import button to add believers from your Excel/CSV records.
                       </td>
                     </tr>
