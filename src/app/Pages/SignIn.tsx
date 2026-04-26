@@ -161,7 +161,7 @@ export function SignIn() {
               </label>
               <Link
                 to="/forgot-password"
-                className="text-sm text-accent hover:text-accent/80 transition-all font-bold"
+                className="text-sm text-accent hover:text-accent/80 transition-all font-medium"
               >
                 Forgot password?
               </Link>
@@ -169,14 +169,14 @@ export function SignIn() {
 
             {error && (
               <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-xl animate-in shake duration-500">
-                <p className="text-sm text-destructive font-bold">{error}</p>
+                <p className="text-sm text-destructive font-medium">{error}</p>
               </div>
             )}
 
             <button
               disabled={isLoading}
               type="submit"
-              className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-bold hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-medium hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
             >
               Sign In
               <ArrowRight className="w-5 h-5" />
@@ -188,14 +188,14 @@ export function SignIn() {
               <div className="w-full border-t border-border"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-background text-muted-foreground uppercase tracking-widest text-[10px] font-bold">
+              <span className="px-4 bg-background text-muted-foreground uppercase tracking-widest text-[10px] font-medium">
                 Or continue with
               </span>
             </div>
           </div>
 
           <div className="grid gap-4 mb-10">
-            <button className="flex items-center justify-center gap-3 px-4 py-4 border-2 border-border rounded-xl hover:bg-secondary/50 transition-all text-foreground font-bold active:scale-95">
+            <button className="flex items-center justify-center gap-3 px-4 py-4 border-2 border-border rounded-xl hover:bg-secondary/50 transition-all text-foreground font-medium active:scale-95">
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
@@ -222,7 +222,7 @@ export function SignIn() {
             Don't have an account?{" "}
             <Link
               to="/sign-up-choice"
-              className="text-accent hover:text-accent/80 transition-all font-bold"
+              className="text-accent hover:text-accent/80 transition-all font-medium"
             >
               Sign up
             </Link>

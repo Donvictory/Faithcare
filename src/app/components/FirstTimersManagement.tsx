@@ -11,6 +11,8 @@ import {
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
 import { useSearch } from "../contexts/SearchContext";
+import { DataManagementActions } from "./DataManagementActions";
+import { AddMemberModal } from "./AddMemberModal";
 
 interface FirstTimer {
   id: string;
@@ -32,6 +34,7 @@ export function FirstTimersManagement() {
   // States for filters
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedSunday, setSelectedSunday] = useState<string | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Status update mutation
   const statusMutation = useMutation({
@@ -46,7 +49,7 @@ export function FirstTimersManagement() {
     }) => updateFirstTimerStatus(id, { status, notes }),
     onSuccess: () => {
       toast.success("Status updated");
-      queryClient.invalidateQueries({ queryKey: ["first-timers"] });
+      queryClient.invalidateQueries({ queryKey: ["first-timers"], exact: false });
     },
     onError: (error: any) => {
       toast.error(error.message || "Update failed");
@@ -57,7 +60,7 @@ export function FirstTimersManagement() {
     mutationFn: (payload: any) => createFollowUp(organizationId, payload),
     onSuccess: () => {
       toast.success("Follow-up created successfully");
-      queryClient.invalidateQueries({ queryKey: ["follow-ups"] });
+      queryClient.invalidateQueries({ queryKey: ["follow-ups"], exact: false });
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to create follow-up");
@@ -85,22 +88,36 @@ export function FirstTimersManagement() {
   };
 
   const { data: firstTimersResponse, isLoading } = useQuery({
-    queryKey: ["first-timers", statusFilter, searchTerm],
+    queryKey: ["first-timers", organizationId, statusFilter, searchTerm],
     queryFn: () =>
       getFirstTimers({
-        status: statusFilter === "all" ? "all" : (statusFilter as any),
-        search: searchTerm,
-        organizationId: organizationId,
+        organizationId,
+        status: statusFilter === "all" ? undefined : (statusFilter as any),
+        search: searchTerm || undefined,
       }),
     enabled: !!organizationId,
   });
 
-  const firstTimersRaw = firstTimersResponse?.data || [];
-  const firstTimersData = Array.isArray(firstTimersRaw)
-    ? firstTimersRaw
-    : firstTimersRaw?.data && Array.isArray(firstTimersRaw.data)
-      ? firstTimersRaw.data
-      : [];
+  // Helper to deeply find the first array in an object
+  const findArray = (obj: any): any[] => {
+    if (!obj) return [];
+    if (Array.isArray(obj)) return obj;
+    if (typeof obj === "object") {
+      for (const key in obj) {
+        if (Array.isArray(obj[key])) return obj[key];
+        if (typeof obj[key] === "object" && obj[key] !== null) {
+          const nested = findArray(obj[key]);
+          if (nested.length > 0) return nested;
+        }
+      }
+    }
+    return [];
+  };
+
+  const firstTimersData = findArray(firstTimersResponse);
+
+  console.log("firstTimersResponse:", firstTimersResponse);
+  console.log("firstTimersData:", firstTimersData);
 
   const firstTimersList: FirstTimer[] = firstTimersData.map((ft: any) => ({
     id: ft.id || ft._id,
@@ -141,9 +158,27 @@ export function FirstTimersManagement() {
     (a, b) => new Date(b).getTime() - new Date(a).getTime(),
   );
 
-  const displayedData = selectedSunday
-    ? groupedBySunday[selectedSunday]
-    : firstTimersList;
+  // Combine all local filters safely
+  let displayedData = firstTimersList;
+
+  if (statusFilter && statusFilter !== "all") {
+    displayedData = displayedData.filter((p) => p.status.toUpperCase() === statusFilter.toUpperCase());
+  }
+
+  if (selectedSunday) {
+    displayedData = displayedData.filter((p) => p.sunday === selectedSunday);
+  }
+
+  if (searchTerm) {
+    const lowerSearch = searchTerm.toLowerCase();
+    displayedData = displayedData.filter(
+      (p) =>
+        p.name.toLowerCase().includes(lowerSearch) ||
+        p.email.toLowerCase().includes(lowerSearch) ||
+        p.phone.toLowerCase().includes(lowerSearch) ||
+        p.prayerRequest.toLowerCase().includes(lowerSearch)
+    );
+  }
 
   return (
     <div className="min-h-full">
@@ -151,7 +186,29 @@ export function FirstTimersManagement() {
         title="First Timers Management"
         subtitle="Manage first timers and their registration"
       />
+
       <div className="p-4 md:p-8 space-y-6">
+        {/* Bulk Actions and Add New */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
+          <div>
+            <h3 className="text-lg font-bold text-foreground">Data Management</h3>
+            <p className="text-sm text-muted-foreground italic">Upload or add new records manually</p>
+          </div>
+          <DataManagementActions 
+            type="first-timers" 
+            onAddManual={() => setIsAddModalOpen(true)}
+            onUploadSuccess={() => queryClient.invalidateQueries({ queryKey: ["first-timers"], exact: false })}
+          />
+        </div>
+
+        <AddMemberModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          type="first-timers"
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["first-timers"], exact: false })}
+        />
+
+        <div className="space-y-6">
         {/* QR Code and Actions */}
         <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-xl p-6 border border-accent/20">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -326,6 +383,7 @@ export function FirstTimersManagement() {
               </tbody>
             </table>
           </div>
+        </div>
         </div>
       </div>
     </div>

@@ -1,0 +1,86 @@
+import { useState, useRef } from "react";
+import { Plus, FileSpreadsheet, Loader2 } from "lucide-react";
+import { Button } from "./ui/button";
+import { toast } from "react-hot-toast";
+import { bulkUploadMembers } from "@/api/church";
+import { useAuth } from "../providers/AuthProvider";
+
+interface DataManagementActionsProps {
+  type: "first-timers" | "second-timers" | "salvation-records" | "prayer-requests" | "follow-ups";
+  onAddManual: () => void;
+  onUploadSuccess: () => void;
+}
+
+export function DataManagementActions({ type, onAddManual, onUploadSuccess }: DataManagementActionsProps) {
+  const { user } = useAuth();
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const organizationId = user?.organizationId || user?.id || "";
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = [
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel",
+      "text/csv"
+    ];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Please upload a valid Excel or CSV file");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const res = await bulkUploadMembers(organizationId, type, file);
+      if (res.success) {
+        toast.success(`${type.replace("-", " ")} uploaded successfully`);
+        onUploadSuccess();
+      } else {
+        toast.error(res.error || "Upload failed");
+      }
+    } catch (error) {
+      toast.error("An error occurred during upload");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+        accept=".xlsx, .xls, .csv"
+      />
+      
+      <Button
+        variant="outline"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={isUploading}
+        className="h-11 px-6 rounded-xl border-border bg-card hover:bg-muted/50 text-foreground transition-all flex items-center gap-2 group"
+      >
+        {isUploading ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <FileSpreadsheet className="w-4 h-4 text-green-500 group-hover:scale-110 transition-transform" />
+        )}
+        <span className="font-medium">Upload Excel</span>
+      </Button>
+
+      <Button
+        onClick={onAddManual}
+        className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center gap-2 group"
+      >
+        <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+        <span className="font-medium italic">Add Manually</span>
+      </Button>
+    </div>
+  );
+}

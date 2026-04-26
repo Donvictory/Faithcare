@@ -1,4 +1,5 @@
 import { Heart, User, Trash2, Loader2 } from "lucide-react";
+import { useState } from "react";
 import { Badge } from "./ui/badge";
 import { Header } from "./Header";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,12 +11,15 @@ import {
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
 import { useSearch } from "../contexts/SearchContext";
+import { DataManagementActions } from "./DataManagementActions";
+import { AddMemberModal } from "./AddMemberModal";
 
 export function PrayerRequests() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { searchTerm } = useSearch();
   const organizationId = user?.organizationId || user?.id || user?._id || "";
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const { data: prayerResponse, isLoading } = useQuery({
     queryKey: ["prayer-requests", organizationId],
@@ -51,10 +55,14 @@ export function PrayerRequests() {
       ? prayerRequestsRaw.data
       : [];
 
-  const filteredRequests = prayerRequests.filter((prayer: any) =>
-    (prayer.name || "Anonymous").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (prayer.description || prayer.request || "").toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredRequests = prayerRequests.filter((prayer: any) => {
+    if (!searchTerm) return true;
+    const lowerSearch = searchTerm.toLowerCase();
+    return (
+      (prayer.name || "Anonymous").toLowerCase().includes(lowerSearch) ||
+      (prayer.description || prayer.request || "").toLowerCase().includes(lowerSearch)
+    );
+  });
 
   const getStatusColor = (status: string) => {
     switch (status?.toUpperCase()) {
@@ -92,7 +100,28 @@ export function PrayerRequests() {
         title="Prayer Requests"
         subtitle="Pray for one another and lift each other up"
       />
-      <div className="p-4 md:p-8">
+
+      <div className="p-4 md:p-8 space-y-6">
+        {/* Bulk Actions and Add New */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm mb-6">
+          <div>
+            <h3 className="text-lg font-bold text-foreground">Data Management</h3>
+            <p className="text-sm text-muted-foreground italic">Upload or add new requests manually</p>
+          </div>
+          <DataManagementActions 
+            type="prayer-requests" 
+            onAddManual={() => setIsAddModalOpen(true)}
+            onUploadSuccess={() => queryClient.invalidateQueries({ queryKey: ["prayer-requests"] })}
+          />
+        </div>
+
+        <AddMemberModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          type="prayer-requests"
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["prayer-requests"] })}
+        />
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           {filteredRequests.length === 0 ? (
             <div className="col-span-full py-24 text-center bg-muted/10 rounded-3xl border-2 border-dashed border-border flex flex-col items-center justify-center space-y-4">

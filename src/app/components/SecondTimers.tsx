@@ -3,6 +3,9 @@ import { CheckCircle, Send, Calendar } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Header } from "./Header";
 import { useSearch } from "../contexts/SearchContext";
+import { DataManagementActions } from "./DataManagementActions";
+import { AddMemberModal } from "./AddMemberModal";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface FirstTimer {
   id: number;
@@ -87,8 +90,10 @@ const firstTimersData: FirstTimer[] = [
 
 export function SecondTimers() {
   const { searchTerm } = useSearch();
+  const queryClient = useQueryClient();
   const [timers, setTimers] = useState<FirstTimer[]>(firstTimersData);
   const [selectedSunday, setSelectedSunday] = useState<string | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Client-side search filtering
   const filteredBySearch = timers.filter((t) =>
@@ -145,9 +150,23 @@ export function SecondTimers() {
     }
   };
 
-  const displayedData = selectedSunday
-    ? groupedBySunday[selectedSunday] || []
-    : filteredBySearch.filter((t) => t.secondVisit);
+  // Combine all local filters safely
+  let displayedData = timers.filter((t) => t.secondVisit);
+
+  if (selectedSunday) {
+    displayedData = displayedData.filter((t) => t.secondVisit === selectedSunday);
+  }
+
+  if (searchTerm) {
+    const lowerSearch = searchTerm.toLowerCase();
+    displayedData = displayedData.filter(
+      (t) =>
+        t.name.toLowerCase().includes(lowerSearch) ||
+        t.email.toLowerCase().includes(lowerSearch) ||
+        t.phone.toLowerCase().includes(lowerSearch) ||
+        t.prayerRequest.toLowerCase().includes(lowerSearch)
+    );
+  }
 
   const firstTimerCount = timers.filter(
     (t) => t.status === "first-timer",
@@ -162,7 +181,29 @@ export function SecondTimers() {
         title="Second Timers"
         subtitle="Manage second timers and their registration"
       />
+
       <div className="p-4 md:p-8 space-y-6">
+        {/* Bulk Actions and Add New */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
+          <div>
+            <h3 className="text-lg font-bold text-foreground">Data Management</h3>
+            <p className="text-sm text-muted-foreground italic">Upload or add new records manually</p>
+          </div>
+          <DataManagementActions 
+            type="second-timers" 
+            onAddManual={() => setIsAddModalOpen(true)}
+            onUploadSuccess={() => queryClient.invalidateQueries({ queryKey: ["first-timers"] })}
+          />
+        </div>
+
+        <AddMemberModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          type="second-timers"
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["first-timers"] })}
+        />
+
+        <div className="space-y-6">
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200 shadow-sm">
@@ -336,6 +377,7 @@ export function SecondTimers() {
               </tbody>
             </table>
           </div>
+        </div>
         </div>
       </div>
     </div>

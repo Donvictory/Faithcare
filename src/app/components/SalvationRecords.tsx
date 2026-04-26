@@ -3,6 +3,11 @@ import { Phone, MessageCircle, PhoneCall, Send, Heart, Search } from "lucide-rea
 import { Badge } from "./ui/badge";
 import { Header } from "./Header";
 import { useSearch } from "../contexts/SearchContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getSalvationRecords } from "@/api/church";
+import { useAuth } from "../providers/AuthProvider";
+import { DataManagementActions } from "./DataManagementActions";
+import { AddMemberModal } from "./AddMemberModal";
 
 interface SalvationRecord {
   id: number;
@@ -54,18 +59,31 @@ const salvationRecordsData: SalvationRecord[] = [
 ];
 
 export function SalvationRecords() {
-  const { searchTerm, setSearchTerm } = useSearch();
+  const { user } = useAuth();
+  const { searchTerm } = useSearch();
+  const queryClient = useQueryClient();
   const [showFollowUpMenu, setShowFollowUpMenu] = useState<number | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const organizationId = user?.organizationId || user?.id || "";
 
-  const filteredRecords = salvationRecordsData.filter((record) => {
+  const { data: recordsResponse, isLoading } = useQuery({
+    queryKey: ["salvation-records", organizationId],
+    queryFn: () => getSalvationRecords(organizationId),
+    enabled: !!organizationId,
+  });
+
+  const salvationRecordsData = recordsResponse?.data || [];
+
+  const filteredRecords = Array.isArray(salvationRecordsData) ? salvationRecordsData.filter((record: any) => {
+    if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase().trim();
     return (
-      record.name.toLowerCase().includes(searchLower) ||
-      record.notes.toLowerCase().includes(searchLower) ||
-      record.email.toLowerCase().includes(searchLower) ||
-      record.phone.toLowerCase().includes(searchLower)
+      (record.name || record.fullName || "").toLowerCase().includes(searchLower) ||
+      (record.notes || "").toLowerCase().includes(searchLower) ||
+      (record.email || "").toLowerCase().includes(searchLower) ||
+      (record.phone || record.phoneNumber || "").toLowerCase().includes(searchLower)
     );
-  });
+  }) : [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -91,7 +109,29 @@ export function SalvationRecords() {
         title="Salvation Records"
         subtitle="Manage salvation records and their registration"
       />
+
       <div className="p-4 md:p-8 space-y-6">
+        {/* Bulk Actions and Add New */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
+          <div>
+            <h3 className="text-lg font-bold text-foreground">Data Management</h3>
+            <p className="text-sm text-muted-foreground italic">Upload or add new records manually</p>
+          </div>
+          <DataManagementActions 
+            type="salvation-records" 
+            onAddManual={() => setIsAddModalOpen(true)}
+            onUploadSuccess={() => queryClient.invalidateQueries({ queryKey: ["salvation-records"] })}
+          />
+        </div>
+
+        <AddMemberModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          type="salvation-records"
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["salvation-records"] })}
+        />
+
+        <div className="space-y-6">
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-6 border border-green-200 shadow-sm">
@@ -117,7 +157,7 @@ export function SalvationRecords() {
                 <h3 className="text-3xl font-bold text-yellow-900">
                   {
                     salvationRecordsData.filter(
-                      (r) => r.followUpStatus === "Pending",
+                      (r: any) => r.followUpStatus === "Pending",
                     ).length
                   }
                 </h3>
@@ -134,7 +174,7 @@ export function SalvationRecords() {
                 <p className="text-sm font-bold text-blue-700 mb-1">This Month</p>
                 <h3 className="text-3xl font-bold text-blue-900">
                   {
-                    salvationRecordsData.filter((r) =>
+                    salvationRecordsData.filter((r: any) =>
                       r.dateOfDecision.includes("Mar"),
                     ).length
                   }
@@ -257,6 +297,7 @@ export function SalvationRecords() {
               </tbody>
             </table>
           </div>
+        </div>
         </div>
       </div>
     </div>

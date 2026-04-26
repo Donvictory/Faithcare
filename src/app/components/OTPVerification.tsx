@@ -133,7 +133,7 @@ export function OTPVerification() {
                 <ShieldCheck className="w-6 h-6 text-accent" />
               </div>
               <div>
-                <p className="font-bold text-foreground">
+                <p className="font-medium text-foreground">
                   Two-Factor Authentication
                 </p>
                 <p className="text-sm">
@@ -160,11 +160,11 @@ export function OTPVerification() {
             </h2>
             <p className="text-muted-foreground leading-relaxed">
               Enter the 6-digit code sent to{" "}
-              <span className="text-foreground font-bold">{email}</span>
+              <span className="text-foreground font-medium">{email}</span>
             </p>
             <button
               onClick={() => navigate(-1)}
-              className="text-xs text-accent hover:underline mt-2 inline-block font-bold"
+              className="text-xs text-accent hover:underline mt-2 inline-block font-medium"
             >
               Entered the wrong email?
             </button>
@@ -181,7 +181,7 @@ export function OTPVerification() {
                   value={digit}
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-16 text-center text-3xl font-bold bg-secondary/30 border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground shadow-sm"
+                  className="w-12 h-16 text-center text-3xl font-semibold bg-secondary/30 border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground shadow-sm"
                 />
               ))}
             </div>
@@ -190,7 +190,7 @@ export function OTPVerification() {
               <button
                 type="submit"
                 disabled={isVerifying}
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-bold hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-medium hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
               >
                 Verify Code
                 <ArrowRight className="w-5 h-5" />
@@ -201,7 +201,7 @@ export function OTPVerification() {
                   type="button"
                   onClick={handleResend}
                   disabled={!canResend}
-                  className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent/80 transition-all font-bold disabled:text-muted-foreground"
+                  className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent/80 transition-all font-medium disabled:text-muted-foreground"
                 >
                   <RefreshCw
                     className={`w-4 h-4 ${!canResend ? "animate-none" : ""}`}

@@ -50,7 +50,7 @@ export async function getFirstTimers(
       throw new Error(data.message || "Failed to fetch first timers");
     return {
       success: true,
-      data: data?.data,
+      data: data,
     };
   } catch (error: any) {
     return {
@@ -573,6 +573,70 @@ export async function getOrganizationBySlug(slug: string) {
     const response = await apiRequest(`/organizations/slug/${slug}`);
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Failed to fetch organization by slug");
+    return { success: true, data: data?.data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+export async function getSalvationRecords(organizationId: string) {
+  try {
+    const response = await apiRequest(`/organizations/${organizationId}/salvation-records`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to fetch salvation records");
+    return { success: true, data: data?.data || data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function createSalvationRecord(organizationId: string, payload: any) {
+  try {
+    const response = await apiRequest(`/organizations/${organizationId}/salvation-records`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to create salvation record");
+    return { success: true, data: data?.data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function createPrayerRequest(organizationId: string, payload: any) {
+  try {
+    const response = await apiRequest(`/organizations/${organizationId}/prayer-requests`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to create prayer request");
+    return { success: true, data: data?.data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function bulkUploadMembers(organizationId: string, type: string, file: File) {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("type", type);
+
+    // Using fetch directly for multipart/form-data as apiRequest might be configured for JSON
+    const baseUrl = import.meta.env.VITE_API_URL || "https://faithcare-13a2dc003ee9.herokuapp.com/api/v1";
+    const token = localStorage.getItem("accessToken");
+
+    const response = await fetch(`${baseUrl}/organizations/${organizationId}/bulk-upload`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Bulk upload failed");
     return { success: true, data: data?.data };
   } catch (error: any) {
     return { success: false, error: error.message };

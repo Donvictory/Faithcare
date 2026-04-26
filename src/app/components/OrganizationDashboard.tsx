@@ -74,7 +74,7 @@ export function OrganizationDashboard() {
               <h3 className="text-lg font-bold text-foreground">
                 {searchTerm ? `Activity: "${searchTerm}"` : "Recent Activity"}
               </h3>
-              <button className="text-[10px] text-accent hover:underline uppercase tracking-widest bg-accent/5 px-3 py-1.5 rounded-full font-bold">
+              <button className="text-[10px] text-accent hover:underline uppercase tracking-widest bg-accent/5 px-3 py-1.5 rounded-full font-medium">
                 Live Feed
               </button>
             </div>
@@ -89,12 +89,12 @@ export function OrganizationDashboard() {
                       <UserPlus className="w-6 h-6 text-accent" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-foreground">{activity.name}</p>
-                      <p className="text-xs text-muted-foreground font-medium">
+                      <p className="text-sm font-medium text-foreground">{activity.name}</p>
+                      <p className="text-xs text-muted-foreground">
                         Successfully {activity.action} in the system
                       </p>
                     </div>
-                    <span className="text-[10px] text-muted-foreground font-bold uppercase bg-muted/50 px-2 py-1 rounded">
+                    <span className="text-[10px] text-muted-foreground font-medium uppercase bg-muted/50 px-2 py-1 rounded">
                       {activity.time}
                     </span>
                   </div>
@@ -125,16 +125,16 @@ export function OrganizationDashboard() {
                     className={`p-5 rounded-xl border-l-4 shadow-sm ${fu.status === "overdue" ? "border-l-red-500 bg-red-50/30" : "border-l-accent bg-accent/5"}`}
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <p className="text-sm font-bold text-foreground italic">
+                      <p className="text-sm font-medium text-foreground italic">
                         "{fu.name}"
                       </p>
                       <span
-                        className={`text-[10px] font-bold uppercase ${fu.status === "overdue" ? "text-red-600 bg-red-100" : "text-accent bg-accent/10"} px-2 py-1 rounded`}
+                        className={`text-[10px] font-medium uppercase ${fu.status === "overdue" ? "text-red-600 bg-red-100" : "text-accent bg-accent/10"} px-2 py-1 rounded`}
                       >
                         {fu.dueDate || "Planned"}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       {fu.description ||
                         fu.notes ||
                         "Follow up action required for this member."}
@@ -149,7 +149,7 @@ export function OrganizationDashboard() {
                 </div>
               )}
             </div>
-            <button className="w-full mt-6 px-4 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg active:scale-95 font-bold">
+            <button className="w-full mt-6 px-4 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg active:scale-95 font-medium">
               Manage All Follow Ups
             </button>
           </div>
@@ -162,7 +162,7 @@ export function OrganizationDashboard() {
 function Badge({ children, className }: any) {
   return (
     <span
-      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${className}`}
+      className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider border ${className}`}
     >
       {children}
     </span>

@@ -181,7 +181,8 @@ export function IndividualDashboard() {
             });
             addNotification({
               title: "Welcome to FaithCare!",
-              description: "We're glad to have you. Your journey of spiritual growth starts today.",
+              description:
+                "We're glad to have you. Your journey of spiritual growth starts today.",
               time: "Just now",
               icon: "Sparkles",
               color: "text-accent",
@@ -330,10 +331,10 @@ export function IndividualDashboard() {
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] mb-3 font-bold">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] mb-3 ">
                       {stat.title}
                     </p>
-                    <p className="text-3xl font-bold text-foreground group-hover:text-accent transition-colors">
+                    <p className="text-3xl text-foreground group-hover:text-accent transition-colors">
                       {stat.value}
                     </p>
                   </div>
@@ -378,7 +379,7 @@ export function IndividualDashboard() {
                       className="p-5 rounded-2xl border border-border hover:bg-muted/40 transition-all cursor-pointer group"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm font-bold text-foreground group-hover:text-accent transition-colors">
+                        <p className="text-sm text-foreground group-hover:text-accent transition-colors">
                           {entry.title}
                         </p>
                         <p className="text-[10px] font-bold text-muted-foreground bg-muted/50 px-2 py-0.5 rounded uppercase">
@@ -407,7 +408,7 @@ export function IndividualDashboard() {
 
             <Link
               to="/sunday-journal"
-              className="block w-full mt-8 px-4 py-4 bg-muted/40 text-foreground rounded-2xl hover:bg-muted/60 transition-all border border-border text-center text-sm font-bold"
+              className="block w-full mt-8 px-4 py-4 bg-muted/40 text-foreground rounded-2xl hover:bg-muted/60 transition-all border border-border text-center text-sm "
             >
               Write New Entry
             </Link>

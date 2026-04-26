@@ -6,12 +6,16 @@ import { getFollowUps, updateFollowUp, deleteFollowUp } from "@/api/church";
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
 import { useSearch } from "../contexts/SearchContext";
+import { DataManagementActions } from "./DataManagementActions";
+import { AddMemberModal } from "./AddMemberModal";
+import { useState } from "react";
 
 export function FollowUps() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { searchTerm } = useSearch();
   const organizationId = user?.organizationId || user?.id || user?._id || "";
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const { data: followUpsResponse, isLoading } = useQuery({
     queryKey: ["follow-ups", organizationId],
@@ -45,10 +49,14 @@ export function FollowUps() {
       ? followUpsRaw.data
       : [];
 
-  const filteredFollowUps = followUps.filter((f: any) =>
-    (f.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (f.description || f.note || "").toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredFollowUps = followUps.filter((f: any) => {
+    if (!searchTerm) return true;
+    const lowerSearch = searchTerm.toLowerCase();
+    return (
+      (f.name || "").toLowerCase().includes(lowerSearch) ||
+      (f.description || f.note || "").toLowerCase().includes(lowerSearch)
+    );
+  });
 
   const getPriorityColor = (priority: string) => {
     switch (priority?.toUpperCase()) {
@@ -99,7 +107,29 @@ export function FollowUps() {
         title="Follow Ups"
         subtitle="Track and manage pastor follow-ups with members"
       />
-      <div className="p-4 md:p-8 space-y-4">
+
+      <div className="p-4 md:p-8 space-y-6">
+        {/* Bulk Actions and Add New */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
+          <div>
+            <h3 className="text-lg font-bold text-foreground">Data Management</h3>
+            <p className="text-sm text-muted-foreground italic">Upload or add new records manually</p>
+          </div>
+          <DataManagementActions 
+            type="follow-ups" 
+            onAddManual={() => setIsAddModalOpen(true)}
+            onUploadSuccess={() => queryClient.invalidateQueries({ queryKey: ["follow-ups"] })}
+          />
+        </div>
+
+        <AddMemberModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          type="follow-ups"
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["follow-ups"] })}
+        />
+
+        <div className="space-y-6">
         {filteredFollowUps.length === 0 ? (
           <div className="py-24 text-center bg-muted/10 rounded-3xl border-2 border-dashed border-border flex flex-col items-center justify-center space-y-4">
             <CheckCircle className="w-12 h-12 text-muted-foreground/30" />
@@ -203,6 +233,7 @@ export function FollowUps() {
             </div>
           ))
         )}
+        </div>
       </div>
     </div>
   );
