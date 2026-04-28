@@ -74,12 +74,12 @@ export function SignIn() {
       {/* Left Side - Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          <div className="flex items-center gap-3 mb-10">
+          <Link to="/" className="flex items-center gap-3 mb-10 hover:opacity-80 transition-opacity w-fit">
             <Sparkles className="w-8 h-8 text-accent" />
             <h1 className="text-3xl font-bold text-foreground tracking-tight">
               FaithCare
             </h1>
-          </div>
+          </Link>
 
           <div className="mb-10">
             <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">

@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { SignIn } from "./Pages/SignIn";
+import { LandingPage } from "./Pages/LandingPage";
 import { SignUpChoice } from "./Pages/SignUpChoice";
 import { OrganizationOnboarding } from "./Pages/OrganizationOnboarding";
 import { IndividualOnboarding } from "./Pages/IndividualOnboarding";
@@ -28,7 +29,8 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-        <Route path="/" element={<SignIn />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/sign-in" element={<SignIn />} />
         <Route path="/sign-up-individual" element={<SignUpIndividual />} />
         <Route path="/sign-up-organization" element={<SignUpOrganization />} />
         <Route path="/sign-up-choice" element={<SignUpChoice />} />
