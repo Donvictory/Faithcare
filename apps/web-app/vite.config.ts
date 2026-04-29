@@ -16,6 +16,8 @@ export default defineConfig({
     alias: {
       // Alias @ to the src directory
       '@': path.resolve(__dirname, './src'),
+      // Shared UI package
+      '@faithcare/ui': path.resolve(__dirname, '../../shared/index.ts'),
     },
   },
 

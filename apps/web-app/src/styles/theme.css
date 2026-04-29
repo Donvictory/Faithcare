@@ -1,7 +1,8 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --font-family: "League Spartan", sans-serif;
+  /* --font-family: "League Spartan", sans-serif; */
+  --font-family: "DM Sans", sans-serif;
   --font-size: 16px;
   --background: #fafafa;
   --foreground: #1e293b;
@@ -15,7 +16,7 @@
   --secondary-foreground: #1e293b;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --accent: #d4a574;
+  --accent: #b88a51;
   --accent-foreground: #1e293b;
   --success: #22c55e;
   --success-foreground: #ffffff;

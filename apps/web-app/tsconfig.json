@@ -22,9 +22,11 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@faithcare/ui": ["../../shared/index.ts"],
+      "@faithcare/ui/*": ["../../shared/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "../../shared/**/*.ts", "../../shared/**/*.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
