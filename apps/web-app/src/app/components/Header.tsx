@@ -209,7 +209,7 @@ export function Header({ title, subtitle }: HeaderProps) {
     filteredNotifications.every((n) => n.status === "read");
 
   return (
-    <header className="bg-card border-b border-border px-4 md:px-8 py-4 md:py-5 w-full sticky top-0 z-50 shadow-sm backdrop-blur-md bg-card/95">
+    <header className="border-b border-border px-4 md:px-8 py-3 w-full sticky top-0 z-50 backdrop-blur-md bg-card/95 shadow-sm shadow-gray-300/30">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button
@@ -309,7 +309,7 @@ export function Header({ title, subtitle }: HeaderProps) {
               zIndex: 9999,
               transform: window.innerWidth < 768 ? "translateX(-40px)" : "none",
             }}
-            className="bg-card border border-accent/20 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.3)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 backdrop-blur-xl bg-card/98"
+            className="border border-accent/20 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.3)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 backdrop-blur-xl bg-card/98"
           >
             <div className="max-h-[400px] overflow-y-auto p-4 custom-scrollbar">
               <div className="space-y-6">

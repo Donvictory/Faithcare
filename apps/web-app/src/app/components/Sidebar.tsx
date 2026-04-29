@@ -16,6 +16,7 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { useLayout } from "../contexts/LayoutContext";
 import { useAuth } from "../providers/AuthProvider";
+import Logo from "./Logo";
 
 interface SidebarProps {
   userType: "individual" | "organization";
@@ -57,12 +58,9 @@ export function Sidebar({ userType }: SidebarProps) {
   return (
     <aside className="w-full bg-card flex flex-col h-full border-r border-border/50">
       {/* Logo & Close Button */}
-      <div className="p-6 border-b border-border flex items-center justify-between">
+      <div className="p-4 px-6 flex items-center justify-between">
         <div>
-          <h1 className="text-foreground flex items-center gap-2 font-bold">
-            <Sparkles className="w-6 h-6" style={{ color: "#d4a574" }} />
-            <span>FaithCare</span>
-          </h1>
+          <Logo target="dashboard" className="mb-2!" />
           <p className="text-xs text-muted-foreground mt-1 font-medium">
             {userType === "individual"
               ? "Personal Growth"
@@ -103,8 +101,8 @@ export function Sidebar({ userType }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-border mt-auto space-y-2">
-        <div className="flex items-center gap-3 px-4 py-3 bg-muted/40 rounded-2xl border border-border/50 group transition-all hover:bg-muted/60">
+      <div className="p-4 mt-auto space-y-2">
+        <div className="flex items-center gap-3 px-4 py-3 bg-muted/40 rounded-2xl group transition-all hover:bg-muted/60">
           <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-bold shadow-inner">
             {userInitial}
           </div>

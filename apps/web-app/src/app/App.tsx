@@ -23,119 +23,49 @@ import { SecondTimers } from "./components/SecondTimers";
 import { Communities } from "./components/Communities";
 
 import AuthProvider from "./providers/AuthProvider";
+import { Toaster } from "react-hot-toast";
+import NotFoundPage from "./Pages/NotFoundPage";
+import UnauthorizedPage from "./Pages/UnauthorizedPage";
 
 export default function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-center" reverseOrder={false} />
       <AuthProvider>
         <Routes>
+          {/* ── Public routes ── */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up-individual" element={<SignUpIndividual />} />
-          <Route
-            path="/sign-up-organization"
-            element={<SignUpOrganization />}
-          />
+          <Route path="/sign-up-organization" element={<SignUpOrganization />} />
           <Route path="/sign-up-choice" element={<SignUpChoice />} />
-          <Route
-            path="/individual-onboarding"
-            element={<IndividualOnboarding />}
-          />
-          <Route
-            path="/organization-onboarding"
-            element={<OrganizationOnboarding />}
-          />
+          <Route path="/individual-onboarding" element={<IndividualOnboarding />} />
+          <Route path="/organization-onboarding" element={<OrganizationOnboarding />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/otp-verification" element={<OTPVerification />} />
 
-          <Route
-            path="/settings"
-            element={
-              <AppLayout>
-                <Settings />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <AppLayout>
-                <Dashboard />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/sunday-journal"
-            element={
-              <AppLayout>
-                <SundayJournal />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/daily-scripture"
-            element={
-              <AppLayout>
-                <DailyScripture />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/prayer-requests"
-            element={
-              <AppLayout>
-                <PrayerRequests />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/focus-timer"
-            element={
-              <AppLayout>
-                <FocusTimer />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/first-timers"
-            element={
-              <AppLayout>
-                <FirstTimersManagement />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/follow-ups"
-            element={
-              <AppLayout>
-                <FollowUps />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/second-timers"
-            element={
-              <AppLayout>
-                <SecondTimers />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/salvation-records"
-            element={
-              <AppLayout>
-                <SalvationRecords />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/communities"
-            element={
-              <AppLayout>
-                <Communities />
-              </AppLayout>
-            }
-          />
+          {/* ── Protected routes — AppLayout handles auth guard + renders Sidebar/Header ── */}
+          <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/settings" element={<Settings />} />
+
+            {/* Individual */}
+            <Route path="/sunday-journal" element={<SundayJournal />} />
+            <Route path="/daily-scripture" element={<DailyScripture />} />
+            <Route path="/focus-timer" element={<FocusTimer />} />
+
+            {/* Organization */}
+            <Route path="/first-timers" element={<FirstTimersManagement />} />
+            <Route path="/second-timers" element={<SecondTimers />} />
+            <Route path="/salvation-records" element={<SalvationRecords />} />
+            <Route path="/communities" element={<Communities />} />
+            <Route path="/prayer-requests" element={<PrayerRequests />} />
+            <Route path="/follow-ups" element={<FollowUps />} />
+          </Route>
+
+          {/* ── Fallbacks ── */}
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

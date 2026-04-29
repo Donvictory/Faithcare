@@ -15,6 +15,7 @@ import { useAuth } from "../providers/AuthProvider";
 import { completeOrganizationOnboarding } from "@/api/church";
 import { toast } from "react-hot-toast";
 import { LoadingScreen } from "../components/LoadingScreen";
+import Logo from "../components/Logo";
 
 export function OrganizationOnboarding() {
   const navigate = useNavigate();
@@ -102,12 +103,7 @@ export function OrganizationOnboarding() {
       {/* Left Side - Progress & Info */}
       <div className="hidden lg:flex flex-col w-96 bg-gradient-to-br from-accent/10 to-accent/5 p-12">
         <div className="mb-12">
-          <div className="flex items-center gap-2 mb-8">
-            <Sparkles className="w-8 h-8 text-accent" />
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">
-              FaithCare
-            </h1>
-          </div>
+          <Logo />
           <h2 className="text-3xl font-bold text-foreground mb-3">
             Welcome to FaithCare
           </h2>
@@ -245,12 +241,7 @@ export function OrganizationOnboarding() {
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
         <div className="w-full max-w-2xl">
           {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center gap-2 mb-10">
-            <Sparkles className="w-8 h-8 text-accent" />
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">
-              FaithCare
-            </h1>
-          </div>
+          <Logo className="lg:hidden" />
 
           {/* Step Indicator */}
           <div className="mb-12">

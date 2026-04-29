@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useLayout } from "../contexts/LayoutContext";
+import { useEffect, useState } from "react";
 import { Plus, Upload, Users, Send, MessageCircle, Phone, Trash2, Loader2 } from "lucide-react";
 import { Badge } from "./ui/badge";
-import { Header } from "./Header";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getCommunities, createCommunity, deleteCommunity } from "@/api/church";
 import { useAuth } from "../providers/AuthProvider";
@@ -28,17 +28,22 @@ interface Community {
 }
 
 export function Communities() {
+  const { setHeader } = useLayout();
+  useEffect(() => {
+    setHeader("Communities","Manage your church groups and fellowships");
+  }, []);
+
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { searchTerm } = useSearch();
-  const organizationId = user?.organizationId || user?.id || user?._id || "";
+  const organizationId = user?.organizationId || user?.id || user?._id ||"";
 
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
   const [showNewCommunityForm, setShowNewCommunityForm] = useState(false);
   const [showFollowUpMenu, setShowFollowUpMenu] = useState<string | number | null>(null);
   const [newCommunity, setNewCommunity] = useState({
-    name: "",
-    description: "",
+    name:"",
+    description:"",
   });
 
   // Query communities
@@ -58,17 +63,17 @@ export function Communities() {
   const communities: Community[] = communitiesData.map((c: any) => ({
     id: c.id || c._id,
     name: c.name,
-    description: c.description || "No description provided",
+    description: c.description ||"No description provided",
     memberCount: c.members?.length || 0,
     members: (c.members || []).map((m: any) => ({
       id: m.id || m._id,
-      name: m.fullName || m.name || "Unknown",
-      phone: m.phoneNumber || "N/A",
-      email: m.email || "N/A",
-      joinDate: m.createdAt?.split("T")[0] || "N/A",
+      name: m.fullName || m.name ||"Unknown",
+      phone: m.phoneNumber ||"N/A",
+      email: m.email ||"N/A",
+      joinDate: m.createdAt?.split("T")[0] ||"N/A",
     })),
     profileImage: c.profileImage,
-    createdDate: c.createdAt?.split("T")[0] || "N/A",
+    createdDate: c.createdAt?.split("T")[0] ||"N/A",
   }));
 
   // Client-side filtering based on global search term
@@ -84,9 +89,9 @@ export function Communities() {
       toast.success("Community created!");
       queryClient.invalidateQueries({ queryKey: ["communities"] });
       setShowNewCommunityForm(false);
-      setNewCommunity({ name: "", description: "" });
+      setNewCommunity({ name:"", description:"" });
     },
-    onError: (error: any) => toast.error(error.message || "Failed to create community"),
+    onError: (error: any) => toast.error(error.message ||"Failed to create community"),
   });
 
   const deleteMutation = useMutation({
@@ -96,7 +101,7 @@ export function Communities() {
       queryClient.invalidateQueries({ queryKey: ["communities"] });
       setSelectedCommunity(null);
     },
-    onError: (error: any) => toast.error(error.message || "Failed to delete"),
+    onError: (error: any) => toast.error(error.message ||"Failed to delete"),
   });
 
   const handleCreateCommunity = () => {
@@ -124,18 +129,17 @@ export function Communities() {
   };
 
   if (isLoading) {
-    return <LoadingScreen churchName={user?.churchName || user?.name || "FaithCare"} />;
+    return <LoadingScreen churchName={user?.churchName || user?.name ||"FaithCare"} />;
   }
 
   return (
-    <div className="min-h-full font-sans">
-      <Header title="Communities" subtitle="Manage your church groups and fellowships" />
+    <div className="space-y-6">
       
-      <div className="p-4 md:p-8 space-y-8">
+      <div className="space-y-8">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
              <Users className="w-5 h-5 text-accent" />
-             {searchTerm ? `Search Results for "${searchTerm}"` : "Active Groups"}
+             {searchTerm ? `Search Results for"${searchTerm}"` :"Active Groups"}
           </h2>
           <button
             onClick={() => setShowNewCommunityForm(true)}
@@ -178,7 +182,7 @@ export function Communities() {
                 className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 font-bold shadow-lg shadow-primary/20"
               >
                 {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-                {createMutation.isPending ? "Creating..." : "Save Fellowship"}
+                {createMutation.isPending ?"Creating..." :"Save Fellowship"}
               </button>
               <button
                 onClick={() => setShowNewCommunityForm(false)}
@@ -195,7 +199,7 @@ export function Communities() {
             <div className="col-span-full py-24 text-center bg-muted/10 rounded-3xl border-2 border-dashed border-border flex flex-col items-center justify-center space-y-4">
               <Users className="w-12 h-12 text-muted-foreground/30" />
               <p className="text-muted-foreground italic">
-                {searchTerm ? `No groups found matching "${searchTerm}"` : "No communities set up yet."}
+                {searchTerm ? `No groups found matching"${searchTerm}"` :"No communities set up yet."}
               </p>
               {!searchTerm && (
                  <button onClick={() => setShowNewCommunityForm(true)} className="text-primary hover:underline font-bold">
@@ -220,7 +224,7 @@ export function Communities() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (confirm(`Delete "${community.name}" group?`)) deleteMutation.mutate(community.id);
+                    if (confirm(`Delete"${community.name}" group?`)) deleteMutation.mutate(community.id);
                   }}
                   className="p-2 text-muted-foreground hover:bg-red-50 hover:text-red-500 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                 >
@@ -310,7 +314,7 @@ export function Communities() {
                   ) : (
                     <tr>
                       <td colSpan={3} className="px-8 py-20 text-center text-muted-foreground italic">
-                        The "{selectedCommunity.name}" group has no members yet. Use the import button to add believers from your Excel/CSV records.
+                        The"{selectedCommunity.name}" group has no members yet. Use the import button to add believers from your Excel/CSV records.
                       </td>
                     </tr>
                   )}

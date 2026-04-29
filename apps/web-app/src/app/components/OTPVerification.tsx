@@ -1,10 +1,18 @@
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, ArrowRight, ShieldCheck, RefreshCw } from "lucide-react";
+import {
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  RefreshCw,
+  Loader2,
+} from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { verifyOTP, resendOTP } from "@/api/auth";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../providers/AuthProvider";
 import { LoadingScreen } from "./LoadingScreen";
+import Logo from "./Logo";
+import ErrorMessage from "./ui/error-message";
 
 export function OTPVerification() {
   const navigate = useNavigate();
@@ -19,6 +27,7 @@ export function OTPVerification() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [resendTimer, setResendTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -58,8 +67,11 @@ export function OTPVerification() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
+
     const otpString = otp.join("");
     if (otpString.length < 6) {
+      setErrorMessage("Please enter the full 6-digit code");
       toast.error("Please enter the full 6-digit code");
       return;
     }
@@ -77,7 +89,7 @@ export function OTPVerification() {
         const newAccessToken = sessionData.accessToken;
         const newUser = sessionData.user;
         const rememberMe = localStorage.getItem("rememberMe") === "true";
-        
+
         login(newUser, newAccessToken, rememberMe);
       }
 
@@ -89,7 +101,9 @@ export function OTPVerification() {
         navigate("/organization-onboarding");
       }
     } else {
-      toast.error(res.error || "Verification failed");
+      const errorMessage = res?.error || "Verification failed";
+      setErrorMessage(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -106,10 +120,6 @@ export function OTPVerification() {
       toast.error(res.error || "Failed to resend OTP");
     }
   };
-
-  if (isVerifying) {
-    return <LoadingScreen churchName="FaithCare" />;
-  }
 
   return (
     <div className="min-h-screen bg-background flex font-sans">
@@ -147,12 +157,7 @@ export function OTPVerification() {
 
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          <div className="flex items-center gap-3 mb-10">
-            <Sparkles className="w-8 h-8 text-accent" />
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">
-              FaithCare
-            </h1>
-          </div>
+          <Logo />
 
           <div className="mb-10">
             <h2 className="text-3xl font-bold text-foreground mb-3">
@@ -171,19 +176,22 @@ export function OTPVerification() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-10">
-            <div className="flex justify-between gap-3">
-              {otp.map((digit, index) => (
-                <input
-                  key={index}
-                  ref={(el) => (inputRefs.current[index] = el)}
-                  type="text"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-16 text-center text-3xl font-semibold bg-secondary/30 border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground shadow-sm"
-                />
-              ))}
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => (inputRefs.current[index] = el)}
+                    type="text"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    className="sm:w-16 w-12 sm:h-16 h-12 text-center text-3xl font-semibold bg-secondary/30 border border-neutral-300 rounded-md sm:rounded-2xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground"
+                  />
+                ))}
+              </div>
+              {errorMessage && <ErrorMessage message={errorMessage} />}
             </div>
 
             <div className="space-y-6">
@@ -192,8 +200,17 @@ export function OTPVerification() {
                 disabled={isVerifying}
                 className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-medium hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
               >
-                Verify Code
-                <ArrowRight className="w-5 h-5" />
+                {isVerifying ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    Verify Code
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
               </button>
 
               <div className="text-center">

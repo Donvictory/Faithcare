@@ -1,5 +1,13 @@
 import { login as apiLogin } from "@/api/auth";
-import { Sparkles, Mail, Lock, ArrowRight, EyeOff, Eye } from "lucide-react";
+import {
+  Sparkles,
+  Mail,
+  Lock,
+  ArrowRight,
+  EyeOff,
+  Eye,
+  Loader2,
+} from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
@@ -7,6 +15,9 @@ import { LoadingScreen } from "../components/LoadingScreen";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import Logo from "../components/Logo";
+import ErrorMessage from "../components/ui/error-message";
+import toast from "react-hot-toast";
 
 const signInSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -48,12 +59,30 @@ export function SignIn() {
       });
       setIsLoading(false);
 
+      // Handle unverified email case
+      if (
+        result.success !== true &&
+        (result.error?.toLowerCase().includes("not verified") ||
+          result.error?.toLowerCase().includes("unverified"))
+      ) {
+        const errorMessage =
+          (result.error || "Account not verified") +
+          ". You are now being redirected...";
+        toast.error(errorMessage, { duration: 5000 });
+
+        // Redirect after 3 seconds to allow user to read the message
+        setTimeout(() => {
+          navigate("/otp-verification", { state: { email: normalizedEmail } });
+        }, 3000);
+        return;
+      }
+
       const sessionData = result.data?.data || result.data;
       if (sessionData?.accessToken) {
         const newAccessToken = sessionData.accessToken;
         const newUser = sessionData.user;
         const rememberMe = data.rememberMe || false;
-        
+
         login(newUser, newAccessToken, rememberMe);
         navigate("/dashboard");
       } else {
@@ -65,21 +94,12 @@ export function SignIn() {
     }
   };
 
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
   return (
     <div className="min-h-screen bg-background flex font-sans">
       {/* Left Side - Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          <Link to="/" className="flex items-center gap-3 mb-10 hover:opacity-80 transition-opacity w-fit">
-            <Sparkles className="w-8 h-8 text-accent" />
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">
-              FaithCare
-            </h1>
-          </Link>
+          <Logo />
 
           <div className="mb-10">
             <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
@@ -167,19 +187,24 @@ export function SignIn() {
               </Link>
             </div>
 
-            {error && (
-              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-xl animate-in shake duration-500">
-                <p className="text-sm text-destructive font-medium">{error}</p>
-              </div>
-            )}
+            {error && <ErrorMessage message={error} />}
 
             <button
               disabled={isLoading}
               type="submit"
               className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-medium hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
             >
-              Sign In
-              <ArrowRight className="w-5 h-5" />
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Signing In...
+                </>
+              ) : (
+                <>
+                  Sign In
+                  <ArrowRight className="w-5 h-5" />
+                </>
+              )}
             </button>
           </form>
 
@@ -195,7 +220,7 @@ export function SignIn() {
           </div>
 
           <div className="grid gap-4 mb-10">
-            <button className="flex items-center justify-center gap-3 px-4 py-4 border-2 border-border rounded-xl hover:bg-secondary/50 transition-all text-foreground font-medium active:scale-95">
+            <button className="flex items-center justify-center gap-3 px-4 py-4 border border-neutral-300 rounded-xl hover:bg-secondary/50 transition-all text-foreground font-medium active:scale-95">
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"

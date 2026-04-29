@@ -1,7 +1,7 @@
+import { useLayout } from "../contexts/LayoutContext";
 import { Heart, User, Trash2, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "./ui/badge";
-import { Header } from "./Header";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getPrayerRequests,
@@ -13,11 +13,17 @@ import { toast } from "react-hot-toast";
 import { useSearch } from "../contexts/SearchContext";
 import { DataManagementActions } from "./DataManagementActions";
 import { AddMemberModal } from "./AddMemberModal";
+import { Card } from "./ui/card";
 
 export function PrayerRequests() {
+  const { setHeader } = useLayout();
+  useEffect(() => {
+    setHeader("Prayer Requests", "Pray for one another and lift each other up");
+  }, []);
+
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { searchTerm } = useSearch();
+  const { searchTerm, setSearchTerm } = useSearch();
   const organizationId = user?.organizationId || user?.id || user?._id || "";
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -60,7 +66,9 @@ export function PrayerRequests() {
     const lowerSearch = searchTerm.toLowerCase();
     return (
       (prayer.name || "Anonymous").toLowerCase().includes(lowerSearch) ||
-      (prayer.description || prayer.request || "").toLowerCase().includes(lowerSearch)
+      (prayer.description || prayer.request || "")
+        .toLowerCase()
+        .includes(lowerSearch)
     );
   });
 
@@ -82,11 +90,7 @@ export function PrayerRequests() {
 
   if (isLoading) {
     return (
-      <div className="min-h-full flex flex-col">
-        <Header
-          title="Prayer Requests"
-          subtitle="Pray for one another and lift each other up"
-        />
+      <div className="space-y-6">
         <div className="flex-1 flex items-center justify-center p-12">
           <Loader2 className="w-10 h-10 animate-spin text-accent" />
         </div>
@@ -96,30 +100,36 @@ export function PrayerRequests() {
 
   return (
     <div className="min-h-full">
-      <Header
-        title="Prayer Requests"
-        subtitle="Pray for one another and lift each other up"
-      />
-
-      <div className="p-4 md:p-8 space-y-6">
+      <div className="space-y-6">
         {/* Bulk Actions and Add New */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm mb-6">
+        <Card className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <h3 className="text-lg font-bold text-foreground">Data Management</h3>
-            <p className="text-sm text-muted-foreground italic">Upload or add new requests manually</p>
+            <h3 className="text-lg font-bold text-foreground">
+              Data Management
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Upload or add new requests manually
+            </p>
           </div>
-          <DataManagementActions 
-            type="prayer-requests" 
+          <DataManagementActions
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            hasFilters={false}
+            type="prayer-requests"
             onAddManual={() => setIsAddModalOpen(true)}
-            onUploadSuccess={() => queryClient.invalidateQueries({ queryKey: ["prayer-requests"] })}
+            onUploadSuccess={() =>
+              queryClient.invalidateQueries({ queryKey: ["prayer-requests"] })
+            }
           />
-        </div>
+        </Card>
 
         <AddMemberModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           type="prayer-requests"
-          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["prayer-requests"] })}
+          onSuccess={() =>
+            queryClient.invalidateQueries({ queryKey: ["prayer-requests"] })
+          }
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
@@ -127,7 +137,9 @@ export function PrayerRequests() {
             <div className="col-span-full py-24 text-center bg-muted/10 rounded-3xl border-2 border-dashed border-border flex flex-col items-center justify-center space-y-4">
               <Heart className="w-12 h-12 text-muted-foreground/30" />
               <p className="text-muted-foreground italic">
-                {searchTerm ? `No requests matching "${searchTerm}"` : "No prayer requests at the moment."}
+                {searchTerm
+                  ? `No requests matching"${searchTerm}"`
+                  : "No prayer requests at the moment."}
               </p>
             </div>
           ) : (
@@ -192,7 +204,11 @@ export function PrayerRequests() {
                 {/* Prayer Request */}
                 <div className="bg-muted/30 rounded-xl p-5 mb-8 flex-1 relative z-10 border border-border/50">
                   <p className="text-foreground/80 leading-relaxed italic text-base">
-                    "{prayer.description || prayer.request || "No description provided."}"
+                    "
+                    {prayer.description ||
+                      prayer.request ||
+                      "No description provided."}
+                    "
                   </p>
                 </div>
 

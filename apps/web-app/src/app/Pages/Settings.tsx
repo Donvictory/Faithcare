@@ -1,9 +1,15 @@
+import { useLayout } from "../contexts/LayoutContext";
 import { useState, useEffect } from "react";
 import { User, Bell, Lock, Palette, Globe, LogOut } from "lucide-react";
-import { Header } from "../components/Header";
 import { useAuth } from "../providers/AuthProvider";
+import { Card } from "../components/ui/card";
 
 export function Settings() {
+  const { setHeader } = useLayout();
+  useEffect(() => {
+    setHeader("Settings", "Manage your account and preferences");
+  }, []);
+
   const { user, logout } = useAuth();
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light",
@@ -26,11 +32,9 @@ export function Settings() {
     (user?.organizationName ? "Organization Admin" : "Individual User");
 
   return (
-    <div className="min-h-full space-y-6 pb-12">
-      <Header title="Settings" subtitle="Manage your account and preferences" />
-
+    <div className="space-y-6">
       {/* Profile Settings */}
-      <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
+      <Card>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <User className="w-5 h-5 text-accent" />
@@ -77,10 +81,10 @@ export function Settings() {
             />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Appearance Settings */}
-      <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
+      <Card>
         <div className="flex items-center gap-3 mb-6">
           <Palette className="w-5 h-5 text-accent" />
           <h3 className="text-foreground font-bold">Appearance</h3>
@@ -116,10 +120,10 @@ export function Settings() {
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Notification Settings */}
-      <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
+      <Card>
         <div className="flex items-center gap-3 mb-6">
           <Bell className="w-5 h-5 text-accent" />
           <h3 className="text-foreground font-bold">Notifications</h3>
@@ -150,10 +154,10 @@ export function Settings() {
             </label>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Security Settings */}
-      <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
+      <Card>
         <div className="flex items-center gap-3 mb-6">
           <Lock className="w-5 h-5 text-accent" />
           <h3 className="text-foreground font-bold">Security</h3>
@@ -172,7 +176,7 @@ export function Settings() {
             </span>
           </button>
         </div>
-      </div>
+      </Card>
 
       {/* Save Button */}
       <div className="flex justify-end pt-4">

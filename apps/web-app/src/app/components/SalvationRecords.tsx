@@ -1,13 +1,22 @@
-import { useState } from "react";
-import { Phone, MessageCircle, PhoneCall, Send, Heart, Search } from "lucide-react";
+import { useLayout } from "../contexts/LayoutContext";
+import { useEffect, useState } from "react";
+import {
+  Phone,
+  MessageCircle,
+  PhoneCall,
+  Send,
+  Heart,
+  Search,
+} from "lucide-react";
 import { Badge } from "./ui/badge";
-import { Header } from "./Header";
 import { useSearch } from "../contexts/SearchContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSalvationRecords } from "@/api/church";
 import { useAuth } from "../providers/AuthProvider";
 import { DataManagementActions } from "./DataManagementActions";
 import { AddMemberModal } from "./AddMemberModal";
+import { Card } from "./ui/card";
+import SalvationRecordsTable from "./SalvationRecordsTable";
 
 interface SalvationRecord {
   id: number;
@@ -59,8 +68,16 @@ const salvationRecordsData: SalvationRecord[] = [
 ];
 
 export function SalvationRecords() {
+  const { setHeader } = useLayout();
+  useEffect(() => {
+    setHeader(
+      "Salvation Records",
+      "Manage salvation records and their registration",
+    );
+  }, []);
+
   const { user } = useAuth();
-  const { searchTerm } = useSearch();
+  const { searchTerm, setSearchTerm } = useSearch();
   const queryClient = useQueryClient();
   const [showFollowUpMenu, setShowFollowUpMenu] = useState<number | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -74,16 +91,22 @@ export function SalvationRecords() {
 
   const salvationRecordsData = recordsResponse?.data || [];
 
-  const filteredRecords = Array.isArray(salvationRecordsData) ? salvationRecordsData.filter((record: any) => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase().trim();
-    return (
-      (record.name || record.fullName || "").toLowerCase().includes(searchLower) ||
-      (record.notes || "").toLowerCase().includes(searchLower) ||
-      (record.email || "").toLowerCase().includes(searchLower) ||
-      (record.phone || record.phoneNumber || "").toLowerCase().includes(searchLower)
-    );
-  }) : [];
+  const filteredRecords = Array.isArray(salvationRecordsData)
+    ? salvationRecordsData.filter((record: any) => {
+        if (!searchTerm) return true;
+        const searchLower = searchTerm.toLowerCase().trim();
+        return (
+          (record.name || record.fullName || "")
+            .toLowerCase()
+            .includes(searchLower) ||
+          (record.notes || "").toLowerCase().includes(searchLower) ||
+          (record.email || "").toLowerCase().includes(searchLower) ||
+          (record.phone || record.phoneNumber || "")
+            .toLowerCase()
+            .includes(searchLower)
+        );
+      })
+    : [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -104,200 +127,92 @@ export function SalvationRecords() {
   };
 
   return (
-    <div className="min-h-full">
-      <Header
-        title="Salvation Records"
-        subtitle="Manage salvation records and their registration"
-      />
-
-      <div className="p-4 md:p-8 space-y-6">
-        {/* Bulk Actions and Add New */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
-          <div>
-            <h3 className="text-lg font-bold text-foreground">Data Management</h3>
-            <p className="text-sm text-muted-foreground italic">Upload or add new records manually</p>
-          </div>
-          <DataManagementActions 
-            type="salvation-records" 
-            onAddManual={() => setIsAddModalOpen(true)}
-            onUploadSuccess={() => queryClient.invalidateQueries({ queryKey: ["salvation-records"] })}
-          />
-        </div>
+    <div className="space-y-6">
+      <div className="space-y-6">
+        <h3 className="text-xl font-bold text-foreground mb-1 flex items-center gap-2">
+          Reaching Souls
+        </h3>
+        <p className="text-muted-foreground leading-relaxed">
+          Track every soul won for the kingdom. Ensure no decision goes without
+          follow-up and discipleship.
+          {searchTerm && (
+            <span className="block mt-2 text-accent font-bold">
+              Searching for:"{searchTerm}"
+            </span>
+          )}
+        </p>
 
         <AddMemberModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           type="salvation-records"
-          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["salvation-records"] })}
+          onSuccess={() =>
+            queryClient.invalidateQueries({ queryKey: ["salvation-records"] })
+          }
         />
 
         <div className="space-y-6">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-6 border border-green-200 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-green-700 mb-1">Total Salvations</p>
-                <h3 className="text-3xl font-bold text-green-900">
-                  {salvationRecordsData.length}
-                </h3>
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold mb-3 text-accent-foreground/70">
+                    Total Salvations
+                  </p>
+                  <h3 className="text-3xl font-bold">
+                    {salvationRecordsData.length}
+                  </h3>
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <Send className="w-6 h-6 opacity-80" />
+                </div>
               </div>
-              <div className="w-12 h-12 bg-green-200 rounded-full flex items-center justify-center">
-                <Send className="w-6 h-6 text-green-700" />
+            </Card>
+
+            <Card>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold mb-3 text-accent-foreground/70">
+                    Pending Follow Ups
+                  </p>
+                  <h3 className="text-3xl font-bold">
+                    {
+                      salvationRecordsData.filter(
+                        (r: any) => r.followUpStatus === "Pending",
+                      ).length
+                    }
+                  </h3>
+                </div>
+                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <Phone className="w-6 h-6 opacity-80" />
+                </div>
               </div>
-            </div>
+            </Card>
+
+            <Card>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold mb-3 text-accent-foreground/70">
+                    This Month
+                  </p>
+                  <h3 className="text-3xl font-bold">
+                    {
+                      salvationRecordsData.filter((r: any) =>
+                        r.dateOfDecision.includes("Mar"),
+                      ).length
+                    }
+                  </h3>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <MessageCircle className="w-6 h-6 opacity-80" />
+                </div>
+              </div>
+            </Card>
           </div>
 
-          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 rounded-xl p-6 border border-yellow-200 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-yellow-700 mb-1">
-                  Pending Follow Ups
-                </p>
-                <h3 className="text-3xl font-bold text-yellow-900">
-                  {
-                    salvationRecordsData.filter(
-                      (r: any) => r.followUpStatus === "Pending",
-                    ).length
-                  }
-                </h3>
-              </div>
-              <div className="w-12 h-12 bg-yellow-200 rounded-full flex items-center justify-center">
-                <Phone className="w-6 h-6 text-yellow-700" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-blue-700 mb-1">This Month</p>
-                <h3 className="text-3xl font-bold text-blue-900">
-                  {
-                    salvationRecordsData.filter((r: any) =>
-                      r.dateOfDecision.includes("Mar"),
-                    ).length
-                  }
-                </h3>
-              </div>
-              <div className="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center">
-                <MessageCircle className="w-6 h-6 text-blue-700" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Info Section */}
-        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm border-l-4 border-l-green-500">
-           <h3 className="text-lg font-bold text-foreground mb-1 flex items-center gap-2">
-             <Heart className="w-5 h-5 text-red-500 fill-red-500" />
-             Reaching Souls
-           </h3>
-           <p className="text-muted-foreground leading-relaxed">
-             Track every soul won for the kingdom. Ensure no decision goes without follow-up and discipleship.
-             {searchTerm && (
-                <span className="block mt-2 text-accent font-bold">
-                  Searching for: "{searchTerm}"
-                </span>
-             )}
-           </p>
-        </div>
-
-        {/* Salvation Records Table */}
-        <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-lg">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-muted/50 border-b border-border">
-                <tr>
-                  <th className="px-6 py-5 text-left text-xs font-bold uppercase tracking-widest text-muted-foreground">Name</th>
-                  <th className="px-6 py-5 text-left text-xs font-bold uppercase tracking-widest text-muted-foreground">Contact Info</th>
-                  <th className="px-6 py-5 text-left text-xs font-bold uppercase tracking-widest text-muted-foreground">Decision Date</th>
-                  <th className="px-6 py-5 text-left text-xs font-bold uppercase tracking-widest text-muted-foreground">Reflections/Notes</th>
-                  <th className="px-6 py-5 text-left text-xs font-bold uppercase tracking-widest text-muted-foreground">Status</th>
-                  <th className="px-6 py-5 text-right text-xs font-bold uppercase tracking-widest text-muted-foreground">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredRecords.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-20 text-center text-muted-foreground italic">
-                      No records found matching your search.
-                    </td>
-                  </tr>
-                ) : filteredRecords.map((record) => (
-                  <tr
-                    key={record.id}
-                    className="hover:bg-muted/30 transition-colors group"
-                  >
-                    <td className="px-6 py-5 text-sm font-bold text-foreground">
-                      {record.name}
-                    </td>
-                    <td className="px-6 py-5 text-xs text-muted-foreground">
-                      <div className="flex flex-col">
-                        <span>{record.phone}</span>
-                        <span>{record.email}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 text-xs font-bold text-foreground/70">
-                      {record.dateOfDecision}
-                    </td>
-                    <td className="px-6 py-5 text-xs text-muted-foreground max-w-xs leading-relaxed italic">
-                      "{record.notes}"
-                    </td>
-                    <td className="px-6 py-5">
-                      <Badge
-                        variant="outline"
-                        className={`${getStatusColor(record.followUpStatus)} font-bold text-[10px] uppercase tracking-widest px-2.5 py-1`}
-                      >
-                        {record.followUpStatus}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-5 text-right relative">
-                      <button
-                        onClick={() =>
-                          setShowFollowUpMenu(
-                            showFollowUpMenu === record.id ? null : record.id,
-                          )
-                        }
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all font-bold shadow-md shadow-primary/20 active:scale-95"
-                      >
-                        <Send className="w-4 h-4" />
-                        Follow Up
-                      </button>
-
-                      {/* Follow Up Menu */}
-                      {showFollowUpMenu === record.id && (
-                        <div className="absolute right-6 mt-2 w-56 bg-card border border-border rounded-2xl shadow-2xl z-50 overflow-hidden py-2 animate-in zoom-in-95 duration-200 text-left">
-                           <button
-                              onClick={() => handleFollowUp(record.id, "SMS")}
-                              className="w-full flex items-center gap-3 px-5 py-3 text-sm text-foreground hover:bg-muted transition-colors font-bold"
-                            >
-                              <MessageCircle className="w-4 h-4 text-green-500" />
-                              Send SMS
-                            </button>
-                            <button
-                              onClick={() => handleFollowUp(record.id, "WhatsApp")}
-                              className="w-full flex items-center gap-3 px-5 py-3 text-sm text-foreground hover:bg-muted transition-colors font-bold"
-                            >
-                              <Phone className="w-4 h-4 text-green-600" />
-                              WhatsApp
-                            </button>
-                            <button
-                              onClick={() => handleFollowUp(record.id, "Call")}
-                              className="w-full flex items-center gap-3 px-5 py-3 text-sm text-foreground hover:bg-muted transition-colors font-bold"
-                            >
-                              <PhoneCall className="w-4 h-4 text-blue-500" />
-                              Make Call
-                            </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+          {/* Salvation Records Table */}
+          <SalvationRecordsTable data={salvationRecordsData} />
         </div>
       </div>
     </div>

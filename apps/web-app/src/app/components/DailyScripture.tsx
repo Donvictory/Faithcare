@@ -1,5 +1,5 @@
+import { useLayout } from "../contexts/LayoutContext";
 import { Sparkles, Book, CheckCircle2, Loader2 } from "lucide-react";
-import { Header } from "./Header";
 import { useAuth } from "../providers/AuthProvider";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -7,9 +7,15 @@ import {
   updateIndividualMetadata,
 } from "@/api/individual";
 import { toast } from "react-hot-toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Card } from "./ui/card";
 
 export function DailyScripture() {
+  const { setHeader } = useLayout();
+  useEffect(() => {
+    setHeader("Daily Scripture", "Start your day with God's Word.");
+  }, []);
+
   const { user, accessToken } = useAuth();
   const userId = user?.id || user?._id || user?.userId || "";
   const queryClient = useQueryClient();
@@ -23,10 +29,12 @@ export function DailyScripture() {
   });
 
   const metadataRaw = metadataResponse?.data;
-  const metadata = Array.isArray(metadataRaw) 
-    ? metadataRaw[0] 
-    : (metadataRaw?.data ? metadataRaw.data : metadataRaw);
-  
+  const metadata = Array.isArray(metadataRaw)
+    ? metadataRaw[0]
+    : metadataRaw?.data
+      ? metadataRaw.data
+      : metadataRaw;
+
   const currentCount = metadata?.scripturesCount || 0;
 
   const markAsReadMutation = useMutation({
@@ -63,11 +71,7 @@ export function DailyScripture() {
   });
 
   return (
-    <div className="min-h-full font-sans">
-      <Header
-        title="Daily Scripture"
-        subtitle="Start your day with God's Word."
-      />
+    <div className="space-y-6">
       <div className="p-4 md:p-8">
         <div className="max-w-3xl mx-auto">
           {isLoading ? (
@@ -141,7 +145,7 @@ export function DailyScripture() {
           )}
 
           {/* Weekly Scripture Card */}
-          <div className="mt-12 bg-card rounded-3xl p-8 border border-border shadow-sm">
+          <Card className="mt-12">
             <div className="flex items-center gap-3 mb-8">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Book className="w-5 h-5 text-primary" />
@@ -223,7 +227,7 @@ export function DailyScripture() {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { useLayout } from "../contexts/LayoutContext";
 import { useState, useEffect } from "react";
 import {
   Save,
@@ -8,7 +9,6 @@ import {
   Plus,
   Edit3,
 } from "lucide-react";
-import { Header } from "./Header";
 import {
   createJournalEntry,
   getJournalEntries,
@@ -18,6 +18,7 @@ import {
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
 import { useSearch } from "../contexts/SearchContext";
+import { Card } from "./ui/card";
 
 interface JournalEntry {
   _id: string;
@@ -29,6 +30,14 @@ interface JournalEntry {
 }
 
 export function SundayJournal() {
+  const { setHeader } = useLayout();
+  useEffect(() => {
+    setHeader(
+      "Sunday Journal",
+      "Keep a record of your spiritual growth and Sunday messages.",
+    );
+  }, []);
+
   const { user } = useAuth();
   const { searchTerm } = useSearch();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -72,10 +81,13 @@ export function SundayJournal() {
     }
   }, [user?.id, user?._id]);
 
-  const filteredEntries = entries.filter((entry) =>
-    (entry.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (entry.content || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (entry.scriptureReference || "").toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredEntries = entries.filter(
+    (entry) =>
+      (entry.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (entry.content || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (entry.scriptureReference || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()),
   );
 
   const handleSave = async () => {
@@ -154,15 +166,10 @@ export function SundayJournal() {
   };
 
   return (
-    <div className="min-h-full flex flex-col bg-background">
-      <Header
-        title="Sunday Journal"
-        subtitle="Keep a record of your spiritual growth and Sunday messages."
-      />
-
-      <div className="p-4 md:p-8 flex flex-col lg:flex-row gap-8 flex-1 max-w-[1600px] mx-auto w-full">
+    <div className="space-y-6">
+      <div className="flex flex-col lg:flex-row gap-8 flex-1 max-w-[1600px] mx-auto w-full">
         {/* Main Editor Section */}
-        <div className="flex-1 bg-card rounded-2xl border border-border p-6 md:p-8 shadow-sm flex flex-col h-fit">
+        <Card className="flex-1 flex flex-col h-fit">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold text-foreground">
               {currentEntryId ? "Edit Reflection" : "New Reflection"}
@@ -233,11 +240,11 @@ export function SundayJournal() {
               {currentEntryId ? "Update Record" : "Save to Records"}
             </button>
           </div>
-        </div>
+        </Card>
 
         {/* Previous Entries List */}
         <div className="w-full lg:w-[400px] flex flex-col gap-6 h-fit">
-          <div className="bg-card rounded-2xl border border-border p-6 shadow-sm flex flex-col max-h-[calc(100vh-200px)]">
+          <Card className="flex flex-col max-h-[calc(100vh-200px)]">
             <h3 className="text-foreground mb-6 flex items-center gap-2 font-bold text-xl">
               <Calendar className="w-5 h-5 text-accent" />
               {searchTerm ? "Search Results" : "Message Records"}
@@ -254,7 +261,9 @@ export function SundayJournal() {
               ) : filteredEntries.length === 0 ? (
                 <div className="text-center py-12 px-4 border-2 border-dashed border-border rounded-2xl">
                   <p className="text-sm text-muted-foreground italic">
-                    {searchTerm ? `No records matching "${searchTerm}"` : "No records found. Start your first journal entry!"}
+                    {searchTerm
+                      ? `No records matching"${searchTerm}"`
+                      : "No records found. Start your first journal entry!"}
                   </p>
                 </div>
               ) : (
@@ -327,7 +336,7 @@ export function SundayJournal() {
                 })
               )}
             </div>
-          </div>
+          </Card>
 
           <div className="bg-accent/5 rounded-2xl border border-accent/10 p-6">
             <h4 className="text-accent font-bold text-sm mb-2 flex items-center gap-2">

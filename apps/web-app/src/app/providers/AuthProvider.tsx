@@ -5,6 +5,7 @@ import {
 } from "@/api/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { setInMemoryToken } from "@/api/helper";
+import { LoadingScreen } from "../components/LoadingScreen";
 
 interface AuthContextType {
   user: any;
@@ -26,7 +27,12 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Helper to determine userType
   const determineUserType = (userData: any): "individual" | "organization" => {
-    if (userData?.organizationId || userData?.role === 'ADMIN' || userData?.role === 'ORGANIZATION' || userData?.organizationName) {
+    if (
+      userData?.organizationId ||
+      userData?.role === "ADMIN" ||
+      userData?.role === "ORGANIZATION" ||
+      userData?.organizationName
+    ) {
       return "organization";
     }
     return "individual";
@@ -34,7 +40,9 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Helper to get the correct storage based on rememberMe
   const getStorage = () => {
-    return localStorage.getItem("rememberMe") === "true" ? localStorage : sessionStorage;
+    return localStorage.getItem("rememberMe") === "true"
+      ? localStorage
+      : sessionStorage;
   };
 
   const setAccessToken = (token: string | null) => {
@@ -64,7 +72,8 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const switchOrganization = async (orgId: string) => {
     try {
-      const { switchOrganization: callSwitchOrgAPI } = await import("@/api/auth");
+      const { switchOrganization: callSwitchOrgAPI } =
+        await import("@/api/auth");
       const result = await callSwitchOrgAPI(orgId);
       if (result.success && result.data) {
         const remember = localStorage.getItem("rememberMe") === "true";
@@ -83,20 +92,20 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const result = await callRefreshTokenAPI();
       const sessionData = result.data?.data || result.data;
-      
+
       if (result.success && sessionData?.accessToken) {
         const remember = localStorage.getItem("rememberMe") === "true";
-        
+
         // Merge with initialUser (from storage) to prevent data loss on refresh
         const updatedUser = {
           ...(initialUser || {}),
-          ...(sessionData.user || {})
+          ...(sessionData.user || {}),
         };
 
         login(updatedUser, sessionData.accessToken, remember);
       } else {
-        const isAuthError = 
-          result.error?.includes("401") || 
+        const isAuthError =
+          result.error?.includes("401") ||
           result.error?.toLowerCase().includes("unauthorized") ||
           result.status === 401;
 
@@ -135,13 +144,14 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    const storedUserStr = localStorage.getItem("user") || sessionStorage.getItem("user");
-    
+    const storedUserStr =
+      localStorage.getItem("user") || sessionStorage.getItem("user");
+
     if (storedUserStr && storedUserStr !== "undefined") {
       try {
         const parsedUser = JSON.parse(storedUserStr);
         setUserState(parsedUser);
-        
+
         const userType = determineUserType(parsedUser);
         localStorage.setItem("userType", userType);
 
@@ -155,11 +165,22 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  if (isLoading) return <LoadingScreen />;
+
   return (
     <AuthContext.Provider
-      value={{ user, accessToken, setUser, setAccessToken, login, isLoading, logout, switchOrganization }}
+      value={{
+        user,
+        accessToken,
+        setUser,
+        setAccessToken,
+        login,
+        isLoading,
+        logout,
+        switchOrganization,
+      }}
     >
-      {!isLoading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

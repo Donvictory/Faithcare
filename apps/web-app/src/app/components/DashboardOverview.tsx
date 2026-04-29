@@ -15,7 +15,7 @@ export function DashboardOverview() {
 
   const statsData = [
     {
-      title: "First Timers This Week",
+      title: "First Timers",
       value: trendsData?.data?.firstTimersCount || "0",
       icon: UserPlus,
       color: "#d4a574",
@@ -27,13 +27,13 @@ export function DashboardOverview() {
       color: "#22c55e",
     },
     {
-      title: "Prayer Requests Submitted",
+      title: "Prayer Requests",
       value: trendsData?.data?.activePrayers || "0",
       icon: Heart,
       color: "#3b82f6",
     },
     {
-      title: "Members Journal Entries",
+      title: "Journal Entries",
       value: trendsData?.data?.journalEntries || "0",
       icon: BookOpen,
       color: "#a855f7",
@@ -41,9 +41,9 @@ export function DashboardOverview() {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-4 sm:px-6 md:px-8 py-6 border-t border-border/50">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
       {isLoading ? (
-        <div className="col-span-full py-8 text-center text-muted-foreground flex items-center justify-center gap-2">
+        <div className="col-span-full py-6 text-center text-muted-foreground flex items-center justify-center gap-2">
           <Loader2 className="w-4 h-4 animate-spin" />
           Syncing metrics...
         </div>
@@ -53,11 +53,11 @@ export function DashboardOverview() {
           return (
             <div
               key={stat.title}
-              className="bg-card/50 rounded-xl p-5 md:p-6 border border-border/60 hover:border-accent/40 transition-all shadow-sm"
+              className="bg-card/50 rounded-xl p-3 md:p-4 border border-border hover:border-accent/40 transition-all"
             >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
+              <div className="flex items-start justify-between gap-2 h-full">
+                <div className="flex flex-col h-full justify-between">
+                  <p className="text-muted-foreground text-md mb-2 leading-tight">
                     {stat.title}
                   </p>
                   <p className="text-2xl font-bold text-foreground">

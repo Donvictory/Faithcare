@@ -1,6 +1,12 @@
 import React, { useEffect } from "react";
-import { BookOpen, Sparkles, Timer, TrendingUp, Loader2 } from "lucide-react";
-import { Header } from "./Header";
+import {
+  BookOpen,
+  Sparkles,
+  Timer,
+  TrendingUp,
+  Loader2,
+  Send,
+} from "lucide-react";
 import { useLayout } from "../contexts/LayoutContext";
 import { useAuth } from "../providers/AuthProvider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,10 +21,15 @@ import { Link } from "react-router-dom";
 import { LoadingScreen } from "./LoadingScreen";
 import { toast } from "react-hot-toast";
 import { useSearch } from "../contexts/SearchContext";
+import { Card } from "./ui/card";
 
 export function IndividualDashboard() {
+  const { setHeader, addNotification } = useLayout();
   const { user, accessToken } = useAuth();
-  const { addNotification } = useLayout();
+
+  useEffect(() => {
+    setHeader("Dashboard");
+  }, [user?.fullName, user?.name]);
   const { searchTerm } = useSearch();
   const queryClient = useQueryClient();
 
@@ -67,7 +78,7 @@ export function IndividualDashboard() {
   useEffect(() => {
     if (metadataError) {
       toast.error(
-        "Failed to load spiritual profile: " + (metadataError as any).message,
+        "Failed to load spiritual profile:" + (metadataError as any).message,
       );
     }
   }, [metadataError]);
@@ -289,24 +300,25 @@ export function IndividualDashboard() {
   }
 
   return (
-    <div className="min-h-full font-sans pb-10">
-      <Header
-        title="Dashboard"
-        subtitle={`Welcome back, ${user?.fullName || user?.name || "Believer"}`}
-      />
-
-      <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6">
+      <p>
+        Welcome back,{" "}
+        <span className="font-semibold">
+          {`${user?.fullName || user?.name || "Believer"}`}
+        </span>
+      </p>
+      <div className="space-y-6 md:space-y-8 max-w-7xl mx-auto">
         {/* Welcome Section */}
-        <div className="bg-card rounded-3xl p-8 md:p-12 border border-border relative overflow-hidden shadow-xl shadow-accent/5">
+        <div className="bg-card rounded-3xl p-6 md:p-8 border border-border relative overflow-hidden shadow-xl shadow-accent/5">
           <div className="absolute top-0 right-0 p-10 opacity-[0.03] dark:opacity-[0.07]">
             <Sparkles className="w-64 h-64 text-accent" />
           </div>
           <div className="relative z-10 flex flex-col md:flex-row items-start justify-between gap-8">
-            <div className="flex-1">
-              <h2 className="text-4xl font-bold text-foreground mb-4 tracking-tight">
+            <div className="flex-1 space-y-2">
+              <h2 className="text-2xl font-bold text-foreground tracking-tight">
                 Peace be with you.
               </h2>
-              <p className="text-muted-foreground text-xl mb-8 max-w-xl leading-relaxed opacity-80">
+              <p className="text-muted-foreground mb-8 max-w-5xl leading-relaxed opacity-80">
                 You've completed {journalCount} meditations this month. Your
                 commitment to your spiritual walk is inspiring.
               </p>
@@ -325,27 +337,41 @@ export function IndividualDashboard() {
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <div
-                key={stat.title}
-                className="bg-card rounded-3xl p-6 border border-border shadow-sm hover:border-accent/40 transition-all duration-300 group hover:-translate-y-1"
-              >
-                <div className="flex items-start justify-between">
+              // <Card key={stat.title}>
+              //   <div className="flex items-start justify-between">
+              //     <div>
+              //       <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] mb-3">
+              //         {stat.title}
+              //       </p>
+              //       <p className="text-3xl text-foreground group-hover:text-accent transition-colors">
+              //         {stat.value}
+              //       </p>
+              //     </div>
+              //     <div
+              //       className="p-4 rounded-2xl transition-all duration-500 group-hover:rotate-12 group-hover:scale-110 shadow-inner"
+              //       style={{ backgroundColor: `${stat.color}15` }}
+              //     >
+              //       <Icon className="w-6 h-6" style={{ color: stat.color }} />
+              //     </div>
+              //   </div>
+              // </Card>
+
+              <Card>
+                <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] mb-3 ">
+                    <p className="text-sm font-semibold mb-3 text-accent-foreground/70">
                       {stat.title}
                     </p>
-                    <p className="text-3xl text-foreground group-hover:text-accent transition-colors">
-                      {stat.value}
-                    </p>
+                    <h3 className="text-3xl font-bold">{stat.value}</h3>
                   </div>
                   <div
-                    className="p-4 rounded-2xl transition-all duration-500 group-hover:rotate-12 group-hover:scale-110 shadow-inner"
+                    className="w-12 h-12 rounded-lg flex items-center justify-center"
                     style={{ backgroundColor: `${stat.color}15` }}
                   >
                     <Icon className="w-6 h-6" style={{ color: stat.color }} />
                   </div>
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
@@ -353,13 +379,13 @@ export function IndividualDashboard() {
         {/* Progress and Journals */}
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Recent Bible Entries (Real) */}
-          <div className="bg-card rounded-3xl p-8 border border-border shadow-sm">
+          <Card padding="lg" radius="lg">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
                 <div className="p-2 bg-accent/10 rounded-lg">
                   <BookOpen className="w-5 h-5 text-accent" />
                 </div>
-                {searchTerm ? `Search: "${searchTerm}"` : "Latest Meditations"}
+                {searchTerm ? `Search:"${searchTerm}"` : "Latest Meditations"}
               </h3>
               <Link
                 to="/sunday-journal"
@@ -399,7 +425,7 @@ export function IndividualDashboard() {
                   <BookOpen className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
                   <p className="text-sm text-muted-foreground italic">
                     {searchTerm
-                      ? `No meditations found matching "${searchTerm}"`
+                      ? `No meditations found matching"${searchTerm}"`
                       : "Begin your first entry to track your growth."}
                   </p>
                 </div>
@@ -408,14 +434,14 @@ export function IndividualDashboard() {
 
             <Link
               to="/sunday-journal"
-              className="block w-full mt-8 px-4 py-4 bg-muted/40 text-foreground rounded-2xl hover:bg-muted/60 transition-all border border-border text-center text-sm "
+              className="block w-full mt-8 px-4 py-4 bg-muted/40 text-foreground rounded-2xl hover:bg-muted/60 transition-all border border-border text-center text-sm"
             >
               Write New Entry
             </Link>
-          </div>
+          </Card>
 
           {/* Consistency Tracking */}
-          <div className="bg-card rounded-3xl p-8 border border-border shadow-sm">
+          <Card padding="lg" radius="lg">
             <h3 className="text-xl font-bold text-foreground mb-10 flex items-center gap-3">
               <div className="p-2 bg-green-500/10 rounded-lg">
                 <TrendingUp className="w-5 h-5 text-green-500" />
@@ -433,9 +459,9 @@ export function IndividualDashboard() {
                     {readingProgress}% Complete
                   </p>
                 </div>
-                <div className="h-3 bg-muted rounded-full overflow-hidden shadow-inner">
+                <div className="h-3 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded-full transition-all duration-1000 shadow-lg"
+                    className="h-full rounded-full transition-all duration-1000"
                     style={{
                       width: `${readingProgress}%`,
                       backgroundColor: "#22c55e",
@@ -453,9 +479,9 @@ export function IndividualDashboard() {
                     {Math.round(journalingStreak)} days
                   </p>
                 </div>
-                <div className="h-3 bg-muted rounded-full overflow-hidden shadow-inner">
+                <div className="h-3 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded-full transition-all duration-1000 shadow-lg"
+                    className="h-full rounded-full transition-all duration-1000"
                     style={{
                       width: `${journalProgress}%`,
                       backgroundColor: "#d4a574",
@@ -473,9 +499,9 @@ export function IndividualDashboard() {
                     {Math.round(focusProgress)}% Goal
                   </p>
                 </div>
-                <div className="h-3 bg-muted rounded-full overflow-hidden shadow-inner">
+                <div className="h-3 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded-full transition-all duration-1000 shadow-lg"
+                    className="h-full rounded-full transition-all duration-1000"
                     style={{
                       width: `${focusProgress}%`,
                       backgroundColor: "#a855f7",
@@ -484,11 +510,11 @@ export function IndividualDashboard() {
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
         {/* Quick Tools */}
-        <div className="bg-card rounded-3xl p-8 border border-border shadow-sm">
+        <Card padding="lg" radius="lg">
           <h3 className="text-xl font-bold text-foreground mb-8">
             Spiritual Disciplines
           </h3>
@@ -511,7 +537,7 @@ export function IndividualDashboard() {
               </Link>
             ))}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

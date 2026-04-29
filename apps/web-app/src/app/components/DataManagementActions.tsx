@@ -1,17 +1,45 @@
 import { useState, useRef } from "react";
-import { Plus, FileSpreadsheet, Loader2 } from "lucide-react";
+import {
+  Plus,
+  FileSpreadsheet,
+  Loader2,
+  ListFilter,
+  CloudUpload,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "react-hot-toast";
 import { bulkUploadMembers } from "@/api/church";
 import { useAuth } from "../providers/AuthProvider";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import SearchBar from "./ui/search-bar";
 
 interface DataManagementActionsProps {
-  type: "first-timers" | "second-timers" | "salvation-records" | "prayer-requests" | "follow-ups";
+  type:
+    | "first-timers"
+    | "second-timers"
+    | "salvation-records"
+    | "prayer-requests"
+    | "follow-ups";
   onAddManual: () => void;
   onUploadSuccess: () => void;
+  searchTerm: string;
+  setSearchTerm: (searchTerm: string) => void;
+  hasFilters?: boolean;
 }
 
-export function DataManagementActions({ type, onAddManual, onUploadSuccess }: DataManagementActionsProps) {
+export function DataManagementActions({
+  type,
+  onAddManual,
+  onUploadSuccess,
+  searchTerm,
+  setSearchTerm,
+  hasFilters = true,
+}: DataManagementActionsProps) {
   const { user } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -26,7 +54,7 @@ export function DataManagementActions({ type, onAddManual, onUploadSuccess }: Da
     const validTypes = [
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "application/vnd.ms-excel",
-      "text/csv"
+      "text/csv",
     ];
     if (!validTypes.includes(file.type)) {
       toast.error("Please upload a valid Excel or CSV file");
@@ -51,7 +79,27 @@ export function DataManagementActions({ type, onAddManual, onUploadSuccess }: Da
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3 justify-between">
+      {hasFilters && (
+        <div className="flex items-center gap-4 flex-wrap">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-2">
+              <ListFilter className="w-4 h-4" />
+              Filter
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>All Sundays</DropdownMenuItem>
+              <DropdownMenuItem>This Sunday</DropdownMenuItem>
+              <DropdownMenuItem>Last Sunday</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <SearchBar
+            placeholder="Search by name, email, or phone"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      )}
       <input
         type="file"
         ref={fileInputRef}
@@ -59,28 +107,30 @@ export function DataManagementActions({ type, onAddManual, onUploadSuccess }: Da
         className="hidden"
         accept=".xlsx, .xls, .csv"
       />
-      
-      <Button
-        variant="outline"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={isUploading}
-        className="h-11 px-6 rounded-xl border-border bg-card hover:bg-muted/50 text-foreground transition-all flex items-center gap-2 group"
-      >
-        {isUploading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <FileSpreadsheet className="w-4 h-4 text-green-500 group-hover:scale-110 transition-transform" />
-        )}
-        <span className="font-medium">Upload Excel</span>
-      </Button>
 
-      <Button
-        onClick={onAddManual}
-        className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center gap-2 group"
-      >
-        <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-        <span className="font-medium italic">Add Manually</span>
-      </Button>
+      <div className="flex items-center gap-4">
+        <Button
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          className="h-11 px-6 rounded-xl border-border bg-card hover:bg-muted/50 text-foreground transition-all flex items-center gap-2 group"
+        >
+          {isUploading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            // <FileSpreadsheet className="w-4 h-4 text-green-500 group-hover:scale-110 transition-transform" />
+            <CloudUpload className="w-4 h-4 text-green-500 group-hover:scale-110 transition-transform" />
+          )}
+          <span className="font-medium">Bulk Upload</span>
+        </Button>
+        <Button
+          onClick={onAddManual}
+          className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center gap-2 group"
+        >
+          <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+          <span className="font-medium">New Member</span>
+        </Button>
+      </div>
     </div>
   );
 }

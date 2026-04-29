@@ -16,6 +16,7 @@ import { toast } from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import Logo from "./Logo";
 
 const signUpSchema = z
   .object({
@@ -139,10 +140,7 @@ export function SignUp({ type }: { type: string }) {
 
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          <div className="flex items-center gap-2 mb-8">
-            <Sparkles className="w-8 h-8" style={{ color: "#d4a574" }} />
-            <h1 className="text-foreground">FaithCare</h1>
-          </div>
+          <Logo />
 
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-foreground mb-2">
@@ -212,7 +210,7 @@ export function SignUp({ type }: { type: string }) {
                     </p>
                     {serverEmailError && (
                       <Link
-                        to="/"
+                        to="/sign-in"
                         className="text-xs text-accent hover:underline mt-0.5 inline-block"
                       >
                         Sign in instead →
@@ -381,8 +379,8 @@ export function SignUp({ type }: { type: string }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <button className="flex items-center justify-center gap-2 px-4 py-3 border border-border rounded-lg hover:bg-muted/30 transition-colors text-foreground">
+          <div className="grid gap-4 mb-10">
+            <button className="flex items-center justify-center gap-3 px-4 py-4 border border-neutral-300 rounded-xl hover:bg-secondary/50 transition-all text-foreground font-medium active:scale-95">
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
@@ -409,7 +407,7 @@ export function SignUp({ type }: { type: string }) {
           <p className="text-center text-muted-foreground">
             Already have an account?{" "}
             <Link
-              to="/"
+              to="/sign-in"
               className="text-accent hover:text-accent/80 transition-colors"
             >
               Sign in

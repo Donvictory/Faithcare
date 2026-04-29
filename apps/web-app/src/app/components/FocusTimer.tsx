@@ -1,3 +1,4 @@
+import { useLayout } from "../contexts/LayoutContext";
 import { useState, useEffect, useRef } from "react";
 import {
   Play,
@@ -11,7 +12,6 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
-import { Header } from "./Header";
 import { useAuth } from "../providers/AuthProvider";
 import {
   createTimerSession,
@@ -24,6 +24,7 @@ import {
 import { toast } from "react-hot-toast";
 import { LoadingScreen } from "./LoadingScreen";
 import { useSearch } from "../contexts/SearchContext";
+import { Card } from "./ui/card";
 
 interface TimerSession {
   _id: string;
@@ -35,6 +36,14 @@ interface TimerSession {
 }
 
 export function FocusTimer() {
+  const { setHeader } = useLayout();
+  useEffect(() => {
+    setHeader(
+      "Focus Timer",
+      "Stay focused and productive with intentional work sessions.",
+    );
+  }, []);
+
   const { user } = useAuth();
   const { searchTerm } = useSearch();
   const [timeLeft, setTimeLeft] = useState<number>(25 * 60);
@@ -285,9 +294,10 @@ export function FocusTimer() {
     totalDuration > 0 ? ((totalDuration - timeLeft) / totalDuration) * 100 : 0;
 
   // Filter history based on search
-  const filteredHistory = history.filter((session) =>
-    session.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    session.duration.toString().includes(searchTerm)
+  const filteredHistory = history.filter(
+    (session) =>
+      session.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      session.duration.toString().includes(searchTerm),
   );
 
   if (isInitializing) {
@@ -297,14 +307,10 @@ export function FocusTimer() {
   }
 
   return (
-    <div className="min-h-full flex flex-col">
-      <Header
-        title="Focus Timer"
-        subtitle="Stay focused and productive with intentional work sessions."
-      />
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 p-4 md:p-8">
-        <div className="lg:col-span-8 flex flex-col items-center justify-start pt-4">
-          <div className="w-full max-w-2xl bg-card rounded-3xl p-8 md:p-12 border border-border text-center shadow-xl relative overflow-hidden transition-all duration-500">
+    <div className="space-y-6">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8 flex flex-col items-center justify-start">
+          <Card className="w-full max-w-2xl text-center relative overflow-hidden transition-all duration-500">
             <div className="absolute top-0 left-0 w-full h-1 bg-muted">
               <div
                 className="h-full bg-accent transition-all duration-1000"
@@ -315,7 +321,7 @@ export function FocusTimer() {
             {isCompleted ? (
               <div className="py-8 animate-in fade-in zoom-in duration-500">
                 <div className="flex justify-center mb-8">
-                  <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center border border-success/20 shadow-inner">
+                  <div className="w-24 h-24 rounded-full flex items-center justify-center">
                     <Sparkles className="w-12 h-12 text-success" />
                   </div>
                 </div>
@@ -400,11 +406,11 @@ export function FocusTimer() {
                 </div>
               </>
             )}
-          </div>
+          </Card>
 
           {!isRunning && !isCompleted && (
             <div className="w-full max-w-2xl mt-8 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-card rounded-3xl border border-border p-8 shadow-sm">
+              <Card>
                 <label className="block text-xs font-bold text-muted-foreground mb-6 uppercase tracking-widest text-center">
                   Set Custom Duration
                 </label>
@@ -441,13 +447,13 @@ export function FocusTimer() {
                     ))}
                   </div>
                 </div>
-              </div>
+              </Card>
             </div>
           )}
         </div>
 
         <div className="lg:col-span-4 flex flex-col h-[calc(100vh-200px)]">
-          <div className="bg-card rounded-3xl border border-border flex flex-col h-full shadow-sm overflow-hidden">
+          <Card className="flex flex-col h-full overflow-hidden">
             <div className="p-6 border-b border-border flex items-center justify-between bg-muted/30">
               <div className="flex items-center gap-2">
                 <History className="w-5 h-5 text-accent" />
@@ -528,7 +534,7 @@ export function FocusTimer() {
                 ))
               )}
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

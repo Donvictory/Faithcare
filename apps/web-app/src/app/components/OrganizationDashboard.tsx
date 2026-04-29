@@ -1,16 +1,33 @@
+import { useEffect } from "react";
+import { useLayout } from "../contexts/LayoutContext";
 import { useAuth } from "../providers/AuthProvider";
 import { useQuery } from "@tanstack/react-query";
 import { getDashboardTrends, getFirstTimers, getFollowUps } from "@/api/church";
 import { UserPlus, CheckCircle, Heart, TrendingUp } from "lucide-react";
-import { Header } from "./Header";
 import { DashboardOverview } from "./DashboardOverview";
 import { LoadingScreen } from "./LoadingScreen";
 import { useSearch } from "../contexts/SearchContext";
+import { Card } from "./ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 export function OrganizationDashboard() {
+  const { setHeader } = useLayout();
   const { user } = useAuth();
   const { searchTerm } = useSearch();
   const organizationId = user?.organizationId || user?.id || "";
+
+  useEffect(() => {
+    setHeader(
+      "Organization Overview",
+      `Viewing insights for ${user?.name || "your ministry"}`,
+    );
+  }, [user?.name]);
 
   const { data: trendsData, isLoading: leadsLoading } = useQuery({
     queryKey: ["dashboard-trends", organizationId],
@@ -40,39 +57,55 @@ export function OrganizationDashboard() {
         }))
       : [];
 
-  const followUpsRaw = 
+  const followUpsRaw =
     followUpsData?.success && Array.isArray(followUpsData?.data)
       ? followUpsData.data
       : [];
 
   // Filter based on global search
-  const filteredActivity = recentActivityRaw.filter((a: any) => 
-    a.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredActivity = recentActivityRaw.filter((a: any) =>
+    a.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const filteredFollowUps = followUpsRaw.filter((fu: any) => 
-    fu.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (fu.description || fu.notes || "").toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredFollowUps = followUpsRaw.filter(
+    (fu: any) =>
+      fu.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (fu.description || fu.notes || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()),
   );
 
   if (leadsLoading) {
-    return <LoadingScreen churchName={user?.churchName || user?.name || "FaithCare"} />;
+    return (
+      <LoadingScreen
+        churchName={user?.churchName || user?.name || "FaithCare"}
+      />
+    );
   }
 
   return (
-    <div className="min-h-full font-sans">
-      <Header
-        title="Organization Overview"
-        subtitle={`Viewing insights for ${user?.name || "your ministry"}`}
-      />
+    <div className="space-y-6">
+      <div className="">
+        <Select>
+          <SelectTrigger className="max-w-[200px]">
+            <SelectValue placeholder="Select a period" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="week">This Week</SelectItem>
+            <SelectItem value="month">Last 14 days</SelectItem>
+            <SelectItem value="year">Last 30 days</SelectItem>
+            <SelectItem value="custom">Custom</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <DashboardOverview />
-      <div className="p-4 md:p-8 space-y-8">
-        <div className="grid lg:grid-cols-2 gap-8">
+      <div className="space-y-8">
+        <div className="grid lg:grid-cols-2 gap-6">
           {/* Active Activity Log */}
-          <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
+          <Card>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-foreground">
-                {searchTerm ? `Activity: "${searchTerm}"` : "Recent Activity"}
+                {searchTerm ? `Activity:"${searchTerm}"` : "Recent Activity"}
               </h3>
               <button className="text-[10px] text-accent hover:underline uppercase tracking-widest bg-accent/5 px-3 py-1.5 rounded-full font-medium">
                 Live Feed
@@ -80,40 +113,48 @@ export function OrganizationDashboard() {
             </div>
             <div className="space-y-4">
               {filteredActivity.length > 0 ? (
-                filteredActivity.slice(0, 4).map((activity: any, index: number) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-4 p-4 rounded-xl hover:bg-muted/30 transition-all border border-transparent hover:border-border"
-                  >
-                    <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
-                      <UserPlus className="w-6 h-6 text-accent" />
+                filteredActivity
+                  .slice(0, 4)
+                  .map((activity: any, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-4 p-4 rounded-xl hover:bg-muted/30 transition-all border border-transparent hover:border-border"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
+                        <UserPlus className="w-6 h-6 text-accent" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground">
+                          {activity.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Successfully {activity.action} in the system
+                        </p>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground font-medium uppercase bg-muted/50 px-2 py-1 rounded">
+                        {activity.time}
+                      </span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground">{activity.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Successfully {activity.action} in the system
-                      </p>
-                    </div>
-                    <span className="text-[10px] text-muted-foreground font-medium uppercase bg-muted/50 px-2 py-1 rounded">
-                      {activity.time}
-                    </span>
-                  </div>
-                ))
+                  ))
               ) : (
                 <div className="py-12 text-center">
                   <p className="text-sm text-muted-foreground italic">
-                    {searchTerm ? "No activities match your search." : "No recent activity recorded yet."}
+                    {searchTerm
+                      ? "No activities match your search."
+                      : "No recent activity recorded yet."}
                   </p>
                 </div>
               )}
             </div>
-          </div>
+          </Card>
 
           {/* Critical Follow-ups */}
-          <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
+          <Card>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-foreground">
-                {searchTerm ? `Follow-ups: "${searchTerm}"` : "Upcoming Follow Ups"}
+                {searchTerm
+                  ? `Follow-ups:"${searchTerm}"`
+                  : "Upcoming Follow Ups"}
               </h3>
               <Badge className="border-accent text-accent">Active</Badge>
             </div>
@@ -122,7 +163,7 @@ export function OrganizationDashboard() {
                 filteredFollowUps.slice(0, 3).map((fu: any, idx: number) => (
                   <div
                     key={idx}
-                    className={`p-5 rounded-xl border-l-4 shadow-sm ${fu.status === "overdue" ? "border-l-red-500 bg-red-50/30" : "border-l-accent bg-accent/5"}`}
+                    className={`p-5 rounded-xl border-l-4 ${fu.status === "overdue" ? "border-l-red-500 bg-red-50/30" : "border-l-accent bg-accent/5"}`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <p className="text-sm font-medium text-foreground italic">
@@ -144,7 +185,9 @@ export function OrganizationDashboard() {
               ) : (
                 <div className="py-12 text-center">
                   <p className="text-sm text-muted-foreground italic">
-                    {searchTerm ? "No follow-ups match your search." : "Your follow-up list is currently clear."}
+                    {searchTerm
+                      ? "No follow-ups match your search."
+                      : "Your follow-up list is currently clear."}
                   </p>
                 </div>
               )}
@@ -152,7 +195,7 @@ export function OrganizationDashboard() {
             <button className="w-full mt-6 px-4 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg active:scale-95 font-medium">
               Manage All Follow Ups
             </button>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

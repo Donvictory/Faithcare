@@ -14,6 +14,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { completeIndividualOnboarding } from "@/api/individual";
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
+import Logo from "../components/Logo";
 
 export function IndividualOnboarding() {
   const { user, accessToken } = useAuth();
@@ -98,15 +99,13 @@ export function IndividualOnboarding() {
       <div className="hidden lg:flex flex-col w-[400px] bg-gradient-to-br from-secondary/50 via-secondary/30 to-background p-16 border-r border-border/40 relative overflow-hidden">
         <div className="absolute -top-24 -left-24 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
         <div className="mb-16 relative z-10">
-          <div className="flex items-center gap-3 mb-10 group cursor-pointer">
-            <div className="p-3 bg-accent/10 rounded-2xl border border-accent/10 group-hover:scale-110 transition-transform">
-              <Sparkles className="w-8 h-8 text-accent" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tighter">FaithCare</h1>
-          </div>
-          <h2 className="text-4xl font-bold text-foreground mb-4 tracking-tight leading-tight">Start your journey</h2>
+          <Logo />
+          <h2 className="text-4xl font-bold text-foreground mb-4 tracking-tight leading-tight">
+            Start your journey
+          </h2>
           <p className="text-muted-foreground text-lg leading-relaxed opacity-70">
-            Personalize your experience so we can help you stay consistent in your walk with God.
+            Personalize your experience so we can help you stay consistent in
+            your walk with God.
           </p>
         </div>
 
@@ -116,16 +115,21 @@ export function IndividualOnboarding() {
               <Check className="w-6 h-6 text-emerald-500" />
             </div>
             <div className="space-y-2">
-              <h4 className="text-xl font-bold text-foreground tracking-tight">Stay Consistent</h4>
+              <h4 className="text-xl font-bold text-foreground tracking-tight">
+                Stay Consistent
+              </h4>
               <p className="text-sm font-bold text-muted-foreground leading-relaxed opacity-70">
-                Track your spiritual streaks and build meaningful daily habits that last a lifetime.
+                Track your spiritual streaks and build meaningful daily habits
+                that last a lifetime.
               </p>
             </div>
           </div>
         </div>
 
         <div className="mt-auto relative z-10">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em] opacity-40">Your path to spiritual growth begins here.</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em] opacity-40">
+            Your path to spiritual growth begins here.
+          </p>
         </div>
       </div>
 
@@ -134,36 +138,47 @@ export function IndividualOnboarding() {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px] -mr-64 -mt-64 opacity-30" />
         <div className="w-full max-w-2xl relative z-10">
           <div className="mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-4 tracking-tight">Tell us about yourself</h2>
+            <h2 className="text-4xl font-bold text-foreground mb-4 tracking-tight">
+              Tell us about yourself
+            </h2>
             <p className="text-muted-foreground text-lg leading-relaxed opacity-70">
-              We'll use these intentional details to tailor your daily devotionals and focus areas.
+              We'll use these intentional details to tailor your daily
+              devotionals and focus areas.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-12">
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-3">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 opacity-60">Location</label>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 opacity-60">
+                  Location
+                </label>
                 <div className="relative group">
                   <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors opacity-60" />
                   <input
                     type="text"
                     placeholder="e.g. Lagos, Nigeria"
                     value={formData.location}
-                    onChange={(e) => handleInputChange("location", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("location", e.target.value)
+                    }
                     className="w-full pl-14 pr-6 py-5 bg-secondary/30 border border-border/60 focus:border-accent focus:ring-4 focus:ring-accent/5 rounded-[24px] outline-none transition-all text-foreground font-bold tracking-tight text-lg"
                   />
                 </div>
               </div>
               <div className="space-y-3">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 opacity-60">Your Church</label>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 opacity-60">
+                  Your Church
+                </label>
                 <div className="relative group">
-                   <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors opacity-60" />
-                   <input
+                  <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors opacity-60" />
+                  <input
                     type="text"
                     placeholder="e.g. Grace Chapel"
                     value={formData.churchName}
-                    onChange={(e) => handleInputChange("churchName", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("churchName", e.target.value)
+                    }
                     className="w-full pl-14 pr-6 py-5 bg-secondary/30 border border-border/60 focus:border-accent focus:ring-4 focus:ring-accent/5 rounded-[24px] outline-none transition-all text-foreground font-bold tracking-tight text-lg"
                   />
                 </div>
@@ -172,8 +187,12 @@ export function IndividualOnboarding() {
 
             <div className="space-y-6">
               <div className="flex flex-col gap-2">
-                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 opacity-60">Spiritual Intentions</label>
-                 <p className="text-sm font-bold text-muted-foreground opacity-40 italic">Select as many as resonate with your current walk...</p>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 opacity-60">
+                  Spiritual Intentions
+                </label>
+                <p className="text-sm font-bold text-muted-foreground opacity-40 italic">
+                  Select as many as resonate with your current walk...
+                </p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {goalOptions.map((goal) => (
@@ -213,7 +232,9 @@ export function IndividualOnboarding() {
                 <div className="w-6 h-6 border-4 border-primary-foreground/20 border-t-primary-foreground rounded-full animate-spin" />
               ) : (
                 <>
-                  <span className="text-lg uppercase tracking-widest">Begin Your Journey</span>
+                  <span className="text-lg uppercase tracking-widest">
+                    Begin Your Journey
+                  </span>
                   <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-1" />
                 </>
               )}
