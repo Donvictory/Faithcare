@@ -15,6 +15,7 @@ const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
     onRowSelect,
     selectable = false,
     actions = [],
+    activate = [],
     className = "",
     rowClassName,
     onItemClick,
@@ -172,6 +173,11 @@ const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
                         <span className="sr-only">Actions</span>
                       </th>
                     )}
+                    {activate.length > 0 && (
+                      <th scope="col" className="relative px-6 py-3">
+                        <span className="sr-only">Activate</span>
+                      </th>
+                    )}
                   </tr>
                 </thead>
               )}
@@ -182,7 +188,8 @@ const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
                       colSpan={
                         columns.length +
                         (selectable ? 1 : 0) +
-                        (actions.length > 0 ? 1 : 0)
+                        (actions.length > 0 ? 1 : 0) +
+                        (activate.length > 0 ? 1 : 0)
                       }
                       className="px-6 py-12 text-center text-sm text-muted-foreground"
                     >

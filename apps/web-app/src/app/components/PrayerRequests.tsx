@@ -102,12 +102,12 @@ export function PrayerRequests() {
     <div className="min-h-full">
       <div className="space-y-6">
         {/* Bulk Actions and Add New */}
-        <Card className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <Card className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 p-4 sm:p-6">
           <div>
-            <h3 className="text-lg font-bold text-foreground">
+            <h3 className="text-base sm:text-lg font-bold text-foreground">
               Data Management
             </h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Upload or add new requests manually
             </p>
           </div>
@@ -235,9 +235,7 @@ export function PrayerRequests() {
                     />
                     {prayer.status === "PRAYING" ? "Praying..." : "Praying"}
                   </button>
-                  <button className="px-6 py-3.5 border border-border bg-card text-foreground rounded-xl hover:bg-muted transition-all shadow-sm active:scale-95 font-bold">
-                    Contact
-                  </button>
+
                 </div>
               </div>
             ))

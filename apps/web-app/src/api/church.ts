@@ -48,6 +48,7 @@ export async function getFirstTimers(
     const data = await response.json();
     if (!response.ok)
       throw new Error(data.message || "Failed to fetch first timers");
+    console.log("[getFirstTimers] filters sent:", params, "| response:", data);
     return {
       success: true,
       data: data,
@@ -125,17 +126,103 @@ export async function updateFirstTimerStatus(
   }
 }
 
+export async function updateFirstTimerVisitType(
+  organizationId: string,
+  id: string,
+  payload: any,
+) {
+  console.log("[updateFirstTimerVisitType] Promoting id:", id, "to second timer");
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    
+    // 1. Create the new "Second Timer" record
+    // We send both camelCase and snake_case to be safe
+    const updatePayload = { 
+      ...payload,
+      organizationId,
+      firstTimerId: id,
+      visitType: "second_time",
+      visit_type: "second_time",
+      serviceDate: today,
+    };
+    delete updatePayload.id;
+    delete updatePayload._id;
+
+    const createRes = await apiRequest(
+      `/church/first-timers`,
+      {
+        method: "POST",
+        body: JSON.stringify(updatePayload),
+      },
+    );
+    
+    if (!createRes.ok) {
+      const errorData = await createRes.json();
+      throw new Error(errorData.message || `Failed to create second timer record`);
+    }
+
+    // 2. Mark the old record as "PROMOTED" to hide it from the First Timers list
+    // Use the established updateFirstTimerStatus function for consistency
+    console.log("[updateFirstTimerVisitType] Marking old record as PROMOTED:", id);
+    await updateFirstTimerStatus(id, { 
+      status: "PROMOTED", 
+      notes: "Promoted to second timer" 
+    });
+
+    // 3. Attempt to delete the old record as a final cleanup
+    await deleteFirstTimer(organizationId, id);
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("[updateFirstTimerVisitType] Error:", error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
+export async function deleteFirstTimer(organizationId: string, id: string) {
+  console.log(`[deleteFirstTimer] Attempting delete for ID: ${id}`);
+  try {
+    // Attempt 1: Standard Organizational Path
+    const res1 = await apiRequest(`/organizations/${organizationId}/first-timers/${id}`, { method: "DELETE" });
+    if (res1.ok) {
+      console.log("[deleteFirstTimer] Path 1 Success");
+      return { success: true };
+    }
+
+    // Attempt 2: Root Church Path
+    const res2 = await apiRequest(`/church/first-timers/${id}`, { method: "DELETE" });
+    if (res2.ok) {
+      console.log("[deleteFirstTimer] Path 2 Success");
+      return { success: true };
+    }
+
+    // Attempt 3: General Members Path (some backends use this)
+    const res3 = await apiRequest(`/organizations/${organizationId}/members/${id}`, { method: "DELETE" });
+    if (res3.ok) {
+      console.log("[deleteFirstTimer] Path 3 Success");
+      return { success: true };
+    }
+
+    throw new Error(`Deletion failed across all known paths (Status codes: ${res1.status}, ${res2.status}, ${res3.status})`);
+  } catch (error: any) {
+    console.error("[deleteFirstTimer] Error:", error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function getFollowUps(organizationId: string) {
   try {
     const response = await apiRequest(
       `/organizations/${organizationId}/follow-ups`,
     );
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Failed to fetch follow-ups");
-    return {
-      success: true,
-      data: data?.data,
-    };
+    const raw = await response.json();
+    if (!response.ok) throw new Error(raw.message || "Failed to fetch follow-ups");
+    // Return the full raw response — the UI layer will find the array
+    console.log("[getFollowUps] Raw server response:", raw);
+    return raw;
   } catch (error: any) {
     return {
       success: false,
@@ -153,31 +240,26 @@ export async function createFollowUp(
     priority: "HIGH" | "MEDIUM" | "LOW";
     description: string;
     dueDate: string;
+    [key: string]: any;
   },
 ) {
-  try {
-    const response = await apiRequest(
-      `/organizations/${organizationId}/follow-ups`,
-      {
-        method: "POST",
-        body: JSON.stringify(payload),
-      },
-    );
+  const response = await apiRequest(
+    `/organizations/${organizationId}/follow-ups`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
 
-    const data = await response.json();
+  const data = await response.json();
 
-    if (!response.ok)
-      throw new Error(data.message || "Failed to create follow-up");
-    return {
-      success: true,
-      data: data?.data,
-    };
-  } catch (error: any) {
-    return {
-      success: false,
-      error: error.message,
-    };
-  }
+  if (!response.ok)
+    throw new Error(data.message || data.error || "Failed to create follow-up");
+
+  return {
+    success: true,
+    data: data?.data,
+  };
 }
 
 export async function updateFollowUp(
@@ -640,5 +722,34 @@ export async function bulkUploadMembers(organizationId: string, type: string, fi
     return { success: true, data: data?.data };
   } catch (error: any) {
     return { success: false, error: error.message };
+  }
+}
+export async function sendBulkMessage(
+  organizationId: string,
+  payload: {
+    platform: "whatsapp" | "sms";
+    content: string;
+    recipientIds: string[];
+  },
+) {
+  try {
+    const response = await apiRequest(
+      `/organizations/${organizationId}/messages/bulk`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    );
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to send bulk messages");
+    return {
+      success: true,
+      data: data?.data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 }

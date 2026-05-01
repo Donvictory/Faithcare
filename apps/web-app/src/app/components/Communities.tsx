@@ -136,14 +136,14 @@ export function Communities() {
     <div className="space-y-6">
       
       <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h2 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
              <Users className="w-5 h-5 text-accent" />
-             {searchTerm ? `Search Results for"${searchTerm}"` :"Active Groups"}
+             {searchTerm ? `Results for "${searchTerm}"` : "Active Groups"}
           </h2>
           <button
             onClick={() => setShowNewCommunityForm(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all shadow-sm active:scale-95 font-bold"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all shadow-sm active:scale-95 font-bold text-sm w-full sm:w-auto justify-center"
           >
             <Plus className="w-4 h-4" />
             New Community
@@ -151,42 +151,42 @@ export function Communities() {
         </div>
 
         {showNewCommunityForm && (
-          <div className="bg-card rounded-xl border border-border p-8 shadow-md animate-in slide-in-from-top-4 duration-300">
-            <h3 className="text-lg font-bold text-foreground mb-6">Create New Fellowship Group</h3>
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
+          <div className="bg-card rounded-xl border border-border p-5 sm:p-8 shadow-md animate-in slide-in-from-top-4 duration-300">
+            <h3 className="text-base sm:text-lg font-bold text-foreground mb-4">Create New Fellowship Group</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div className="space-y-2">
-                <label className="text-sm text-muted-foreground uppercase tracking-wider ml-1 font-bold">Group Name</label>
+                <label className="text-xs text-muted-foreground uppercase tracking-wider ml-1 font-bold">Group Name</label>
                 <input
                   type="text"
                   value={newCommunity.name}
                   onChange={(e) => setNewCommunity({ ...newCommunity, name: e.target.value })}
                   placeholder="e.g., Young Adults Fellowship"
-                  className="w-full px-4 py-3 bg-secondary/30 border border-border rounded-lg text-foreground focus:ring-2 focus:ring-primary outline-none transition-all"
+                  className="w-full px-3 py-2.5 bg-secondary/30 border border-border rounded-lg text-foreground focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-muted-foreground uppercase tracking-wider ml-1 font-bold">Description</label>
+                <label className="text-xs text-muted-foreground uppercase tracking-wider ml-1 font-bold">Description</label>
                 <input
                   type="text"
                   value={newCommunity.description}
                   onChange={(e) => setNewCommunity({ ...newCommunity, description: e.target.value })}
                   placeholder="e.g., Connect with believers aged 18-35"
-                  className="w-full px-4 py-3 bg-secondary/30 border border-border rounded-lg text-foreground focus:ring-2 focus:ring-primary outline-none transition-all"
+                  className="w-full px-3 py-2.5 bg-secondary/30 border border-border rounded-lg text-foreground focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
                 />
               </div>
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleCreateCommunity}
                 disabled={createMutation.isPending}
-                className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 font-bold shadow-lg shadow-primary/20"
+                className="flex items-center justify-center gap-2 px-5 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 font-bold shadow-lg shadow-primary/20 text-sm"
               >
                 {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-                {createMutation.isPending ?"Creating..." :"Save Fellowship"}
+                {createMutation.isPending ? "Creating..." : "Save Fellowship"}
               </button>
               <button
                 onClick={() => setShowNewCommunityForm(false)}
-                className="px-6 py-2.5 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-all font-bold"
+                className="px-5 py-2 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-all font-bold text-sm"
               >
                 Cancel
               </button>
@@ -251,20 +251,20 @@ export function Communities() {
 
         {selectedCommunity && (
           <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-2xl animate-in slide-in-from-bottom-5 duration-500">
-            <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-8 border-b border-border">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-5 sm:p-8 border-b border-border">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-2xl font-bold text-foreground mb-2">{selectedCommunity.name}</h3>
-                  <p className="text-muted-foreground max-w-xl leading-relaxed">{selectedCommunity.description}</p>
+                  <h3 className="text-lg sm:text-2xl font-bold text-foreground mb-1">{selectedCommunity.name}</h3>
+                  <p className="text-sm text-muted-foreground max-w-xl leading-relaxed">{selectedCommunity.description}</p>
                 </div>
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 px-6 py-3 bg-accent text-accent-foreground rounded-xl hover:bg-accent/90 transition-all cursor-pointer font-bold shadow-lg shadow-accent/20 active:scale-95">
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-xl hover:bg-accent/90 transition-all cursor-pointer font-bold shadow-lg shadow-accent/20 active:scale-95 text-sm">
                     <Upload className="w-4 h-4" />
                     Import Members
                     <input type="file" accept=".xlsx,.csv" onChange={(e) => handleFileUpload(selectedCommunity.id, e)} className="hidden" />
                   </label>
-                  <button onClick={() => setSelectedCommunity(null)} className="px-6 py-3 bg-muted text-foreground rounded-xl hover:bg-muted/80 transition-all font-bold active:scale-95">
-                    Close Details
+                  <button onClick={() => setSelectedCommunity(null)} className="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/80 transition-all font-bold active:scale-95 text-sm">
+                    Close
                   </button>
                 </div>
               </div>

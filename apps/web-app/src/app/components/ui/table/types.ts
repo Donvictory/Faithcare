@@ -24,6 +24,7 @@ export interface TableProps<T = any> {
   onRowSelect?: (selectedItems: T[]) => void;
   selectable?: boolean;
   actions?: TableAction<T>[];
+  activate?: TableAction<T>[];
   className?: string;
   rowClassName?: (item: T, index?: number) => string;
   loaderComponent?: React.ReactNode;

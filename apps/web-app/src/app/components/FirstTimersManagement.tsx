@@ -103,6 +103,7 @@ export function FirstTimersManagement() {
     queryFn: () =>
       getFirstTimers({
         organizationId,
+        visit_type: "first_time",
         status: statusFilter === "all" ? undefined : (statusFilter as any),
         search: searchTerm || undefined,
       }),
@@ -127,19 +128,25 @@ export function FirstTimersManagement() {
 
   const firstTimersData = findArray(firstTimersResponse);
 
-  console.log("firstTimersResponse:", firstTimersResponse);
-  console.log("firstTimersData:", firstTimersData);
-
-  const firstTimersList: FirstTimer[] = firstTimersData.map((ft: any) => ({
+  // Keep firstTimersList for local filtering logic only
+  const firstTimersList = firstTimersData.map((ft: any) => ({
     id: ft.id || ft._id,
     name: ft.fullName || ft.name || "N/A",
+    fullName: ft.fullName || ft.name || "N/A",
     phone: ft.phoneNumber || ft.phone || "N/A",
+    phoneNumber: ft.phoneNumber || ft.phone || "N/A",
     email: ft.email || "N/A",
     prayerRequest: ft.prayerRequest || "None",
     status: ft.status || "PENDING",
     sunday: ft.serviceDate || ft.createdAt?.split("T")[0] || "N/A",
-    visitType: ft.visitType || "first_time",
-  }));
+    serviceDate: ft.serviceDate || ft.createdAt?.split("T")[0] || "N/A",
+    firstVisit: ft.serviceDate || ft.createdAt?.split("T")[0] || "N/A",
+    visitType: ft.visitType || ft.visit_type || "first_time",
+  })).filter((ft: any) => 
+    ft.status !== "PROMOTED" && 
+    ft.visitType !== "second_time" && 
+    ft.visit_type !== "second_time"
+  );
 
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
@@ -212,18 +219,18 @@ export function FirstTimersManagement() {
 
         <div className="space-y-6">
           {/* QR Code and Actions */}
-          <div className="">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-foreground text-xl font-medium mb-2">
+                <h3 className="text-foreground text-base sm:text-xl font-medium mb-1">
                   First Timer Registration
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   Scan the QR code to register as a first-time visitor.
                 </p>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="w-24 h-24 bg-white rounded-lg p-2 border border-accent/20 flex items-center justify-center">
+              <div className="flex items-center gap-4 shrink-0">
+                <div className="w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-lg p-2 border border-accent/20 flex items-center justify-center">
                   <QrCode className="w-full h-full text-foreground" />
                 </div>
               </div>

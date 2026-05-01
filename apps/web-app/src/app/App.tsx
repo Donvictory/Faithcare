@@ -23,6 +23,7 @@ import { FollowUps } from "./components/FollowUps";
 import { SalvationRecords } from "./components/SalvationRecords";
 import { SecondTimers } from "./components/SecondTimers";
 import { Communities } from "./components/Communities";
+import { BulkMessaging } from "./components/BulkMessaging";
 
 import AuthProvider from "./providers/AuthProvider";
 import { Toaster } from "react-hot-toast";
@@ -84,6 +85,7 @@ export default function App() {
             <Route path="/communities" element={<Communities />} />
             <Route path="/prayer-requests" element={<PrayerRequests />} />
             <Route path="/follow-ups" element={<FollowUps />} />
+            <Route path="/bulk-messaging" element={<BulkMessaging />} />
           </Route>
 
           {/* ── Fallbacks ── */}
