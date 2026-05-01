@@ -231,7 +231,7 @@ export function AddMemberModal({
         onClose();
         form.reset();
       } else {
-        toast.error(res?.error || "Failed to add record");
+        toast.error((res as any)?.error || "Failed to add record");
       }
     } catch {
       toast.error("An error occurred");
