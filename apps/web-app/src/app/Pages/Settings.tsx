@@ -34,15 +34,15 @@ export function Settings() {
   return (
     <div className="space-y-6">
       {/* Profile Settings */}
-      <Card>
-        <div className="flex items-center justify-between mb-6">
+      <Card className="p-5 sm:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <User className="w-5 h-5 text-accent" />
-            <h3 className="text-foreground font-bold">Profile Settings</h3>
+            <h3 className="text-lg font-bold text-foreground">Profile Settings</h3>
           </div>
           <button
             onClick={logout}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-xl transition-all"
+            className="flex items-center justify-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-xl transition-all border border-destructive/20 sm:border-transparent"
           >
             <LogOut className="w-4 h-4" />
             Sign Out
@@ -94,28 +94,28 @@ export function Settings() {
             <label className="text-sm text-muted-foreground mb-2 block uppercase tracking-wider">
               Theme Mode
             </label>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <button
                 onClick={() => setTheme("light")}
-                className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                className={`flex items-center justify-center gap-2 p-3 sm:p-4 rounded-xl border-2 transition-all text-sm sm:text-base ${
                   theme === "light"
                     ? "border-accent bg-accent/5 text-accent"
                     : "border-border hover:border-accent/40 text-muted-foreground"
                 }`}
               >
-                <Globe className="w-5 h-5" />
-                Light
+                <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
+                Light Mode
               </button>
               <button
                 onClick={() => setTheme("dark")}
-                className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                className={`flex items-center justify-center gap-2 p-3 sm:p-4 rounded-xl border-2 transition-all text-sm sm:text-base ${
                   theme === "dark"
                     ? "border-accent bg-accent/5 text-accent"
                     : "border-border hover:border-accent/40 text-muted-foreground"
                 }`}
               >
-                <Palette className="w-5 h-5" />
-                Dark
+                <Palette className="w-4 h-4 sm:w-5 sm:h-5" />
+                Dark Mode
               </button>
             </div>
           </div>
@@ -179,8 +179,8 @@ export function Settings() {
       </Card>
 
       {/* Save Button */}
-      <div className="flex justify-end pt-4">
-        <button className="px-12 py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95">
+      <div className="flex justify-center sm:justify-end pt-4 pb-8">
+        <button className="w-full sm:w-auto px-10 sm:px-12 py-3 sm:py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 font-bold">
           Save All Changes
         </button>
       </div>

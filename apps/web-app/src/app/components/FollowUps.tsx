@@ -128,11 +128,11 @@ export function FollowUps() {
     <div className="min-h-full">
       <div className="space-y-6">
         {/* Bulk Actions and Add New */}
-        <Card className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6">
-          <div className="flex items-center gap-4">
+        <Card className="flex flex-col gap-3 p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <Button
               variant="outline"
-              className="flex items-center gap-2 border-accent/20 text-accent hover:bg-accent/10 font-bold"
+              className="flex items-center gap-2 border-accent/20 text-accent hover:bg-accent/10 font-bold text-sm h-9"
               onClick={() => navigate("/bulk-messaging")}
             >
               <MessageCircle className="w-4 h-4" />
@@ -174,24 +174,24 @@ export function FollowUps() {
             filteredFollowUps.map((followUp: any) => (
               <div
                 key={followUp.id || followUp._id}
-                className={`bg-card rounded-2xl p-6 md:p-8 border transition-all group ${
+                className={`bg-card rounded-2xl p-4 sm:p-6 md:p-8 border transition-all group ${
                   followUp.status?.toUpperCase() === "COMPLETED"
                     ? "border-border opacity-60"
                     : "border-border hover:shadow-xl hover:border-accent/40"
                 }`}
               >
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   {/* Left Side */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center border border-accent/20">
-                        <User className="w-6 h-6 text-accent" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-accent/10 flex items-center justify-center border border-accent/20 shrink-0">
+                        <User className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
                       </div>
-                      <div>
-                        <p className="text-foreground font-bold text-lg">
+                      <div className="min-w-0">
+                        <p className="text-foreground font-bold text-base sm:text-lg truncate">
                           {followUp.name}
                         </p>
-                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1">
                           {(followUp.tags || []).map((tag: string) => (
                             <Badge
                               key={tag}
@@ -210,14 +210,14 @@ export function FollowUps() {
                         </div>
                       </div>
                     </div>
-                    <div className="ml-[64px]">
-                      <p className="text-foreground/80 mb-4 leading-relaxed">
+                    <div className="pl-[52px] sm:pl-[60px]">
+                      <p className="text-foreground/80 mb-3 leading-relaxed text-sm sm:text-base">
                         {followUp.description || followUp.note}
                       </p>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 w-fit px-3 py-1.5 rounded-lg border border-border/50">
                         <Clock className="w-4 h-4" />
                         <span className="font-bold">
-                          Due{""}
+                          Due{" "}
                           {followUp.dueDate
                             ? new Date(followUp.dueDate).toLocaleDateString()
                             : "N/A"}
@@ -227,61 +227,59 @@ export function FollowUps() {
                   </div>
 
                   {/* Right Side */}
-                  <div className="ml-4 flex flex-col items-end gap-3">
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-col items-stretch sm:items-end gap-3 w-full sm:w-auto mt-4 sm:mt-0">
+                    <div className="flex items-center gap-2 justify-center sm:justify-end">
                       <button
                         onClick={() => {
-                          // Navigate to messaging or open modal
                           toast.success(`Opening WhatsApp for ${followUp.name}`);
                           window.open(`https://wa.me/${followUp.phone || ""}?text=${encodeURIComponent("Hi " + followUp.name + ", this is Faithcare...")}`, "_blank");
                         }}
-                        className="p-2.5 text-accent hover:bg-accent/10 rounded-xl transition-all active:scale-90 border border-accent/20"
+                        className="p-2 sm:p-2.5 text-accent hover:bg-accent/10 rounded-xl transition-all active:scale-90 border border-accent/20"
                         title="Send WhatsApp"
                       >
-                        <MessageCircle className="w-5 h-5" />
+                        <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
                       <button
                         onClick={() => {
                           toast.success(`Opening SMS for ${followUp.name}`);
-                          // Placeholder for SMS logic
                         }}
-                        className="p-2.5 text-blue-500 hover:bg-blue-50 rounded-xl transition-all active:scale-90 border border-blue-100"
+                        className="p-2 sm:p-2.5 text-blue-500 hover:bg-blue-50 rounded-xl transition-all active:scale-90 border border-blue-100"
                         title="Send SMS"
                       >
-                        <MessageSquare className="w-5 h-5" />
+                        <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
-                      {followUp.status?.toUpperCase() === "COMPLETED" ? (
-                        <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-1.5 rounded-lg border border-green-200">
-                          <CheckCircle className="w-4 h-4" />
-                          <span className="text-xs font-bold uppercase tracking-wider">
-                            Completed
-                          </span>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() =>
-                            updateMutation.mutate({
-                              id: followUp.id || followUp._id,
-                              status: "COMPLETED",
-                            })
-                          }
-                          disabled={updateMutation.isPending}
-                          className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 text-sm font-bold disabled:opacity-50"
-                        >
-                          Complete
-                        </button>
-                      )}
                       <button
                         onClick={() => {
                           if (confirm("Delete this follow-up record?")) {
                             deleteMutation.mutate(followUp.id || followUp._id);
                           }
                         }}
-                        className="p-2.5 text-muted-foreground hover:bg-red-50 hover:text-red-500 rounded-xl transition-all opacity-0 group-hover:opacity-100 active:scale-90"
+                        className="p-2 sm:p-2.5 text-muted-foreground hover:bg-red-50 hover:text-red-500 rounded-xl transition-all opacity-0 group-hover:opacity-100 active:scale-90"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
                     </div>
+                    {followUp.status?.toUpperCase() === "COMPLETED" ? (
+                      <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded-lg border border-green-200 w-full sm:w-auto">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="text-xs font-bold uppercase tracking-wider">
+                          Completed
+                        </span>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() =>
+                          updateMutation.mutate({
+                            id: followUp.id || followUp._id,
+                            status: "COMPLETED",
+                          })
+                        }
+                        disabled={updateMutation.isPending}
+                        className="w-full sm:w-auto px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 text-sm font-bold disabled:opacity-50"
+                      >
+                        Complete
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

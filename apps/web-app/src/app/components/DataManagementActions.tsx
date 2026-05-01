@@ -79,13 +79,13 @@ export function DataManagementActions({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-3 justify-between">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3">
       {hasFilters && (
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-2">
-              <ListFilter className="w-4 h-4" />
-              Filter
+            <DropdownMenuTrigger className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-border hover:bg-muted transition-colors">
+              <ListFilter className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">Filter</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>All Sundays</DropdownMenuItem>
@@ -94,7 +94,7 @@ export function DataManagementActions({
             </DropdownMenuContent>
           </DropdownMenu>
           <SearchBar
-            placeholder="Search by name, email, or phone"
+            placeholder="Search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -108,24 +108,23 @@ export function DataManagementActions({
         accept=".xlsx, .xls, .csv"
       />
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:ml-auto w-full sm:w-auto">
         <Button
           variant="outline"
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
-          className="h-11 px-6 rounded-xl border-border bg-card hover:bg-muted/50 text-foreground transition-all flex items-center gap-2 group"
+          className="flex-1 sm:flex-none h-9 px-3 sm:px-5 rounded-xl border-border bg-card hover:bg-muted/50 text-foreground transition-all flex items-center justify-center gap-2 group text-sm"
         >
           {isUploading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            // <FileSpreadsheet className="w-4 h-4 text-green-500 group-hover:scale-110 transition-transform" />
             <CloudUpload className="w-4 h-4 text-green-500 group-hover:scale-110 transition-transform" />
           )}
           <span className="font-medium">Bulk Upload</span>
         </Button>
         <Button
           onClick={onAddManual}
-          className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center gap-2 group"
+          className="flex-1 sm:flex-none h-9 px-3 sm:px-5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 group text-sm"
         >
           <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
           <span className="font-medium">New Member</span>

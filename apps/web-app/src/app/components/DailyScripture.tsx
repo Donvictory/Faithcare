@@ -100,21 +100,21 @@ export function DailyScripture() {
                 </p>
 
                 {/* Scripture */}
-                <blockquote className="mb-10">
-                  <p className="text-2xl md:text-3xl font-serif text-foreground leading-relaxed mb-6 italic">
+                <blockquote className="mb-8 sm:mb-10">
+                  <p className="text-xl sm:text-2xl md:text-3xl font-serif text-foreground leading-relaxed mb-6 italic px-2 sm:px-0">
                     "For I know the plans I have for you," declares the Lord,
                     "plans to prosper you and not to harm you, plans to give you
                     hope and a future."
                   </p>
-                  <footer className="flex items-center justify-center gap-3 text-accent bg-accent/5 py-2 px-4 rounded-full w-fit mx-auto">
-                    <Book className="w-4 h-4" />
+                  <footer className="flex items-center justify-center gap-2 sm:gap-3 text-accent bg-accent/5 py-1.5 sm:py-2 px-3 sm:px-4 rounded-full w-fit mx-auto text-sm sm:text-base">
+                    <Book className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     <cite className="not-italic font-bold">Jeremiah 29:11</cite>
                   </footer>
                 </blockquote>
 
                 {/* Encouragement */}
-                <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 mb-10 border border-accent/10 shadow-inner">
-                  <p className="text-muted-foreground leading-relaxed italic text-sm md:text-base">
+                <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-4 sm:p-6 mb-8 sm:mb-10 border border-accent/10 shadow-inner">
+                  <p className="text-muted-foreground leading-relaxed italic text-xs sm:text-sm md:text-base">
                     Today, remember that God has a beautiful plan for your life.
                     Even when the path seems unclear, trust that He is working
                     all things together for your good. Take a moment to reflect
@@ -123,11 +123,11 @@ export function DailyScripture() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-2 sm:px-0">
                   <button
                     onClick={handleMarkAsRead}
                     disabled={isMarking}
-                    className="w-full sm:w-auto px-10 py-4 bg-accent text-accent-foreground rounded-2xl hover:bg-accent/90 transition-all shadow-xl shadow-accent/20 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                    className="w-full sm:w-auto px-8 sm:px-10 py-3 sm:py-4 bg-accent text-accent-foreground rounded-2xl hover:bg-accent/90 transition-all shadow-xl shadow-accent/20 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 font-bold text-sm sm:text-base"
                   >
                     {isMarking ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -136,7 +136,7 @@ export function DailyScripture() {
                     )}
                     Mark as Read
                   </button>
-                  <button className="w-full sm:w-auto px-10 py-4 bg-card text-foreground border border-border rounded-2xl hover:bg-muted transition-all active:scale-95">
+                  <button className="w-full sm:w-auto px-8 sm:px-10 py-3 sm:py-4 bg-card text-foreground border border-border rounded-2xl hover:bg-muted transition-all active:scale-95 font-bold text-sm sm:text-base">
                     Reflect & Journal
                   </button>
                 </div>

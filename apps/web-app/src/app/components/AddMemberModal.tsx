@@ -249,12 +249,12 @@ export function AddMemberModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[520px] rounded-3xl p-8 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[520px] rounded-3xl p-5 sm:p-8 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold tracking-tight">
+          <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight">
             Add New {title.slice(0, -1)}
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground">
+          <DialogDescription className="text-muted-foreground text-sm">
             Enter the details manually to update the church records.
           </DialogDescription>
         </DialogHeader>

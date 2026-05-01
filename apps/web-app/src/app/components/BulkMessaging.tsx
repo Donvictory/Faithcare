@@ -137,21 +137,21 @@ export function BulkMessaging() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Composer */}
-        <div className="lg:col-span-7 space-y-6">
-          <Card className="p-8 space-y-6">
-            <div className="space-y-2">
-              <h2 className="text-xl font-bold">Compose Message</h2>
-              <p className="text-muted-foreground text-sm">Draft your follow-up message below.</p>
+        <div className="lg:col-span-7 space-y-4 sm:space-y-6">
+          <Card className="p-5 sm:p-8 space-y-4 sm:space-y-6">
+            <div className="space-y-1 sm:space-y-2">
+              <h2 className="text-lg sm:text-xl font-bold">Compose Message</h2>
+              <p className="text-muted-foreground text-xs sm:text-sm">Draft your follow-up message below.</p>
             </div>
             
             <div className="space-y-6">
               <div className="space-y-3">
                 <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Select Platform</label>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <Button 
                     variant={selectedPlatform === "whatsapp" ? "default" : "outline"}
                     onClick={() => setSelectedPlatform("whatsapp")}
-                    className={`flex-1 flex gap-2 h-12 rounded-xl transition-all ${selectedPlatform === "whatsapp" ? "bg-green-600 hover:bg-green-700 text-white" : ""}`}
+                    className={`flex-1 flex gap-2 h-11 sm:h-12 rounded-xl transition-all text-sm ${selectedPlatform === "whatsapp" ? "bg-green-600 hover:bg-green-700 text-white" : ""}`}
                   >
                     <MessageCircle className="w-4 h-4" />
                     WhatsApp
@@ -159,7 +159,7 @@ export function BulkMessaging() {
                   <Button 
                     variant={selectedPlatform === "sms" ? "default" : "outline"}
                     onClick={() => setSelectedPlatform("sms")}
-                    className={`flex-1 flex gap-2 h-12 rounded-xl transition-all ${selectedPlatform === "sms" ? "bg-blue-600 hover:bg-blue-700 text-white" : ""}`}
+                    className={`flex-1 flex gap-2 h-11 sm:h-12 rounded-xl transition-all text-sm ${selectedPlatform === "sms" ? "bg-blue-600 hover:bg-blue-700 text-white" : ""}`}
                   >
                     <MessageSquare className="w-4 h-4" />
                     SMS
@@ -184,7 +184,7 @@ export function BulkMessaging() {
               <Button 
                 onClick={() => sendMutation.mutate()}
                 disabled={sendMutation.isPending || !messageContent.trim() || selectedRecipientIds.length === 0}
-                className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-bold flex gap-3 hover:scale-[1.02] transition-all shadow-xl shadow-primary/20 text-lg disabled:opacity-50"
+                className="w-full h-12 sm:h-14 rounded-2xl bg-primary text-primary-foreground font-bold flex gap-3 hover:scale-[1.02] transition-all shadow-xl shadow-primary/20 text-base sm:text-lg disabled:opacity-50"
               >
                 {sendMutation.isPending ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -199,16 +199,16 @@ export function BulkMessaging() {
 
         {/* Right Column: Recipients & Integration */}
         <div className="lg:col-span-5 space-y-6">
-          <Card className="p-8 space-y-6 flex flex-col h-full max-h-[700px]">
+          <Card className="p-5 sm:p-8 space-y-4 sm:space-y-6 flex flex-col h-full max-h-[500px] sm:max-h-[700px]">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <h2 className="text-xl font-bold flex items-center gap-2">
+                <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
                   <Users className="w-5 h-5 text-accent" />
                   Recipients
                 </h2>
-                <p className="text-muted-foreground text-xs">Select who receives this message.</p>
+                <p className="text-muted-foreground text-[10px] sm:text-xs">Select who receives this message.</p>
               </div>
-              <Button variant="ghost" size="sm" onClick={toggleAll} className="text-xs font-bold text-accent">
+              <Button variant="ghost" size="sm" onClick={toggleAll} className="text-[10px] sm:text-xs font-bold text-accent px-2">
                 {selectedRecipientIds.length === pendingFollowUps.length ? "Deselect All" : "Select All"}
               </Button>
             </div>

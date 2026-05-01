@@ -219,18 +219,18 @@ export function FirstTimersManagement() {
 
         <div className="space-y-6">
           {/* QR Code and Actions */}
-          <div className="">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-foreground text-xl font-medium mb-2">
+                <h3 className="text-foreground text-base sm:text-xl font-medium mb-1">
                   First Timer Registration
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   Scan the QR code to register as a first-time visitor.
                 </p>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="w-24 h-24 bg-white rounded-lg p-2 border border-accent/20 flex items-center justify-center">
+              <div className="flex items-center gap-4 shrink-0">
+                <div className="w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-lg p-2 border border-accent/20 flex items-center justify-center">
                   <QrCode className="w-full h-full text-foreground" />
                 </div>
               </div>

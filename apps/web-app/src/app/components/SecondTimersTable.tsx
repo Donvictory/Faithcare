@@ -78,7 +78,7 @@ export default function SecondTimersTable({ data }: { data: any[] }) {
     <Card className="space-y-4">
       <div className="flex justify-between items-center gap-4 flex-wrap">
         <div>
-          <h1 className="text-foreground font-bold text-lg">Second Timers</h1>
+          <h1 className="text-foreground font-bold text-base sm:text-lg">Second Timers</h1>
         </div>
       </div>
       <DataManagementActions

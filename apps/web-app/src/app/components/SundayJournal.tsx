@@ -169,9 +169,9 @@ export function SundayJournal() {
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row gap-8 flex-1 max-w-[1600px] mx-auto w-full">
         {/* Main Editor Section */}
-        <Card className="flex-1 flex flex-col h-fit">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold text-foreground">
+        <Card className="flex-1 flex flex-col h-fit p-5 sm:p-8">
+          <div className="flex justify-between items-center mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground">
               {currentEntryId ? "Edit Reflection" : "New Reflection"}
             </h2>
             <button
@@ -193,7 +193,7 @@ export function SundayJournal() {
                 placeholder="What was the sermon title?"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full text-2xl text-foreground placeholder:text-muted-foreground/50 bg-secondary/30 border border-border rounded-xl px-5 py-4 focus:ring-2 focus:ring-accent outline-none transition-all font-bold"
+                className="w-full text-lg sm:text-2xl text-foreground placeholder:text-muted-foreground/50 bg-secondary/30 border border-border rounded-xl px-4 sm:px-5 py-3 sm:py-4 focus:ring-2 focus:ring-accent outline-none transition-all font-bold"
               />
             </div>
 
@@ -208,7 +208,7 @@ export function SundayJournal() {
                   placeholder="e.g. Philippians 4:13"
                   value={scripture}
                   onChange={(e) => setScripture(e.target.value)}
-                  className="w-full pl-12 pr-5 py-4 bg-secondary/30 border border-border rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all text-foreground font-medium"
+                  className="w-full pl-11 sm:pl-12 pr-4 sm:pr-5 py-3 sm:py-4 bg-secondary/30 border border-border rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all text-foreground text-sm sm:text-base font-medium"
                 />
               </div>
             </div>
@@ -221,7 +221,7 @@ export function SundayJournal() {
                 placeholder="Write down key takeaways and how you plan to apply them..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="w-full min-h-[350px] text-foreground placeholder:text-muted-foreground/50 bg-secondary/30 border border-border rounded-xl px-5 py-4 focus:ring-2 focus:ring-accent outline-none transition-all resize-none leading-relaxed"
+                className="w-full min-h-[250px] sm:min-h-[350px] text-sm sm:text-base text-foreground placeholder:text-muted-foreground/50 bg-secondary/30 border border-border rounded-xl px-4 sm:px-5 py-3 sm:py-4 focus:ring-2 focus:ring-accent outline-none transition-all resize-none leading-relaxed"
               />
             </div>
           </div>
@@ -230,14 +230,14 @@ export function SundayJournal() {
             <button
               onClick={handleSave}
               disabled={isLoading}
-              className="flex items-center gap-3 px-10 py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 disabled:opacity-50 font-bold"
+              className="flex items-center justify-center gap-3 w-full sm:w-auto px-8 sm:px-10 py-3 sm:py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 disabled:opacity-50 font-bold text-sm sm:text-base"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <Save className="w-5 h-5" />
               )}
-              {currentEntryId ? "Update Record" : "Save to Records"}
+              {currentEntryId ? "Update Record" : "Save Reflection"}
             </button>
           </div>
         </Card>

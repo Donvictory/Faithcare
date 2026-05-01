@@ -174,7 +174,7 @@ export default function FirstTimersTable({ data }: { data: any[] }) {
     <Card className="space-y-4">
       <div className="flex justify-between items-center gap-4 flex-wrap">
         <div>
-          <h1 className="text-foreground font-bold text-lg">First Timers</h1>
+          <h1 className="text-foreground font-bold text-base sm:text-lg">First Timers</h1>
         </div>
       </div>
       <DataManagementActions

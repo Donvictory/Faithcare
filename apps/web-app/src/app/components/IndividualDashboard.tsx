@@ -315,22 +315,22 @@ export function IndividualDashboard() {
       </p>
       <div className="space-y-6 md:space-y-8 max-w-7xl mx-auto">
         {/* Welcome Section */}
-        <div className="bg-card rounded-3xl p-6 md:p-8 border border-border relative overflow-hidden shadow-xl shadow-accent/5">
-          <div className="absolute top-0 right-0 p-10 opacity-[0.03] dark:opacity-[0.07]">
-            <Sparkles className="w-64 h-64 text-accent" />
+        <div className="bg-card rounded-3xl p-5 sm:p-8 border border-border relative overflow-hidden shadow-xl shadow-accent/5">
+          <div className="absolute top-0 right-0 p-6 sm:p-10 opacity-[0.03] dark:opacity-[0.07]">
+            <Sparkles className="w-48 h-48 sm:w-64 sm:h-64 text-accent" />
           </div>
-          <div className="relative z-10 flex flex-col md:flex-row items-start justify-between gap-8">
+          <div className="relative z-10 flex flex-col md:flex-row items-start justify-between gap-6 sm:gap-8">
             <div className="flex-1 space-y-2">
-              <h2 className="text-2xl font-bold text-foreground tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
                 Peace be with you.
               </h2>
-              <p className="text-muted-foreground mb-8 max-w-5xl leading-relaxed opacity-80">
+              <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-5xl leading-relaxed opacity-80">
                 You've completed {journalCount} meditations this month. Your
                 commitment to your spiritual walk is inspiring.
               </p>
               <Link
                 to="/daily-scripture"
-                className="inline-flex items-center justify-center px-10 py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 font-bold"
+                className="inline-flex items-center justify-center px-8 sm:px-10 py-3 sm:py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 font-bold text-sm sm:text-base"
               >
                 Today's Scripture
               </Link>
@@ -365,10 +365,10 @@ export function IndividualDashboard() {
               <Card>
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-sm font-semibold mb-3 text-accent-foreground/70">
+                    <p className="text-xs sm:text-sm font-semibold mb-2 sm:mb-3 text-accent-foreground/70">
                       {stat.title}
                     </p>
-                    <h3 className="text-3xl font-bold">{stat.value}</h3>
+                    <h3 className="text-2xl sm:text-3xl font-bold">{stat.value}</h3>
                   </div>
                   <div
                     className="w-12 h-12 rounded-lg flex items-center justify-center"
@@ -524,7 +524,7 @@ export function IndividualDashboard() {
           <h3 className="text-xl font-bold text-foreground mb-8">
             Spiritual Disciplines
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {[
               { to: "/daily-scripture", icon: Sparkles, label: "Scripture" },
               { to: "/sunday-journal", icon: BookOpen, label: "Journaling" },
@@ -534,10 +534,10 @@ export function IndividualDashboard() {
               <Link
                 key={tool.to}
                 to={tool.to}
-                className="p-8 rounded-3xl bg-muted/20 border border-border hover:border-accent hover:bg-accent/5 transition-all text-center group active:scale-95"
+                className="p-4 sm:p-8 rounded-3xl bg-muted/20 border border-border hover:border-accent hover:bg-accent/5 transition-all text-center group active:scale-95"
               >
-                <tool.icon className="w-8 h-8 mx-auto mb-4 text-accent transition-all group-hover:scale-125 group-hover:rotate-12" />
-                <p className="text-sm font-bold text-foreground uppercase tracking-widest">
+                <tool.icon className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-4 text-accent transition-all group-hover:scale-125 group-hover:rotate-12" />
+                <p className="text-[10px] sm:text-sm font-bold text-foreground uppercase tracking-widest">
                   {tool.label}
                 </p>
               </Link>

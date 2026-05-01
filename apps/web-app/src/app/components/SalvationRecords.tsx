@@ -128,16 +128,16 @@ export function SalvationRecords() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-6">
-        <h3 className="text-xl font-bold text-foreground mb-1 flex items-center gap-2">
+      <div className="space-y-4 sm:space-y-6">
+        <h3 className="text-lg sm:text-xl font-bold text-foreground mb-1 flex items-center gap-2">
           Reaching Souls
         </h3>
-        <p className="text-muted-foreground leading-relaxed">
+        <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
           Track every soul won for the kingdom. Ensure no decision goes without
           follow-up and discipleship.
           {searchTerm && (
             <span className="block mt-2 text-accent font-bold">
-              Searching for:"{searchTerm}"
+              Searching for: "{searchTerm}"
             </span>
           )}
         </p>
