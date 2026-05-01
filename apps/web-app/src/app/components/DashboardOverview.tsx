@@ -1,40 +1,86 @@
 import { UserPlus, CheckCircle, Heart, BookOpen, Loader2 } from "lucide-react";
 import { useAuth } from "../providers/AuthProvider";
 import { useQuery } from "@tanstack/react-query";
-import { getDashboardTrends } from "@/api/church";
+import { getDashboardTrends, getFirstTimers, getFollowUps } from "@/api/church";
 
 export function DashboardOverview() {
-  const { accessToken, user } = useAuth();
+  const { user } = useAuth();
   const organizationId = user?.organizationId || user?.id || "";
 
   const { data: trendsData, isLoading } = useQuery({
     queryKey: ["dashboard-trends-overview", organizationId],
     queryFn: () => getDashboardTrends(organizationId),
     enabled: !!organizationId,
+    refetchInterval: 60_000, // keep metrics live
   });
+
+  // Direct fallbacks in case trends endpoint returns 0 / wrong shape
+  const { data: firstTimersData } = useQuery({
+    queryKey: ["first-timers", organizationId],
+    queryFn: () => getFirstTimers({ organizationId }),
+    enabled: !!organizationId,
+    refetchInterval: 60_000,
+  });
+
+  const { data: followUpsData } = useQuery({
+    queryKey: ["follow-ups", organizationId],
+    queryFn: () => getFollowUps(organizationId),
+    enabled: !!organizationId,
+    refetchInterval: 60_000,
+  });
+
+  // Robustly find arrays regardless of nesting
+  const findArray = (obj: any): any[] => {
+    if (!obj) return [];
+    if (Array.isArray(obj)) return obj;
+    if (typeof obj === "object") {
+      for (const key in obj) {
+        if (Array.isArray(obj[key])) return obj[key];
+        if (typeof obj[key] === "object" && obj[key] !== null) {
+          const nested = findArray(obj[key]);
+          if (nested.length > 0) return nested;
+        }
+      }
+    }
+    return [];
+  };
+
+  // Resolve trends — handle both { data: { firstTimersCount } } and { firstTimersCount }
+  const trends =
+    trendsData?.data?.firstTimersCount !== undefined
+      ? trendsData.data
+      : trendsData?.data?.data?.firstTimersCount !== undefined
+        ? trendsData.data.data
+        : trendsData?.data || {};
+
+  const firstTimersArr = findArray(firstTimersData);
+  const followUpsArr = findArray(followUpsData);
+  const pendingFollowUpsCount = followUpsArr.filter(
+    (f: any) => f.status?.toUpperCase() !== "COMPLETED"
+  ).length;
 
   const statsData = [
     {
       title: "First Timers",
-      value: trendsData?.data?.firstTimersCount || "0",
+      value: trends?.firstTimersCount ?? firstTimersArr.length,
       icon: UserPlus,
       color: "#d4a574",
     },
     {
       title: "Pending Follow Ups",
-      value: trendsData?.data?.pendingFollowUps || "0",
+      value: trends?.pendingFollowUps ?? pendingFollowUpsCount,
       icon: CheckCircle,
       color: "#22c55e",
     },
     {
       title: "Prayer Requests",
-      value: trendsData?.data?.activePrayers || "0",
+      value: trends?.activePrayers ?? trends?.prayerRequestsCount ?? "—",
       icon: Heart,
       color: "#3b82f6",
     },
     {
       title: "Journal Entries",
-      value: trendsData?.data?.journalEntries || "0",
+      value: trends?.journalEntries ?? trends?.journalCount ?? "—",
       icon: BookOpen,
       color: "#a855f7",
     },

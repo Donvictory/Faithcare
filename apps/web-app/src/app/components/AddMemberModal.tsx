@@ -36,14 +36,26 @@ import {
 } from "@/api/church";
 import { useAuth } from "../providers/AuthProvider";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
 // ── Schemas ────────────────────────────────────────────────────────────────
 
+// Accepts E.164 format (+<country code><number>, 8–16 digits total) or
+// common local formats with optional spaces/dashes (min 7 digits stripped).
+const phoneRegex = /^\+?[1-9]\d{6,14}$/;
+const phoneValidation = z
+  .string()
+  .min(1, "Phone number is required")
+  .refine(
+    (val) => phoneRegex.test(val.replace(/[\s\-().]/g, "")),
+    "Enter a valid phone number (e.g. +2348012345678)",
+  );
+
 const firstTimerSchema = z.object({
   name: z.string().min(2, "Full name is required"),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
-  phoneNumber: z.string().min(10, "Valid phone number is required"),
+  phoneNumber: phoneValidation,
   visitType: z.enum(["first_time", "second_time"]),
   prayerRequest: z.string().optional(),
   serviceDate: z.string().min(1, "Service date is required"),
@@ -53,7 +65,7 @@ const firstTimerSchema = z.object({
 const salvationSchema = z.object({
   name: z.string().min(2, "Full name is required"),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
-  phoneNumber: z.string().min(10, "Valid phone number is required"),
+  phoneNumber: phoneValidation,
   dateOfDecision: z.string().min(1, "Date of decision is required"),
   notes: z.string().optional(),
 });
@@ -61,7 +73,7 @@ const salvationSchema = z.object({
 const prayerSchema = z.object({
   name: z.string().min(2, "Full name is required"),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
-  phoneNumber: z.string().min(10, "Valid phone number is required"),
+  phoneNumber: phoneValidation,
   request: z.string().min(5, "Prayer request must be more detailed"),
   priority: z.enum(["HIGH", "MEDIUM", "LOW"]),
 });
@@ -69,7 +81,7 @@ const prayerSchema = z.object({
 const followUpSchema = z.object({
   name: z.string().min(2, "Full name is required"),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
-  phoneNumber: z.string().min(10, "Valid phone number is required"),
+  phoneNumber: phoneValidation,
   description: z.string().min(5, "Description is required"),
   priority: z.enum(["HIGH", "MEDIUM", "LOW"]),
   dueDate: z.string().min(1, "Due date is required"),
@@ -107,6 +119,7 @@ export function AddMemberModal({
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const organizationId = user?.organizationId || user?.id || "";
+  const queryClient = useQueryClient();
 
   const getSchema = () => {
     switch (type) {
@@ -165,6 +178,21 @@ export function AddMemberModal({
             firstTimerId: data.firstTimerId || undefined,
           };
           res = await createFirstTimer(payload);
+
+          // If a prayer request was entered, also create it on the Prayer Requests page
+          if (res?.success && data.prayerRequest?.trim()) {
+            const prRes = await createPrayerRequest(organizationId, {
+              name: data.name,
+              phoneNumber: data.phoneNumber,
+              email: data.email || undefined,
+              request: data.prayerRequest.trim(),
+              priority: "MEDIUM",
+            });
+            if (prRes?.success) {
+              // Invalidate so the Prayer Requests page refetches immediately
+              queryClient.invalidateQueries({ queryKey: ["prayer-requests"] });
+            }
+          }
           break;
         }
         case "salvation-records":
@@ -296,29 +324,20 @@ export function AddMemberModal({
             {/* ── First / Second Timer fields ── */}
             {isFirstOrSecond && (
               <>
-                {/* Visit Type */}
+                {/* Visit Type — read-only, locked to the form type */}
                 <FormField
                   control={form.control}
                   name="visitType"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className={labelCls}>Visit Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className={selectCls}>
-                            <SelectValue placeholder="Select visit type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="rounded-2xl border-border">
-                          <SelectItem value="first_time">First Time</SelectItem>
-                          <SelectItem value="second_time">
-                            Second Time
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {/* Hidden input keeps the value registered in the form */}
+                      <input type="hidden" {...field} />
+                      <FormControl>
+                        <div className={`${inputCls} flex items-center px-4 text-foreground/80 bg-muted/30 cursor-not-allowed select-none`}>
+                          {type === "second-timers" ? "Second Time" : "First Time"}
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

@@ -103,6 +103,7 @@ export function FirstTimersManagement() {
     queryFn: () =>
       getFirstTimers({
         organizationId,
+        visit_type: "first_time",
         status: statusFilter === "all" ? undefined : (statusFilter as any),
         search: searchTerm || undefined,
       }),
@@ -127,19 +128,25 @@ export function FirstTimersManagement() {
 
   const firstTimersData = findArray(firstTimersResponse);
 
-  console.log("firstTimersResponse:", firstTimersResponse);
-  console.log("firstTimersData:", firstTimersData);
-
-  const firstTimersList: FirstTimer[] = firstTimersData.map((ft: any) => ({
+  // Keep firstTimersList for local filtering logic only
+  const firstTimersList = firstTimersData.map((ft: any) => ({
     id: ft.id || ft._id,
     name: ft.fullName || ft.name || "N/A",
+    fullName: ft.fullName || ft.name || "N/A",
     phone: ft.phoneNumber || ft.phone || "N/A",
+    phoneNumber: ft.phoneNumber || ft.phone || "N/A",
     email: ft.email || "N/A",
     prayerRequest: ft.prayerRequest || "None",
     status: ft.status || "PENDING",
     sunday: ft.serviceDate || ft.createdAt?.split("T")[0] || "N/A",
-    visitType: ft.visitType || "first_time",
-  }));
+    serviceDate: ft.serviceDate || ft.createdAt?.split("T")[0] || "N/A",
+    firstVisit: ft.serviceDate || ft.createdAt?.split("T")[0] || "N/A",
+    visitType: ft.visitType || ft.visit_type || "first_time",
+  })).filter((ft: any) => 
+    ft.status !== "PROMOTED" && 
+    ft.visitType !== "second_time" && 
+    ft.visit_type !== "second_time"
+  );
 
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {

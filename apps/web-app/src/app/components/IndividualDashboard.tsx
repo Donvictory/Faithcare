@@ -161,20 +161,28 @@ export function IndividualDashboard() {
 
   useEffect(() => {
     if (metadataResponse?.success && userId) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const lastUpdateStr = localStorage.getItem(`lastStreakUpdate_${userId}`);
-      const lastUpdate = lastUpdateStr ? new Date(lastUpdateStr) : null;
-      if (lastUpdate) lastUpdate.setHours(0, 0, 0, 0);
-
       const metadataItem = Array.isArray(metadataResponse.data)
         ? metadataResponse.data[0]
         : metadataResponse.data;
+        
       const currentStreak =
         metadataItem?.dailyBibleReadingStreakCount ?? metadataItem?.streak ?? 0;
       const metadataId = metadataItem?._id || metadataItem?.id;
 
-      if (lastUpdate && today.getTime() === lastUpdate.getTime()) return;
+      const today = new Date();
+      const utcToday = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // Use DB lastLoginDate if available, fallback to localStorage
+      const lastLoginStr = metadataItem?.lastLoginDate || localStorage.getItem(`lastStreakUpdate_${userId}`);
+      const lastUpdate = lastLoginStr ? new Date(lastLoginStr) : null;
+      let utcLastUpdate = null;
+      
+      if (lastUpdate) {
+        utcLastUpdate = Date.UTC(lastUpdate.getFullYear(), lastUpdate.getMonth(), lastUpdate.getDate());
+      }
+
+      // If already logged in today, do nothing
+      if (utcLastUpdate === utcToday) return;
 
       if (!metadataItem) {
         completeIndividualOnboarding({
@@ -183,17 +191,11 @@ export function IndividualDashboard() {
           lastLoginDate: today.toISOString(),
         }).then((res) => {
           if (res.success) {
-            localStorage.setItem(
-              `lastStreakUpdate_${userId}`,
-              today.toISOString(),
-            );
-            queryClient.invalidateQueries({
-              queryKey: ["individual-metadata", userId],
-            });
+            localStorage.setItem(`lastStreakUpdate_${userId}`, today.toISOString());
+            queryClient.invalidateQueries({ queryKey: ["individual-metadata", userId] });
             addNotification({
-              title: "Welcome to FaithCare!",
-              description:
-                "We're glad to have you. Your journey of spiritual growth starts today.",
+              title: "First Login Streak!",
+              description: "We're glad to have you. Your journey of spiritual growth starts today.",
               time: "Just now",
               icon: "Sparkles",
               color: "text-accent",
@@ -203,60 +205,64 @@ export function IndividualDashboard() {
           }
         });
       } else {
-        if (!lastUpdate) {
+        const diffDays = utcLastUpdate !== null 
+          ? Math.round((utcToday - utcLastUpdate) / (1000 * 60 * 60 * 24)) 
+          : null;
+
+        if (diffDays === null) {
+          // Missing history entirely
           if (currentStreak === 0 && metadataId) {
             updateIndividualMetadata(metadataId, {
               dailyBibleReadingStreakCount: 1,
+              lastLoginDate: today.toISOString(),
             }).then((res) => {
               if (res.success) {
-                localStorage.setItem(
-                  `lastStreakUpdate_${userId}`,
-                  today.toISOString(),
-                );
-                queryClient.invalidateQueries({
-                  queryKey: ["individual-metadata", userId],
-                });
+                localStorage.setItem(`lastStreakUpdate_${userId}`, today.toISOString());
+                queryClient.invalidateQueries({ queryKey: ["individual-metadata", userId] });
               }
             });
-          } else {
-            localStorage.setItem(
-              `lastStreakUpdate_${userId}`,
-              today.toISOString(),
-            );
-          }
-        } else {
-          const diffDays = Math.round(
-            (today.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24),
-          );
-          if (diffDays === 1 && metadataId) {
+          } else if (metadataId) {
+            // Assume streak is preserved if no history was recorded, just update the date
             updateIndividualMetadata(metadataId, {
-              dailyBibleReadingStreakCount: currentStreak + 1,
+              lastLoginDate: today.toISOString(),
             }).then((res) => {
               if (res.success) {
-                localStorage.setItem(
-                  `lastStreakUpdate_${userId}`,
-                  today.toISOString(),
-                );
-                queryClient.invalidateQueries({
-                  queryKey: ["individual-metadata", userId],
-                });
-              }
-            });
-          } else if (diffDays > 1 && metadataId) {
-            updateIndividualMetadata(metadataId, {
-              dailyBibleReadingStreakCount: 1,
-            }).then((res) => {
-              if (res.success) {
-                localStorage.setItem(
-                  `lastStreakUpdate_${userId}`,
-                  today.toISOString(),
-                );
-                queryClient.invalidateQueries({
-                  queryKey: ["individual-metadata", userId],
-                });
+                localStorage.setItem(`lastStreakUpdate_${userId}`, today.toISOString());
+                queryClient.invalidateQueries({ queryKey: ["individual-metadata", userId] });
               }
             });
           }
+        } else if (diffDays === 1 && metadataId) {
+          // Increment streak
+          updateIndividualMetadata(metadataId, {
+            dailyBibleReadingStreakCount: currentStreak + 1,
+            lastLoginDate: today.toISOString(),
+          }).then((res) => {
+            if (res.success) {
+              localStorage.setItem(`lastStreakUpdate_${userId}`, today.toISOString());
+              queryClient.invalidateQueries({ queryKey: ["individual-metadata", userId] });
+              addNotification({
+                title: "Login Maintained",
+                description: `You've logged in for ${currentStreak + 1} consecutive days!`,
+                time: "Just now",
+                icon: "TrendingUp",
+                color: "text-green-500",
+                bg: "bg-green-500/10",
+                type: "individual",
+              });
+            }
+          });
+        } else if (diffDays > 1 && metadataId) {
+          // Reset streak
+          updateIndividualMetadata(metadataId, {
+            dailyBibleReadingStreakCount: 1,
+            lastLoginDate: today.toISOString(),
+          }).then((res) => {
+            if (res.success) {
+              localStorage.setItem(`lastStreakUpdate_${userId}`, today.toISOString());
+              queryClient.invalidateQueries({ queryKey: ["individual-metadata", userId] });
+            }
+          });
         }
       }
     }

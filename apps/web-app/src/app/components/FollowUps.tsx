@@ -1,5 +1,5 @@
 import { useLayout } from "../contexts/LayoutContext";
-import { CheckCircle, Clock, User, Trash2, Loader2 } from "lucide-react";
+import { CheckCircle, Clock, User, Trash2, Loader2, MessageSquare, MessageCircle } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getFollowUps, updateFollowUp, deleteFollowUp } from "@/api/church";
@@ -9,7 +9,9 @@ import { useSearch } from "../contexts/SearchContext";
 import { DataManagementActions } from "./DataManagementActions";
 import { AddMemberModal } from "./AddMemberModal";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "./ui/card";
+import { Button } from "./ui/button";
 
 export function FollowUps() {
   const { setHeader } = useLayout();
@@ -22,6 +24,7 @@ export function FollowUps() {
   const { searchTerm, setSearchTerm } = useSearch();
   const organizationId = user?.organizationId || user?.id || user?._id || "";
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const { data: followUpsResponse, isLoading } = useQuery({
     queryKey: ["follow-ups", organizationId],
@@ -48,12 +51,30 @@ export function FollowUps() {
     onError: (error: any) => toast.error(error.message || "Failed to delete"),
   });
 
-  const followUpsRaw = followUpsResponse?.data || [];
-  const followUps = Array.isArray(followUpsRaw)
-    ? followUpsRaw
-    : followUpsRaw.data && Array.isArray(followUpsRaw.data)
-      ? followUpsRaw.data
-      : [];
+  // Debug: log API response shape so we can verify what the server returns
+  console.log("[FollowUps] Raw API response:", followUpsResponse);
+
+  // Helper to robustly find the data array
+  const followUps = (() => {
+    if (!followUpsResponse) return [];
+    if (Array.isArray(followUpsResponse)) return followUpsResponse;
+    if (Array.isArray(followUpsResponse.data)) return followUpsResponse.data;
+    if (followUpsResponse.data && Array.isArray(followUpsResponse.data.data)) return followUpsResponse.data.data;
+    if (followUpsResponse.data && Array.isArray(followUpsResponse.data.followUps)) return followUpsResponse.data.followUps;
+    // Deep search fallback
+    const findArray = (obj: any): any[] => {
+      if (!obj || typeof obj !== "object") return [];
+      for (const key in obj) {
+        if (Array.isArray(obj[key])) return obj[key];
+        if (typeof obj[key] === "object" && obj[key] !== null) {
+          const nested = findArray(obj[key]);
+          if (nested.length > 0) return nested;
+        }
+      }
+      return [];
+    };
+    return findArray(followUpsResponse);
+  })();
 
   const filteredFollowUps = followUps.filter((f: any) => {
     if (!searchTerm) return true;
@@ -108,13 +129,15 @@ export function FollowUps() {
       <div className="space-y-6">
         {/* Bulk Actions and Add New */}
         <Card className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6">
-          <div>
-            <h3 className="text-lg font-bold text-foreground">
-              Data Management
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Upload or add new records manually
-            </p>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 border-accent/20 text-accent hover:bg-accent/10 font-bold"
+              onClick={() => navigate("/bulk-messaging")}
+            >
+              <MessageCircle className="w-4 h-4" />
+              Send Bulk Follow-up
+            </Button>
           </div>
           <DataManagementActions
             hasFilters={false}
@@ -206,6 +229,27 @@ export function FollowUps() {
                   {/* Right Side */}
                   <div className="ml-4 flex flex-col items-end gap-3">
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          // Navigate to messaging or open modal
+                          toast.success(`Opening WhatsApp for ${followUp.name}`);
+                          window.open(`https://wa.me/${followUp.phone || ""}?text=${encodeURIComponent("Hi " + followUp.name + ", this is Faithcare...")}`, "_blank");
+                        }}
+                        className="p-2.5 text-accent hover:bg-accent/10 rounded-xl transition-all active:scale-90 border border-accent/20"
+                        title="Send WhatsApp"
+                      >
+                        <MessageCircle className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          toast.success(`Opening SMS for ${followUp.name}`);
+                          // Placeholder for SMS logic
+                        }}
+                        className="p-2.5 text-blue-500 hover:bg-blue-50 rounded-xl transition-all active:scale-90 border border-blue-100"
+                        title="Send SMS"
+                      >
+                        <MessageSquare className="w-5 h-5" />
+                      </button>
                       {followUp.status?.toUpperCase() === "COMPLETED" ? (
                         <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-1.5 rounded-lg border border-green-200">
                           <CheckCircle className="w-4 h-4" />

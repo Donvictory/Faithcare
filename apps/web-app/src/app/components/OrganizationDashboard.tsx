@@ -47,20 +47,30 @@ export function OrganizationDashboard() {
     enabled: !!organizationId,
   });
 
-  const recentActivityRaw =
-    firstTimersData?.success && Array.isArray(firstTimersData?.data)
-      ? firstTimersData.data.map((ft: any) => ({
-          type: "First Timer",
-          name: ft.fullName || ft.name || "Unknown",
-          action: "registered",
-          time: ft.createdAt?.split("T")[0] || "Recently",
-        }))
-      : [];
+  // Robustly find the array in any nested API response
+  const findArray = (obj: any): any[] => {
+    if (!obj) return [];
+    if (Array.isArray(obj)) return obj;
+    if (typeof obj === "object") {
+      for (const key in obj) {
+        if (Array.isArray(obj[key])) return obj[key];
+        if (typeof obj[key] === "object" && obj[key] !== null) {
+          const nested = findArray(obj[key]);
+          if (nested.length > 0) return nested;
+        }
+      }
+    }
+    return [];
+  };
 
-  const followUpsRaw =
-    followUpsData?.success && Array.isArray(followUpsData?.data)
-      ? followUpsData.data
-      : [];
+  const recentActivityRaw = findArray(firstTimersData).map((ft: any) => ({
+    type: "First Timer",
+    name: ft.fullName || ft.name || "Unknown",
+    action: "registered",
+    time: ft.createdAt?.split("T")[0] || "Recently",
+  }));
+
+  const followUpsRaw = findArray(followUpsData);
 
   // Filter based on global search
   const filteredActivity = recentActivityRaw.filter((a: any) =>
@@ -69,7 +79,7 @@ export function OrganizationDashboard() {
 
   const filteredFollowUps = followUpsRaw.filter(
     (fu: any) =>
-      fu.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (fu.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (fu.description || fu.notes || "")
         .toLowerCase()
         .includes(searchTerm.toLowerCase()),
