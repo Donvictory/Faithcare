@@ -9,6 +9,7 @@ import {
   ChevronRight,
   SparklesIcon,
 } from "lucide-react";
+import { Navbar } from "./Navbar";
 
 const webAppUrl = process.env.NEXT_PUBLIC_WEB_APP_URL ?? "";
 
@@ -605,31 +606,3 @@ export function LandingPage() {
   );
 }
 
-function Navbar() {
-  return (
-    <nav className="fixed top-0 left-0 right-0 bg-background/85 backdrop-blur-xl z-50 border-b border-border/40 px-6 h-16 flex items-center">
-      <div className="max-w-6xl mx-auto flex items-center justify-between w-full">
-        <div className="flex items-center gap-2 transition-spring hover:opacity-80">
-          <SparklesIcon className="w-7 h-7 text-accent" />
-          <span className="text-xl font-bold text-foreground tracking-tight">
-            FaithCare
-          </span>
-        </div>
-        <div className="flex items-center gap-6">
-          <a
-            href={`${webAppUrl}/sign-in`}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Sign In
-          </a>
-          <a
-            href={`${webAppUrl}/sign-up-choice`}
-            className="text-sm font-semibold bg-foreground text-background px-6 py-3 rounded-lg hover:bg-foreground/90 transition-spring hover:-translate-y-px hover:shadow-card active:translate-y-0 active:shadow-none"
-          >
-            Get Started
-          </a>
-        </div>
-      </div>
-    </nav>
-  );
-}
