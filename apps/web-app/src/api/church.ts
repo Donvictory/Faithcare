@@ -1,4 +1,4 @@
-import { apiRequest } from "./helper";
+import { apiRequest, getInMemoryToken } from "./helper";
 
 export async function getDashboardTrends(organizationId: string) {
   try {
@@ -625,7 +625,7 @@ export async function bulkUploadMembers(organizationId: string, type: string, fi
 
     // Using fetch directly for multipart/form-data as apiRequest might be configured for JSON
     const baseUrl = import.meta.env.VITE_API_URL || "https://faithcare-13a2dc003ee9.herokuapp.com/api/v1";
-    const token = localStorage.getItem("accessToken");
+    const token = getInMemoryToken();
 
     const response = await fetch(`${baseUrl}/organizations/${organizationId}/bulk-upload`, {
       method: "POST",

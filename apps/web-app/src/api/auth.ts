@@ -110,13 +110,8 @@ export async function signUpOrg({
 
 export async function logout() {
   try {
-    // Note: We don't need manual headers if we rely on cookies, but we keep it for now
-    const response = await fetch(`${baseUrl}/auth/logout`, {
+    const response = await apiRequest("/auth/logout", {
       method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
     if (response.status === 404) {
@@ -267,6 +262,31 @@ export async function resetPassword(payload: any) {
     const data = await response.json();
     if (!response.ok)
       throw new Error(data.message || "Failed to reset password");
+
+    return {
+      success: true,
+      data,
+      status: response.status,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+      status: error.status || 500,
+    };
+  }
+}
+
+export async function changePassword(payload: any) {
+  try {
+    const response = await apiRequest("/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(data.message || "Failed to change password");
 
     return {
       success: true,

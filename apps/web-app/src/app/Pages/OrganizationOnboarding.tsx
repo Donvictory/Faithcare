@@ -9,19 +9,28 @@ import {
   Phone,
   Globe,
   Check,
+  LogOut,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
-import { completeOrganizationOnboarding } from "@/api/church";
+import { completeOrganizationOnboarding, getOrganizationBySlug } from "@/api/church";
 import { toast } from "react-hot-toast";
 import { LoadingScreen } from "../components/LoadingScreen";
 import Logo from "../components/Logo";
+import SearchableSelect from "../components/ui/SearchableSelect";
 
 export function OrganizationOnboarding() {
   const navigate = useNavigate();
-  const { accessToken, user, setUser } = useAuth();
+  const { accessToken, user, setUser, logout } = useAuth();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleSignOut = async () => {
+    await logout();
+    navigate("/sign-in");
+  };
+  const [isSearchingChurch, setIsSearchingChurch] = useState(false);
+  const [churchOptions, setChurchOptions] = useState<{ id: string; name: string }[]>([]);
   const [formData, setFormData] = useState({
     churchName: "",
     denomination: "",
@@ -39,6 +48,28 @@ export function OrganizationOnboarding() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
+  };
+
+  const handleChurchSearch = async (searchTerm: string) => {
+    if (!searchTerm || searchTerm.length < 2) {
+      setChurchOptions([]);
+      return;
+    }
+    
+    setIsSearchingChurch(true);
+    const slug = searchTerm
+      .toLowerCase()
+      .replace(/ /g, "-")
+      .replace(/[^\w-]+/g, "");
+
+    const res = await getOrganizationBySlug(slug);
+    
+    if (res.success && res.data) {
+      setChurchOptions([res.data]);
+    } else {
+      setChurchOptions([]);
+    }
+    setIsSearchingChurch(false);
   };
 
   const handleNext = () => {
@@ -238,8 +269,17 @@ export function OrganizationOnboarding() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-background">
-        <div className="w-full max-w-2xl">
+      <div className="flex-1 flex items-center justify-center p-8 bg-background relative">
+        <button 
+          onClick={handleSignOut}
+          type="button"
+          className="absolute top-8 right-8 z-50 flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground bg-secondary/30 hover:bg-secondary/50 border border-border/50 rounded-xl transition-all"
+        >
+          <LogOut className="w-4 h-4" />
+          Sign Out
+        </button>
+
+        <div className="w-full max-w-2xl mt-8">
           {/* Mobile Logo */}
           <Logo className="lg:hidden" />
 
@@ -275,19 +315,54 @@ export function OrganizationOnboarding() {
                   <label className="text-sm text-muted-foreground ml-1">
                     Church Name *
                   </label>
-                  <div className="relative group">
-                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                    <input
-                      type="text"
-                      placeholder="Grace Community Church"
-                      value={formData.churchName}
-                      onChange={(e) =>
-                        handleInputChange("churchName", e.target.value)
+                  <SearchableSelect
+                    placeholder="Grace Community Church"
+                    value={formData.churchName}
+                    onInputChange={(value) => handleInputChange("churchName", value)}
+                    onSearch={handleChurchSearch}
+                    options={churchOptions}
+                    isLoading={isSearchingChurch}
+                    getDisplayValue={(item) => item.name}
+                    getStringValue={(item) => item.name}
+                    getListDisplayValue={(item: any) => (
+                      <div className="flex flex-col gap-1.5 py-1.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-bold text-foreground text-base leading-tight">
+                            {item.name}
+                          </span>
+                          {item.denomination && (
+                            <span className="text-[10px] uppercase tracking-wider bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
+                              {item.denomination}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground font-medium">
+                          {(item.city || item.state) && (
+                            <div className="flex items-center gap-1">
+                              <MapPin className="w-3.5 h-3.5 opacity-70" />
+                              <span className="truncate max-w-[150px]">
+                                {[item.city, item.state].filter(Boolean).join(", ")}
+                              </span>
+                            </div>
+                          )}
+                          {item.memberCountRange && (
+                            <div className="flex items-center gap-1">
+                              <Users className="w-3.5 h-3.5 opacity-70" />
+                              <span>{item.memberCountRange} members</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    onSelect={(item) => {
+                      if (item) {
+                        handleInputChange("churchName", item.name);
                       }
-                      className="w-full pl-12 pr-5 py-4 bg-secondary/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg"
-                      required
-                    />
-                  </div>
+                    }}
+                    icon={<Building2 className="w-5 h-5" />}
+                    inputClassName="w-full pl-12 pr-5 py-4 bg-secondary/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg"
+                    required
+                  />
                 </div>
 
                 <div className="space-y-2">

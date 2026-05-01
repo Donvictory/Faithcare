@@ -1,11 +1,13 @@
 import { useLayout } from "../contexts/LayoutContext";
 import { useState, useEffect } from "react";
-import { User, Bell, Lock, Palette, Globe, LogOut } from "lucide-react";
+import { User, Bell, Lock, Palette, Globe, LogOut, ArrowRight } from "lucide-react";
 import { useAuth } from "../providers/AuthProvider";
 import { Card } from "../components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 export function Settings() {
   const { setHeader } = useLayout();
+  const navigate = useNavigate();
   useEffect(() => {
     setHeader("Settings", "Manage your account and preferences");
   }, []);
@@ -163,10 +165,13 @@ export function Settings() {
           <h3 className="text-foreground font-bold">Security</h3>
         </div>
         <div className="space-y-4">
-          <button className="w-full px-6 py-4 bg-muted/30 border-2 border-transparent hover:border-accent/40 rounded-xl transition-all text-left text-foreground flex items-center justify-between group">
+          <button 
+            onClick={() => navigate("/settings/change-password")}
+            className="w-full px-6 py-4 bg-muted/30 border-2 border-transparent hover:border-accent/40 rounded-xl transition-all text-left text-foreground flex items-center justify-between group"
+          >
             Change Password
             <div className="w-8 h-8 rounded-lg bg-card flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border border-border">
-              <Globe className="w-4 h-4 text-accent" />
+              <ArrowRight className="w-4 h-4 text-accent" />
             </div>
           </button>
           <button className="w-full px-6 py-4 bg-muted/30 border-2 border-transparent hover:border-accent/40 rounded-xl transition-all text-left text-foreground flex items-center justify-between group">

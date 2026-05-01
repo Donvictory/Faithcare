@@ -9,7 +9,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { useForm } from "react-hook-form";
@@ -29,6 +29,7 @@ type SignInValues = z.infer<typeof signInSchema>;
 
 export function SignIn() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,7 +85,9 @@ export function SignIn() {
         const rememberMe = data.rememberMe || false;
 
         login(newUser, newAccessToken, rememberMe);
-        navigate("/dashboard");
+        
+        const from = location.state?.from?.pathname || "/dashboard";
+        navigate(from, { replace: true });
       } else {
         setError(result.error || "Login failed");
       }

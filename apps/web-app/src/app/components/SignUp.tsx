@@ -329,12 +329,12 @@ export function SignUp({ type }: { type: string }) {
               )}
             </div>
 
-            <div className="flex items-start gap-2">
+            <div className="flex items-center gap-2">
               <input
                 {...register("terms")}
                 type="checkbox"
                 id="terms"
-                className="w-4 h-4 rounded border-border text-accent focus:ring-accent mt-1"
+                className="w-4 h-4 rounded border-border text-accent focus:ring-accent"
               />
               <label htmlFor="terms" className="text-sm text-muted-foreground">
                 I agree to the{" "}

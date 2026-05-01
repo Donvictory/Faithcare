@@ -12,6 +12,8 @@ import AppLayout from "./Layouts/AppLayout";
 import Dashboard from "./Pages/Dashboard";
 import OTPVerification from "./Pages/OTPVerification";
 
+import { ChangePassword } from "./Pages/ChangePassword";
+
 import { SundayJournal } from "./components/SundayJournal";
 import { DailyScripture } from "./components/DailyScripture";
 import { PrayerRequests } from "./components/PrayerRequests";
@@ -26,6 +28,8 @@ import AuthProvider from "./providers/AuthProvider";
 import { Toaster } from "react-hot-toast";
 import NotFoundPage from "./Pages/NotFoundPage";
 import UnauthorizedPage from "./Pages/UnauthorizedPage";
+import GuestRoute from "./components/GuestRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -35,19 +39,38 @@ export default function App() {
         <Routes>
           {/* ── Public routes ── */}
           <Route path="/" element={<LandingPage />} />
-          <Route path="/sign-in" element={<SignIn />} />
-          <Route path="/sign-up-individual" element={<SignUpIndividual />} />
-          <Route path="/sign-up-organization" element={<SignUpOrganization />} />
-          <Route path="/sign-up-choice" element={<SignUpChoice />} />
-          <Route path="/individual-onboarding" element={<IndividualOnboarding />} />
-          <Route path="/organization-onboarding" element={<OrganizationOnboarding />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/otp-verification" element={<OTPVerification />} />
+
+          <Route element={<GuestRoute />}>
+            <Route path="/sign-in" element={<SignIn />} />
+            <Route path="/sign-up-individual" element={<SignUpIndividual />} />
+            <Route
+              path="/sign-up-organization"
+              element={<SignUpOrganization />}
+            />
+            <Route path="/sign-up-choice" element={<SignUpChoice />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/otp-verification" element={<OTPVerification />} />
+          </Route>
+
+          <Route element={<ProtectedRoute />}>
+            <Route
+              path="/individual-onboarding"
+              element={<IndividualOnboarding />}
+            />
+            <Route
+              path="/organization-onboarding"
+              element={<OrganizationOnboarding />}
+            />
+          </Route>
 
           {/* ── Protected routes — AppLayout handles auth guard + renders Sidebar/Header ── */}
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/settings" element={<Settings />} />
+            <Route
+              path="/settings/change-password"
+              element={<ChangePassword />}
+            />
 
             {/* Individual */}
             <Route path="/sunday-journal" element={<SundayJournal />} />

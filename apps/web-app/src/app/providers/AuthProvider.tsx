@@ -132,12 +132,10 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setAccessTokenState(null);
       setInMemoryToken(null);
       setUserState(null);
-      localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
       localStorage.removeItem("rememberMe");
       localStorage.removeItem("userType");
       localStorage.removeItem("pendingEmail");
-      sessionStorage.removeItem("accessToken");
       sessionStorage.removeItem("user");
       queryClient.clear();
     }

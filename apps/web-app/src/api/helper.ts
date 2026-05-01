@@ -12,6 +12,10 @@ export function setInMemoryToken(token: string | null) {
   inMemoryToken = token;
 }
 
+export function getInMemoryToken() {
+  return inMemoryToken;
+}
+
 function subscribeTokenRefresh(cb: (token: string) => void) {
   refreshSubscribers.push(cb);
 }
@@ -34,11 +38,8 @@ export async function apiRequest(
     url += `?${searchParams.toString()}`;
   }
 
-  // Use in-memory token, with storage as a fallback during transition if needed
-  // but we'll prioritize inMemoryToken
-  const token = inMemoryToken || 
-                localStorage.getItem("accessToken") || 
-                sessionStorage.getItem("accessToken");
+  // Strictly use in-memory token to ensure security
+  const token = inMemoryToken;
 
   const defaultHeaders: HeadersInit = {
     "Content-Type": "application/json",

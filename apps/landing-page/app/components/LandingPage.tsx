@@ -114,14 +114,14 @@ export function LandingPage() {
 
                   <div className="animate-fade-up delay-300 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <a
-                      href={`${webAppUrl}/sign-up-choice`}
+                      href={`${webAppUrl}/sign-up-organization`}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 bg-accent px-6 py-3 rounded-lg font-bold transition-spring hover:bg-accent/90 hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 active:shadow-none border border-accent text-white"
                     >
                       Register Organization
                       <ArrowRight className="w-4 h-4" />
                     </a>
                     <a
-                      href={`${webAppUrl}/sign-up-choice`}
+                      href={`${webAppUrl}/sign-up-individual`}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 bg-transparent text-foreground px-6 py-3 rounded-lg font-bold transition-spring hover:-translate-y-px active:translate-y-0 border border-neutral-400 hover:bg-white"
                     >
                       Join as Individual
@@ -550,14 +550,14 @@ export function LandingPage() {
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a
-                  href={`${webAppUrl}/sign-up-choice`}
+                  href={`${webAppUrl}/sign-up-organization`}
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-accent text-white px-8 py-4 rounded-lg text-base font-bold transition-spring hover:bg-accent/90 hover:-translate-y-0.5 hover:shadow-glow active:translate-y-0 border border-accent"
                 >
                   Register Organization
                   <ArrowRight className="w-5 h-5" />
                 </a>
                 <a
-                  href={`${webAppUrl}/sign-up-choice`}
+                  href={`${webAppUrl}/sign-up-individual`}
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-transparent text-background px-8 py-4 rounded-lg text-base font-bold transition-spring hover:bg-background/10 hover:-translate-y-0.5 active:translate-y-0 border border-background/30"
                 >
                   Join as Individual

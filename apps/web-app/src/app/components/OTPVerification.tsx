@@ -65,6 +65,22 @@ export function OTPVerification() {
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pastedData) {
+      const newOtp = [...otp];
+      for (let i = 0; i < pastedData.length; i++) {
+        newOtp[i] = pastedData[i];
+      }
+      setOtp(newOtp);
+      
+      // Focus the next empty input or the last one
+      const nextIndex = Math.min(pastedData.length, 5);
+      inputRefs.current[nextIndex]?.focus();
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
@@ -187,6 +203,7 @@ export function OTPVerification() {
                     value={digit}
                     onChange={(e) => handleChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
+                    onPaste={handlePaste}
                     className="sm:w-16 w-12 sm:h-16 h-12 text-center text-3xl font-semibold bg-secondary/30 border border-neutral-300 rounded-md sm:rounded-2xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground"
                   />
                 ))}

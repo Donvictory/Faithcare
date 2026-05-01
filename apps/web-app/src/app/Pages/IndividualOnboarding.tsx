@@ -8,6 +8,7 @@ import {
   Check,
   Loader2,
   Building2,
+  LogOut,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -17,11 +18,16 @@ import { toast } from "react-hot-toast";
 import Logo from "../components/Logo";
 
 export function IndividualOnboarding() {
-  const { user, accessToken } = useAuth();
+  const { user, accessToken, logout } = useAuth();
   const userId = user?.id || user?._id || user?.userId || "";
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleSignOut = async () => {
+    await logout();
+    navigate("/sign-in");
+  };
 
   const [formData, setFormData] = useState({
     location: "",
@@ -135,9 +141,18 @@ export function IndividualOnboarding() {
 
       {/* Right Side - Form */}
       <div className="flex-1 flex items-center justify-center p-8 md:p-16 bg-background relative overflow-hidden">
+        <button 
+          onClick={handleSignOut}
+          type="button"
+          className="absolute top-8 right-8 z-50 flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground bg-secondary/30 hover:bg-secondary/50 border border-border/50 rounded-xl transition-all"
+        >
+          <LogOut className="w-4 h-4" />
+          Sign Out
+        </button>
+
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px] -mr-64 -mt-64 opacity-30" />
         <div className="w-full max-w-2xl relative z-10">
-          <div className="mb-16">
+          <div className="mb-16 mt-8">
             <h2 className="text-4xl font-bold text-foreground mb-4 tracking-tight">
               Tell us about yourself
             </h2>
