@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { SignIn } from "./Pages/SignIn";
 import { LandingPage } from "./Pages/LandingPage";
 import { SignUpChoice } from "./Pages/SignUpChoice";
@@ -62,30 +62,30 @@ export default function App() {
               path="/organization-onboarding"
               element={<OrganizationOnboarding />}
             />
-          </Route>
 
-          {/* â”€â”€ Protected routes â€” AppLayout handles auth guard + renders Sidebar/Header â”€â”€ */}
-          <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route
-              path="/settings/change-password"
-              element={<ChangePassword />}
-            />
+            {/* Layout-wrapped routes */}
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route
+                path="/settings/change-password"
+                element={<ChangePassword />}
+              />
 
-            {/* Individual */}
-            <Route path="/sunday-journal" element={<SundayJournal />} />
-            <Route path="/daily-scripture" element={<DailyScripture />} />
-            <Route path="/focus-timer" element={<FocusTimer />} />
+              {/* Individual */}
+              <Route path="/sunday-journal" element={<SundayJournal />} />
+              <Route path="/daily-scripture" element={<DailyScripture />} />
+              <Route path="/focus-timer" element={<FocusTimer />} />
 
-            {/* Organization */}
-            <Route path="/first-timers" element={<FirstTimersManagement />} />
-            <Route path="/second-timers" element={<SecondTimers />} />
-            <Route path="/salvation-records" element={<SalvationRecords />} />
-            <Route path="/communities" element={<Communities />} />
-            <Route path="/prayer-requests" element={<PrayerRequests />} />
-            <Route path="/follow-ups" element={<FollowUps />} />
-            <Route path="/bulk-messaging" element={<BulkMessaging />} />
+              {/* Organization */}
+              <Route path="/first-timers" element={<FirstTimersManagement />} />
+              <Route path="/second-timers" element={<SecondTimers />} />
+              <Route path="/salvation-records" element={<SalvationRecords />} />
+              <Route path="/communities" element={<Communities />} />
+              <Route path="/prayer-requests" element={<PrayerRequests />} />
+              <Route path="/follow-ups" element={<FollowUps />} />
+              <Route path="/bulk-messaging" element={<BulkMessaging />} />
+            </Route>
           </Route>
 
           {/* â”€â”€ Fallbacks â”€â”€ */}

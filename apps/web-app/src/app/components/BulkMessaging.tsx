@@ -22,7 +22,7 @@ export function BulkMessaging() {
 
   useEffect(() => {
     setHeader("Bulk Messaging", "Send bulk SMS and WhatsApp messages to members");
-  }, [setHeader]);
+  }, []);
 
   const { data: followUpsResponse, isLoading, isError, error } = useQuery({
     queryKey: ["follow-ups", organizationId],

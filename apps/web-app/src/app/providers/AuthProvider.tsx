@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import {
   refreshToken as callRefreshTokenAPI,
   logout as callLogoutAPI,
@@ -20,7 +20,14 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUserState] = useState<any>(null);
+  const [user, setUserState] = useState<any>(() => {
+    const savedUser = localStorage.getItem("user");
+    try {
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
+  });
   const [accessToken, setAccessTokenState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
@@ -38,13 +45,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return "individual";
   };
 
-  // Helper to get the correct storage based on rememberMe
-  const getStorage = () => {
-    return localStorage.getItem("rememberMe") === "true"
-      ? localStorage
-      : sessionStorage;
-  };
-
   const setAccessToken = (token: string | null) => {
     setAccessTokenState(token);
     setInMemoryToken(token);
@@ -52,15 +52,10 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const setUser = (userData: any) => {
     setUserState(userData);
-    const storage = getStorage();
     if (userData) {
-      storage.setItem("user", JSON.stringify(userData));
-      const userType = determineUserType(userData);
-      localStorage.setItem("userType", userType);
+      localStorage.setItem("user", JSON.stringify(userData));
     } else {
       localStorage.removeItem("user");
-      localStorage.removeItem("userType");
-      sessionStorage.removeItem("user");
     }
   };
 
@@ -88,36 +83,36 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const initializeSession = async (initialUser: any = null) => {
+  const initializeSession = async () => {
     try {
       const result = await callRefreshTokenAPI();
+      // Robust session data extraction
       const sessionData = result.data?.data || result.data;
+      const token = typeof sessionData === "string" ? sessionData : sessionData?.accessToken;
 
-      if (result.success && sessionData?.accessToken) {
+      console.log("Refresh token check:", { 
+        success: result.success, 
+        hasToken: !!token, 
+        hasUser: !!(sessionData?.user || sessionData?.email) 
+      });
+
+      if (result.success && token) {
         const remember = localStorage.getItem("rememberMe") === "true";
+        
+        // Robust user extraction
+        const userData = sessionData.user || 
+          (sessionData.email || sessionData.role ? { ...sessionData, accessToken: undefined } : null);
 
-        // Merge with initialUser (from storage) to prevent data loss on refresh
-        const updatedUser = {
-          ...(initialUser || {}),
-          ...(sessionData.user || {}),
-        };
-
-        login(updatedUser, sessionData.accessToken, remember);
+        // Use the new user data if available, otherwise keep the current user (from localStorage)
+        login(userData || user, token, remember);
       } else {
-        const isAuthError =
-          result.error?.includes("401") ||
-          result.error?.toLowerCase().includes("unauthorized") ||
-          result.status === 401;
-
-        if (initialUser && isAuthError) {
-          await logout();
-        } else {
-          setIsLoading(false);
-        }
+        setAccessToken(null);
+        setUser(null);
       }
     } catch (error) {
       console.error("Failed to initialize session:", error);
-      setIsLoading(false);
+      setAccessToken(null);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -129,38 +124,17 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.warn("API logout call failed", error);
     } finally {
-      setAccessTokenState(null);
-      setInMemoryToken(null);
-      setUserState(null);
-      localStorage.removeItem("user");
+      setAccessToken(null);
+      setUser(null);
       localStorage.removeItem("rememberMe");
       localStorage.removeItem("userType");
       localStorage.removeItem("pendingEmail");
-      sessionStorage.removeItem("user");
       queryClient.clear();
     }
   };
 
   useEffect(() => {
-    const storedUserStr =
-      localStorage.getItem("user") || sessionStorage.getItem("user");
-
-    if (storedUserStr && storedUserStr !== "undefined") {
-      try {
-        const parsedUser = JSON.parse(storedUserStr);
-        setUserState(parsedUser);
-
-        const userType = determineUserType(parsedUser);
-        localStorage.setItem("userType", userType);
-
-        initializeSession(parsedUser);
-      } catch (e) {
-        console.error("Error parsing stored user data", e);
-        setIsLoading(false);
-      }
-    } else {
-      initializeSession(null);
-    }
+    initializeSession();
   }, []);
 
   if (isLoading) return <LoadingScreen />;
@@ -170,6 +144,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         user,
         accessToken,
+        userType: user ? determineUserType(user) : null,
         setUser,
         setAccessToken,
         login,

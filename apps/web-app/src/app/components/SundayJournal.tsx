@@ -21,6 +21,7 @@ import { useSearch } from "../contexts/SearchContext";
 import { Card } from "./ui/card";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Input } from "./ui/input";
 
 interface JournalEntry {
   _id: string;
@@ -198,6 +199,11 @@ export function SundayJournal() {
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full text-lg sm:text-2xl text-foreground placeholder:text-muted-foreground/50 bg-secondary/30 border border-border rounded-xl px-4 sm:px-5 py-3 sm:py-4 focus:ring-2 focus:ring-accent outline-none transition-all font-bold"
               />
+              <Input
+                placeholder="What was the sermon title?"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </div>
 
             <div className="space-y-2">
@@ -281,7 +287,9 @@ export function SundayJournal() {
                       variant={isActive ? "accent" : "default"}
                       className={cn(
                         "transition-all cursor-pointer group relative overflow-hidden",
-                        isActive ? "ring-1 ring-accent/20" : "hover:border-accent/30 bg-secondary/20 shadow-sm"
+                        isActive
+                          ? "ring-1 ring-accent/20"
+                          : "hover:border-accent/30 bg-secondary/20 shadow-sm",
                       )}
                     >
                       <div className="p-4">
@@ -290,7 +298,9 @@ export function SundayJournal() {
                             <p
                               className={cn(
                                 "transition-colors truncate pr-4 font-bold",
-                                isActive ? "text-accent" : "text-foreground group-hover:text-accent"
+                                isActive
+                                  ? "text-accent"
+                                  : "text-foreground group-hover:text-accent",
                               )}
                             >
                               {entry.title || "Untitled"}
@@ -298,10 +308,12 @@ export function SundayJournal() {
                             <div className="flex items-center gap-2">
                               <span className="text-[10px] uppercase tracking-tighter text-muted-foreground font-bold">
                                 {entry.createdAt
-                                  ? new Date(entry.createdAt).toLocaleDateString(
-                                      "en-US",
-                                      { month: "short", day: "numeric" },
-                                    )
+                                  ? new Date(
+                                      entry.createdAt,
+                                    ).toLocaleDateString("en-US", {
+                                      month: "short",
+                                      day: "numeric",
+                                    })
                                   : "New"}
                               </span>
                             </div>
@@ -317,7 +329,9 @@ export function SundayJournal() {
                             <div
                               className={cn(
                                 "flex items-center gap-1 transition-all",
-                                isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                isActive
+                                  ? "opacity-100"
+                                  : "opacity-0 group-hover:opacity-100",
                               )}
                             >
                               <Button

@@ -35,19 +35,7 @@ export function IndividualDashboard() {
 
   // Robust userId detection
   const userId = React.useMemo(() => {
-    const id = user?._id || user?.id || user?.userId;
-    if (id) return id;
-    const stored =
-      localStorage.getItem("user") || sessionStorage.getItem("user");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        return parsed._id || parsed.id || parsed.userId;
-      } catch (e) {
-        return "";
-      }
-    }
-    return "";
+    return user?._id || user?.id || user?.userId || "";
   }, [user]);
 
   // 1. Fetch personal metadata (for streak and goals)
@@ -336,13 +324,6 @@ export function IndividualDashboard() {
     },
   ];
 
-  if (isMetadataLoading || isJournalsLoading || isTimerLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 text-accent animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -382,7 +363,7 @@ export function IndividualDashboard() {
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Card>
+              <Card key={stat.title}>
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-xs sm:text-sm font-medium mb-1 sm:mb-2 text-accent-foreground/70">

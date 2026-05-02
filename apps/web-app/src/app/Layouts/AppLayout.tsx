@@ -1,10 +1,11 @@
-﻿import React from "react";
+import React from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
 import { Header } from "../components/Header";
 import { LayoutProvider, useLayout } from "../contexts/LayoutContext";
 import { SearchProvider } from "../contexts/SearchContext";
 import ProtectedRoute from "../components/ProtectedRoute";
+import { useAuth } from "../providers/AuthProvider";
 
 function LayoutShell() {
   const { isSidebarOpen, closeSidebar, title, subtitle } = useLayout();
@@ -15,9 +16,7 @@ function LayoutShell() {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, []);
 
-  const userType =
-    (localStorage.getItem("userType") as "individual" | "organization") ||
-    "individual";
+  const { user, userType } = useAuth();
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -67,12 +66,10 @@ function LayoutShell() {
  */
 export default function AppLayout() {
   return (
-    <ProtectedRoute>
-      <LayoutProvider>
-        <SearchProvider>
-          <LayoutShell />
-        </SearchProvider>
-      </LayoutProvider>
-    </ProtectedRoute>
+    <LayoutProvider>
+      <SearchProvider>
+        <LayoutShell />
+      </SearchProvider>
+    </LayoutProvider>
   );
 }

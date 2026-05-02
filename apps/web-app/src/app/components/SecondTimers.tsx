@@ -1,4 +1,4 @@
-﻿import { useLayout } from "../contexts/LayoutContext";
+import { useLayout } from "../contexts/LayoutContext";
 import { useEffect, useState } from "react";
 import { CheckCircle, Send, Loader2, Plus } from "lucide-react";
 import { useSearch } from "../contexts/SearchContext";
@@ -14,7 +14,7 @@ export function SecondTimers() {
   const { setHeader } = useLayout();
   useEffect(() => {
     setHeader("Second Timers", "Manage second timers and their registration");
-  }, [setHeader]);
+  }, []);
 
   const { searchTerm } = useSearch();
   const { user } = useAuth();

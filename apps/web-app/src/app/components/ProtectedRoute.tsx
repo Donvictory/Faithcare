@@ -19,30 +19,24 @@ export default function ProtectedRoute({
   allowedRoles,
   children,
 }: ProtectedRouteProps) {
-  const { user, accessToken, isLoading: isAuthLoading } = useAuth();
+  const { user, accessToken, isLoading: isAuthLoading, userType } = useAuth();
   const location = useLocation();
 
-  const userType = localStorage.getItem("userType") || "individual";
-
-  // Check individual metadata using React Query
-  const { data: metadataRes, isLoading: isMetadataLoading } = useQuery({
-    queryKey: ["userMetadata", user?.id || user?._id],
-    queryFn: () => getMetadataByUserId(user?.id || user?._id),
-    enabled:
-      !!accessToken && userType === "individual" && !!(user?.id || user?._id),
-    retry: false,
+  console.log("ProtectedRoute check:", { 
+    path: location.pathname, 
+    isLoading: isAuthLoading, 
+    hasToken: !!accessToken, 
+    hasUser: !!user,
+    userType
   });
 
-  // Wait for auth state or the metadata check to resolve before making any access decision
-  if (
-    isAuthLoading ||
-    (userType === "individual" && isMetadataLoading && !!accessToken)
-  ) {
-    return <LoadingScreen />;
+  // Wait for auth state to resolve before deciding
+  if (isAuthLoading) {
+    return null; // Or a smaller spinner if preferred, but null is consistent with GuestRoute
   }
 
-  // Not authenticated â€” redirect to sign-in
-  if (!accessToken) {
+  // Not authenticated or user data missing â€” redirect to sign-in
+  if (!accessToken || !user) {
     return <Navigate to="/sign-in" replace />;
   }
 
@@ -56,57 +50,29 @@ export default function ProtectedRoute({
   }
 
   // â”€â”€ Onboarding Checks â”€â”€
+  const isOnboarded = user?.isOnboarded;
 
-  // Admin Check
-  if (
-    userType === "organization" ||
-    user?.role === "ORGANIZATION" ||
-    user?.role === "ADMIN"
-  ) {
-    // If backend already provides isOnboarded, use it. Otherwise rely on organizationId check.
-    if (
-      user?.isOnboarded === false ||
-      (user?.isOnboarded === undefined && !user?.organizationId)
-    ) {
+  // Organization Onboarding
+  if (userType === "organization") {
+    if (isOnboarded === false || (isOnboarded === undefined && !user?.organizationId)) {
       if (location.pathname !== "/organization-onboarding") {
-        return (
-          <Navigate
-            to="/organization-onboarding"
-            replace
-            state={{ from: location }}
-          />
-        );
+        return <Navigate to="/organization-onboarding" replace state={{ from: location }} />;
       }
     } else if (location.pathname === "/organization-onboarding") {
-      // User is already onboarded, prevent access to onboarding page
       return <Navigate to="/dashboard" replace />;
     }
   }
 
-  // Individual Check
+  // Individual Onboarding
   if (userType === "individual") {
-    // If backend already provides isOnboarded, use it. Otherwise rely on metadata check.
-    if (
-      user?.isOnboarded === false ||
-      (user?.isOnboarded === undefined &&
-        (!metadataRes?.success || !metadataRes?.data))
-    ) {
+    if (isOnboarded === false) {
       if (location.pathname !== "/individual-onboarding") {
-        return (
-          <Navigate
-            to="/individual-onboarding"
-            replace
-            state={{ from: location }}
-          />
-        );
+        return <Navigate to="/individual-onboarding" replace state={{ from: location }} />;
       }
-    } else if (location.pathname === "/individual-onboarding") {
-      // User is already onboarded, prevent access to onboarding page
+    } else if (isOnboarded === true && location.pathname === "/individual-onboarding") {
       return <Navigate to="/dashboard" replace />;
     }
   }
 
-  // Authenticated (and authorised): render children when used as a
-  // layout wrapper, or fall through to <Outlet /> when used as a route element
   return children ? <>{children}</> : <Outlet />;
 }

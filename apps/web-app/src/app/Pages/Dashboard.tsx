@@ -4,7 +4,6 @@ import { useAuth } from "../providers/AuthProvider";
 
 export default function Dashboard() {
   const { user } = useAuth();
-  console.log(user);
   // Determine if it's an organization based on the user object
   // (e.g., if they have an organizationId or a specific role)
   const isOrganization =

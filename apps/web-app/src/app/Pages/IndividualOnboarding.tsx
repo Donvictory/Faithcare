@@ -18,6 +18,7 @@ import Logo from "../components/Logo";
 import { useForm } from "react-hook-form";
 import { Form } from "../components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { LoadingScreen } from "../components/LoadingScreen";
 import { InputField } from "../components/ui/InputField";
 import { Button } from "@/components/ui/button";
 import z from "zod";
@@ -43,7 +44,7 @@ const goalOptions = [
 ];
 
 export function IndividualOnboarding() {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading: isAuthLoading } = useAuth();
   const userId = user?.id || user?._id || user?.userId || "";
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -64,6 +65,12 @@ export function IndividualOnboarding() {
   };
 
   const onSubmit = async (data: IndividualOnboardingValues) => {
+    if (!userId) {
+      toast.error("User session not found. Please sign in again.");
+      console.error("No userId found in user object:", user);
+      return;
+    }
+
     setIsLoading(true);
 
     const spiritualGoals = {
@@ -81,7 +88,7 @@ export function IndividualOnboarding() {
       location: data.location,
       organization: "64a1f2c3e4b5d6e7f8a9b0c1", // Fallback ID
       churchName: data.churchName,
-      spiritualGoals: [spiritualGoals],
+      spiritualGoals: spiritualGoals,
       dailyBibleReadingStreakCount: 0,
     };
 
