@@ -139,9 +139,9 @@ const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
                         </div>
                       </th>
                     )}
-                    {columns.map((column) => (
+                    {columns.map((column, colIndex) => (
                       <th
-                        key={column.label}
+                        key={column.key || column.label || colIndex}
                         scope="col"
                         className={cn(
                           "px-6 py-3 text-left text-[0.7rem] font-semibold tracking-wider text-accent-foreground/80 uppercase",
@@ -212,7 +212,7 @@ const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
                       )}
                       {columns.map((column, colIndex) => (
                         <td
-                          key={column.label}
+                          key={column.key || column.label || colIndex}
                           className={cn(
                             "px-6 py-4 text-sm whitespace-nowrap text-foreground",
                             column.className,
