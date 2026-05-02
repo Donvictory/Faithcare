@@ -140,7 +140,7 @@ export function IndividualOnboarding() {
       {/* Right Side - Form */}
       <div className="flex-1 flex items-center justify-center p-8 md:p-16 bg-background relative overflow-hidden">
         <Button
-          variant="outline"
+          variant="ghost"
           onClick={handleSignOut}
           type="button"
           className="absolute top-8 right-8 z-50 text-muted-foreground hover:text-foreground bg-secondary/30 hover:bg-secondary/50 font-medium"

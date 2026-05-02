@@ -19,6 +19,11 @@ export default defineConfig({
       // Shared UI package
       '@faithcare/ui': path.resolve(__dirname, '../../shared/index.ts'),
     },
+    // Force a single copy of these packages across all modules — including any
+    // code resolved outside the project root (e.g. ../../shared). Without this,
+    // Vite can bundle two React instances, which causes Radix UI's Slot
+    // (used by asChild) to fail React.Children.only in production builds.
+    dedupe: ['react', 'react-dom', 'react-router-dom'],
   },
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.

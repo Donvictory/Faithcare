@@ -10,6 +10,9 @@ export default function GuestRoute({ children }: GuestRouteProps) {
   const { accessToken, isLoading } = useAuth();
   const location = useLocation();
 
+  // Wait for auth state to resolve before deciding — prevents a flash of the
+  // guest UI when the user has a valid session being restored via refresh token.
+  if (isLoading) return null;
 
   if (accessToken) {
     const from = location.state?.from?.pathname || "/dashboard";
