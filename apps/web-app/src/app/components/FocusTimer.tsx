@@ -25,6 +25,7 @@ import { toast } from "react-hot-toast";
 import { useSearch } from "../contexts/SearchContext";
 import { Card } from "./ui/card";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface TimerSession {
   _id: string;
@@ -438,7 +439,11 @@ export function FocusTimer() {
                     {[15, 25, 45, 60].map((mins) => (
                       <Button
                         key={mins}
-                        variant={parseInt(customMinutes) === mins ? "default" : "outline"}
+                        variant={
+                          parseInt(customMinutes) === mins
+                            ? "default"
+                            : "outline"
+                        }
                         onClick={() => {
                           setCustomMinutes(mins.toString());
                           setTimeLeft(mins * 60);
@@ -446,7 +451,9 @@ export function FocusTimer() {
                         }}
                         className={cn(
                           "flex-1 h-16 font-bold",
-                          parseInt(customMinutes) === mins ? "shadow-lg shadow-accent/20 bg-accent hover:bg-accent/90" : "border-neutral-200 hover:border-accent/40"
+                          parseInt(customMinutes) === mins
+                            ? "shadow-lg shadow-accent/20 bg-accent hover:bg-accent/90"
+                            : "border-neutral-200 hover:border-accent/40",
                         )}
                       >
                         {mins}m
