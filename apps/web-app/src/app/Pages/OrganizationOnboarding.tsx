@@ -90,8 +90,12 @@ export function OrganizationOnboarding() {
       .replace(/[^\w-]+/g, "");
 
     const res = await getOrganizationBySlug(slug);
+    console.log("[handleChurchSearch] res:", res);
 
-    if (res.success && res.data) {
+    if (res.success && Array.isArray(res.data)) {
+      setChurchOptions(res.data);
+    } else if (res.success && res.data) {
+      // Fallback for single object if backend still returns it
       setChurchOptions([res.data]);
     } else {
       setChurchOptions([]);
@@ -146,7 +150,7 @@ export function OrganizationOnboarding() {
       phoneNumber: data.phone,
       websiteUrl: data.website || "",
       memberCountRange: data.memberCount || "",
-      organizationRole: data.role.toUpperCase().replace(/-/g, "_"),
+      organizationRole: data.role,
     };
 
     const res = await completeOrganizationOnboarding(payload);
@@ -166,7 +170,9 @@ export function OrganizationOnboarding() {
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, (errors) =>
+          console.log("Form Errors:", errors),
+        )}
         className="min-h-screen bg-background flex font-sans"
       >
         {/* Left Side - Progress & Info */}
@@ -356,7 +362,7 @@ export function OrganizationOnboarding() {
                   name="churchName"
                   label="Church Name *"
                   type="custom"
-                  className="space-y-2"
+                  className="w-full"
                 >
                   {(field) => (
                     <SearchableSelect
@@ -551,13 +557,13 @@ export function OrganizationOnboarding() {
                   label="Your Role *"
                   type="select"
                   options={[
-                    { value: "senior-pastor", label: "Senior Pastor" },
-                    { value: "associate-pastor", label: "Associate Pastor" },
-                    { value: "youth-pastor", label: "Youth Pastor" },
-                    { value: "worship-leader", label: "Worship Leader" },
-                    { value: "administrator", label: "Church Administrator" },
-                    { value: "volunteer", label: "Volunteer Leader" },
-                    { value: "other", label: "Other" },
+                    { value: "SENIOR_PASTOR", label: "Senior Pastor" },
+                    { value: "ASSOCIATE_PASTOR", label: "Associate Pastor" },
+                    { value: "YOUTH_PASTOR", label: "Youth Pastor" },
+                    { value: "WORSHIP_LEADER", label: "Worship Leader" },
+                    { value: "CHURCH_ADMIN", label: "Church Administrator" },
+                    { value: "VOLUNTEER_LEADER", label: "Volunteer Leader" },
+                    { value: "OTHER", label: "Other" },
                   ]}
                   placeholder="Select your role"
                 />
@@ -583,7 +589,7 @@ export function OrganizationOnboarding() {
             </div>
 
             {/* Navigation Buttons */}
-            <div className="flex items-center justify-between mt-12 pt-8 border-t border-border">
+            <div className="flex items-center justify-between mt-12">
               {step > 1 ? (
                 <Button
                   variant="outline"

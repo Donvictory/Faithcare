@@ -51,7 +51,7 @@ export function CardMultiSelect({
           >
             <span
               className={cn(
-                "text-sm font-medium tracking-tight transition-colors",
+                "text-lg font-medium tracking-tight transition-colors",
                 isSelected ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
               )}
             >

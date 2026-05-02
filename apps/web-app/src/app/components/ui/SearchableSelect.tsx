@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export interface SearchableSelectProps<T> {
   placeholder?: string;
@@ -117,7 +118,7 @@ const SearchableSelect = <T,>({
     if (controlledValue === undefined) {
       setSearchTerm(nextValue);
     }
-    
+
     onInputChange?.(nextValue);
     onSearch?.(nextValue);
     setIsOpen(true);
@@ -139,18 +140,27 @@ const SearchableSelect = <T,>({
     onSearch?.(controlledValue !== undefined ? controlledValue : searchTerm);
   };
 
-  const inputValue = controlledValue !== undefined ? controlledValue : searchTerm;
+  const inputValue =
+    controlledValue !== undefined ? controlledValue : searchTerm;
 
   const filteredOptions = options.filter((item) =>
-    getValueAsString(item).toLowerCase().includes(inputValue.toLowerCase())
+    getValueAsString(item).toLowerCase().includes(inputValue.toLowerCase()),
   );
 
   return (
-    <div className={`w-full relative inline-block ${containerClassName}`} ref={containerRef}>
+    <div
+      className={cn("w-full relative block", containerClassName)}
+      ref={containerRef}
+    >
       <div className="relative group">
         {icon && (
           <div className="absolute left-4.5 top-1/2 -translate-y-1/2 z-10 text-muted-foreground group-focus-within:text-accent transition-colors">
-            {React.isValidElement(icon) ? icon : React.createElement(icon, { className: "w-4 h-4", strokeWidth: 1.5 })}
+            {React.isValidElement(icon)
+              ? icon
+              : React.createElement(icon, {
+                  className: "w-4 h-4",
+                  strokeWidth: 1.5,
+                })}
           </div>
         )}
         <input
@@ -159,7 +169,14 @@ const SearchableSelect = <T,>({
           value={inputValue}
           onChange={handleInputChange}
           onFocus={handleInputFocus}
-          className={inputClassName || `w-full ${icon ? 'pl-12' : 'pl-4'} pr-10 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent`}
+          className={
+            cn(
+              "w-full h-[52px] bg-secondary/30 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent transition-all text-foreground font-medium tracking-tight text-lg m-0",
+              icon ? "pl-12" : "pl-4",
+              "pr-10",
+              inputClassName
+            )
+          }
           required={required}
         />
         <Button
@@ -171,9 +188,10 @@ const SearchableSelect = <T,>({
           tabIndex={-1}
         >
           <ChevronDown
-            className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
-              isOpen ? "rotate-180" : ""
-            }`}
+            className={cn(
+              "size-4 text-muted-foreground opacity-50 transition-transform duration-200",
+              isOpen && "rotate-180",
+            )}
           />
         </Button>
       </div>
@@ -207,13 +225,18 @@ const SearchableSelect = <T,>({
                     handleOptionClick(item);
                   }}
                 >
-                  {getListDisplayValue ? getListDisplayValue(item) : getDisplayValue(item)}
+                  {getListDisplayValue
+                    ? getListDisplayValue(item)
+                    : getDisplayValue(item)}
                 </li>
               ))}
             </ul>
           ) : (
             <div className="px-4 py-3 text-sm text-gray-500">
-              No results found. {inputValue ? `You can use "${inputValue}" as a custom name.` : ''}
+              No results found.{" "}
+              {inputValue
+                ? `You can use "${inputValue}" as a custom name.`
+                : ""}
             </div>
           )}
         </div>

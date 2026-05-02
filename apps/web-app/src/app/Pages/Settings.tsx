@@ -5,6 +5,7 @@ import { useAuth } from "../providers/AuthProvider";
 import { Card } from "../components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { InviteAdmin } from "../components/InviteAdmin";
 
 export function Settings() {
   const { setHeader } = useLayout();
@@ -13,7 +14,7 @@ export function Settings() {
     setHeader("Settings", "Manage your account and preferences");
   }, []);
 
-  const { user, logout } = useAuth();
+  const { user, logout, userType } = useAuth();
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light",
   );
@@ -162,6 +163,9 @@ export function Settings() {
           </div>
         </div>
       </Card>
+
+      {/* Organization Admin Invite - Only for Organization Users */}
+      {userType === "organization" && <InviteAdmin />}
 
       {/* Security Settings */}
       <Card>

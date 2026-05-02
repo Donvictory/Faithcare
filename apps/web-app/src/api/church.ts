@@ -652,7 +652,9 @@ export async function getMyOrganization() {
 
 export async function getOrganizationBySlug(slug: string) {
   try {
-    const response = await apiRequest(`/organizations/slug/${slug}`);
+    const response = await apiRequest(`/organizations`, {
+      params: { slug }
+    });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Failed to fetch organization by slug");
     return { success: true, data: data?.data };

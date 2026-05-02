@@ -82,7 +82,9 @@ export interface InputFieldProps {
   otpLength?: number;
 
   // Custom Props
-  children?: React.ReactNode | ((field: ControllerRenderProps<FieldValues, string>) => React.ReactNode);
+  children?:
+    | React.ReactNode
+    | ((field: ControllerRenderProps<FieldValues, string>) => React.ReactNode);
 }
 
 export const InputField = React.forwardRef<any, InputFieldProps>(
@@ -112,7 +114,7 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
       otpLength = 6,
       children,
     },
-    ref
+    ref,
   ) => {
     const [showPassword, setShowPassword] = React.useState(false);
 
@@ -132,7 +134,7 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
                 <div
                   className={cn(
                     "absolute top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors flex items-center justify-center z-10",
-                    iconPosition === "left" ? "left-4.5" : "right-4.5"
+                    iconPosition === "left" ? "left-4.5" : "right-4.5",
                   )}
                 >
                   {React.isValidElement(icon)
@@ -145,7 +147,9 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
               )}
               <ControlWrapper>
                 <Input
-                  type={isPassword ? (showPassword ? "text" : "password") : type}
+                  type={
+                    isPassword ? (showPassword ? "text" : "password") : type
+                  }
                   placeholder={placeholder}
                   disabled={disabled}
                   className={cn(
@@ -154,7 +158,7 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
                     isPassword || (icon && iconPosition === "right")
                       ? "pr-12"
                       : "pr-6",
-                    inputClassName
+                    inputClassName,
                   )}
                   {...field}
                   ref={field.ref || ref}
@@ -196,7 +200,7 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
                 disabled={disabled}
                 className={cn(
                   "w-full bg-secondary/30 border border-neutral-200 rounded-lg focus-visible:ring-4 focus-visible:ring-accent/5 focus-visible:border-accent transition-all text-foreground font-medium tracking-tight text-lg min-h-[100px]",
-                  inputClassName
+                  inputClassName,
                 )}
                 {...field}
                 ref={field.ref || ref}
@@ -266,8 +270,8 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
                 <SelectTrigger
                   ref={field.ref || ref}
                   className={cn(
-                    "h-[52px] bg-secondary/30 rounded-lg border-neutral-200 font-medium",
-                    inputClassName
+                    "w-full h-[52px]! bg-secondary/30 border border-neutral-200 rounded-lg focus-visible:ring-4 focus-visible:ring-accent/5 focus-visible:border-accent transition-all text-foreground font-medium tracking-tight text-lg pl-6 py-3",
+                    inputClassName,
                   )}
                 >
                   <SelectValue placeholder={placeholder} />
@@ -294,8 +298,8 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
               getStringValue={getStringValue}
               onSearch={onSearch}
               inputClassName={cn(
-                "h-[52px] bg-secondary/30 rounded-lg border-neutral-200",
-                inputClassName
+                "w-full h-[52px] bg-secondary/30 border border-neutral-200 rounded-lg focus-visible:ring-4 focus-visible:ring-accent/5 focus-visible:border-accent transition-all text-foreground font-medium tracking-tight text-lg pl-6",
+                inputClassName,
               )}
             />
           );
@@ -338,7 +342,10 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
               selected={field.value || []}
               onChange={field.onChange}
               placeholder={placeholder}
-              className={inputClassName}
+              className={cn(
+                "w-full min-h-[52px] bg-secondary/30 border border-neutral-200 rounded-lg focus-within:ring-4 focus-within:ring-accent/5 focus-within:border-accent transition-all text-foreground font-medium tracking-tight text-lg",
+                inputClassName,
+              )}
             />
           );
 
@@ -361,7 +368,7 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
                 disabled={disabled}
                 className={cn(
                   "file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-accent-foreground hover:file:bg-accent/90 py-3 h-auto cursor-pointer",
-                  inputClassName
+                  inputClassName,
                 )}
                 onChange={(e) => field.onChange(e.target.files)}
                 onBlur={field.onBlur}
@@ -393,7 +400,7 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
                 <FormLabel
                   className={cn(
                     "text-sm font-medium text-muted-foreground ml-1",
-                    labelClassName
+                    labelClassName,
                   )}
                 >
                   {label}
@@ -438,7 +445,7 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
           <Label
             className={cn(
               "text-sm font-medium text-muted-foreground ml-1",
-              labelClassName
+              labelClassName,
             )}
             htmlFor={name}
           >
@@ -456,7 +463,7 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
         {error && <p className="text-destructive text-sm ml-1">{error}</p>}
       </div>
     );
-  }
+  },
 );
 
 InputField.displayName = "InputField";
