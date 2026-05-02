@@ -10,6 +10,7 @@ import { LoadingScreen } from "../components/LoadingScreen";
 interface AuthContextType {
   user: any;
   accessToken: string | null;
+  userType: "individual" | "organization" | null;
   setUser: (user: any) => void;
   setAccessToken: (token: string | null) => void;
   login: (userData: any, token: string, remember: boolean) => void;
@@ -88,20 +89,26 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const result = await callRefreshTokenAPI();
       // Robust session data extraction
       const sessionData = result.data?.data || result.data;
-      const token = typeof sessionData === "string" ? sessionData : sessionData?.accessToken;
+      const token =
+        typeof sessionData === "string"
+          ? sessionData
+          : sessionData?.accessToken;
 
-      console.log("Refresh token check:", { 
-        success: result.success, 
-        hasToken: !!token, 
-        hasUser: !!(sessionData?.user || sessionData?.email) 
+      console.log("Refresh token check:", {
+        success: result.success,
+        hasToken: !!token,
+        hasUser: !!(sessionData?.user || sessionData?.email),
       });
 
       if (result.success && token) {
         const remember = localStorage.getItem("rememberMe") === "true";
-        
+
         // Robust user extraction
-        const userData = sessionData.user || 
-          (sessionData.email || sessionData.role ? { ...sessionData, accessToken: undefined } : null);
+        const userData =
+          sessionData.user ||
+          (sessionData.email || sessionData.role
+            ? { ...sessionData, accessToken: undefined }
+            : null);
 
         // Use the new user data if available, otherwise keep the current user (from localStorage)
         login(userData || user, token, remember);

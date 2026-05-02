@@ -37,7 +37,7 @@ function LayoutShell() {
           w-64 bg-card border-r border-border
         `}
       >
-        <Sidebar userType={userType} />
+        <Sidebar userType={userType!} />
       </aside>
 
       {/* Main column */}

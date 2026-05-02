@@ -22,12 +22,12 @@ export default function ProtectedRoute({
   const { user, accessToken, isLoading: isAuthLoading, userType } = useAuth();
   const location = useLocation();
 
-  console.log("ProtectedRoute check:", { 
-    path: location.pathname, 
-    isLoading: isAuthLoading, 
-    hasToken: !!accessToken, 
+  console.log("ProtectedRoute check:", {
+    path: location.pathname,
+    isLoading: isAuthLoading,
+    hasToken: !!accessToken,
     hasUser: !!user,
-    userType
+    userType,
   });
 
   // Wait for auth state to resolve before deciding
@@ -54,9 +54,18 @@ export default function ProtectedRoute({
 
   // Organization Onboarding
   if (userType === "organization") {
-    if (isOnboarded === false || (isOnboarded === undefined && !user?.organizationId)) {
+    if (
+      isOnboarded === false ||
+      (isOnboarded === undefined && !user?.organizationId)
+    ) {
       if (location.pathname !== "/organization-onboarding") {
-        return <Navigate to="/organization-onboarding" replace state={{ from: location }} />;
+        return (
+          <Navigate
+            to="/organization-onboarding"
+            replace
+            state={{ from: location }}
+          />
+        );
       }
     } else if (location.pathname === "/organization-onboarding") {
       return <Navigate to="/dashboard" replace />;
@@ -67,9 +76,18 @@ export default function ProtectedRoute({
   if (userType === "individual") {
     if (isOnboarded === false) {
       if (location.pathname !== "/individual-onboarding") {
-        return <Navigate to="/individual-onboarding" replace state={{ from: location }} />;
+        return (
+          <Navigate
+            to="/individual-onboarding"
+            replace
+            state={{ from: location }}
+          />
+        );
       }
-    } else if (isOnboarded === true && location.pathname === "/individual-onboarding") {
+    } else if (
+      isOnboarded === true &&
+      location.pathname === "/individual-onboarding"
+    ) {
       return <Navigate to="/dashboard" replace />;
     }
   }
