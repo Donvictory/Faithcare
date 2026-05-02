@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Logo from "../components/Logo";
+import { Button } from "@/components/ui/button";
 
 export default function NotFoundPage() {
   const navigate = useNavigate();
@@ -13,12 +14,12 @@ export default function NotFoundPage() {
         Oops! It seems this page has journeyed elsewhere. But don't worry, your
         path to spiritual growth is still here.
       </p>
-      <button
+      <Button
         onClick={() => navigate("/")}
-        className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-medium hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50 cursor-pointer"
+        className="w-full h-14 text-base shadow-xl shadow-primary/20 font-bold"
       >
         Back to Home
-      </button>
+      </Button>
     </div>
   );
 }

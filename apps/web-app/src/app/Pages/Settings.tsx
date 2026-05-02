@@ -4,6 +4,7 @@ import { User, Bell, Lock, Palette, Globe, LogOut, ArrowRight } from "lucide-rea
 import { useAuth } from "../providers/AuthProvider";
 import { Card } from "../components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export function Settings() {
   const { setHeader } = useLayout();
@@ -42,13 +43,15 @@ export function Settings() {
             <User className="w-5 h-5 text-accent" />
             <h3 className="text-lg font-bold text-foreground">Profile Settings</h3>
           </div>
-          <button
+          <Button
             onClick={logout}
-            className="flex items-center justify-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-xl transition-all border border-destructive/20 sm:border-transparent"
+            variant="ghost"
+            size="sm"
+            className="text-destructive hover:bg-destructive/10 border border-destructive/20 sm:border-transparent"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-4 h-4 mr-2" />
             Sign Out
-          </button>
+          </Button>
         </div>
         <div className="space-y-4">
           <div>
@@ -97,9 +100,10 @@ export function Settings() {
               Theme Mode
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <button
+              <Button
                 onClick={() => setTheme("light")}
-                className={`flex items-center justify-center gap-2 p-3 sm:p-4 rounded-xl border-2 transition-all text-sm sm:text-base ${
+                variant={theme === "light" ? "default" : "outline"}
+                className={`flex items-center justify-center gap-2 p-3 sm:p-4 h-auto rounded-xl border-2 transition-all text-sm sm:text-base ${
                   theme === "light"
                     ? "border-accent bg-accent/5 text-accent"
                     : "border-border hover:border-accent/40 text-muted-foreground"
@@ -107,10 +111,11 @@ export function Settings() {
               >
                 <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
                 Light Mode
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setTheme("dark")}
-                className={`flex items-center justify-center gap-2 p-3 sm:p-4 rounded-xl border-2 transition-all text-sm sm:text-base ${
+                variant={theme === "dark" ? "default" : "outline"}
+                className={`flex items-center justify-center gap-2 p-3 sm:p-4 h-auto rounded-xl border-2 transition-all text-sm sm:text-base ${
                   theme === "dark"
                     ? "border-accent bg-accent/5 text-accent"
                     : "border-border hover:border-accent/40 text-muted-foreground"
@@ -118,7 +123,7 @@ export function Settings() {
               >
                 <Palette className="w-4 h-4 sm:w-5 sm:h-5" />
                 Dark Mode
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -165,29 +170,33 @@ export function Settings() {
           <h3 className="text-foreground font-bold">Security</h3>
         </div>
         <div className="space-y-4">
-          <button 
+          <Button 
+            variant="ghost"
             onClick={() => navigate("/settings/change-password")}
-            className="w-full px-6 py-4 bg-muted/30 border-2 border-transparent hover:border-accent/40 rounded-xl transition-all text-left text-foreground flex items-center justify-between group"
+            className="w-full h-auto px-6 py-4 bg-muted/30 border-2 border-transparent hover:border-accent/40 rounded-xl transition-all text-left text-foreground flex items-center justify-between group font-normal"
           >
             Change Password
             <div className="w-8 h-8 rounded-lg bg-card flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border border-border">
               <ArrowRight className="w-4 h-4 text-accent" />
             </div>
-          </button>
-          <button className="w-full px-6 py-4 bg-muted/30 border-2 border-transparent hover:border-accent/40 rounded-xl transition-all text-left text-foreground flex items-center justify-between group">
+          </Button>
+          <Button 
+            variant="ghost"
+            className="w-full h-auto px-6 py-4 bg-muted/30 border-2 border-transparent hover:border-accent/40 rounded-xl transition-all text-left text-foreground flex items-center justify-between group font-normal"
+          >
             Two-Factor Authentication
             <span className="px-3 py-1 bg-warning/10 text-warning text-[10px] uppercase rounded-full">
               Recommended
             </span>
-          </button>
+          </Button>
         </div>
       </Card>
 
       {/* Save Button */}
       <div className="flex justify-center sm:justify-end pt-4 pb-8">
-        <button className="w-full sm:w-auto px-10 sm:px-12 py-3 sm:py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 font-bold">
+        <Button className="w-full sm:w-auto px-10 sm:px-12 h-auto py-3 sm:py-4 rounded-2xl shadow-xl shadow-primary/20 font-bold">
           Save All Changes
-        </button>
+        </Button>
       </div>
     </div>
   );

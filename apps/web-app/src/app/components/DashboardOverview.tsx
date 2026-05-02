@@ -45,7 +45,7 @@ export function DashboardOverview() {
     return [];
   };
 
-  // Resolve trends — handle both { data: { firstTimersCount } } and { firstTimersCount }
+  // Resolve trends â€” handle both { data: { firstTimersCount } } and { firstTimersCount }
   const trends =
     trendsData?.data?.firstTimersCount !== undefined
       ? trendsData.data

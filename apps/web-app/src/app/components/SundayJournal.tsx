@@ -19,6 +19,8 @@ import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
 import { useSearch } from "../contexts/SearchContext";
 import { Card } from "./ui/card";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface JournalEntry {
   _id: string;
@@ -174,13 +176,14 @@ export function SundayJournal() {
             <h2 className="text-xl sm:text-2xl font-bold text-foreground">
               {currentEntryId ? "Edit Reflection" : "New Reflection"}
             </h2>
-            <button
+            <Button
+              variant="ghost"
               onClick={handleNewEntry}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-accent hover:bg-accent/10 rounded-full transition-all font-bold"
+              className="flex items-center gap-2 px-4 text-accent"
             >
               <Plus className="w-4 h-4" />
               Reset Form
-            </button>
+            </Button>
           </div>
 
           <div className="space-y-6">
@@ -227,10 +230,10 @@ export function SundayJournal() {
           </div>
 
           <div className="mt-8 flex justify-end">
-            <button
+            <Button
               onClick={handleSave}
               disabled={isLoading}
-              className="flex items-center justify-center gap-3 w-full sm:w-auto px-8 sm:px-10 py-3 sm:py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 disabled:opacity-50 font-bold text-sm sm:text-base"
+              className="w-full sm:w-auto px-8 sm:px-10 rounded-2xl shadow-lg shadow-primary/20"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -238,7 +241,7 @@ export function SundayJournal() {
                 <Save className="w-5 h-5" />
               )}
               {currentEntryId ? "Update Record" : "Save Reflection"}
-            </button>
+            </Button>
           </div>
         </Card>
 
@@ -271,74 +274,83 @@ export function SundayJournal() {
                   const id = entry._id || entry.id;
                   const isActive = currentEntryId === id;
                   return (
-                    <div
+                    <Card
                       key={id}
                       onClick={() => selectEntry(entry)}
-                      className={`w-full p-4 rounded-xl border transition-all cursor-pointer group relative ${
-                        isActive
-                          ? "border-accent bg-accent/5 ring-1 ring-accent/20"
-                          : "border-border hover:border-accent/30 bg-secondary/20 shadow-sm"
-                      }`}
+                      padding="none"
+                      variant={isActive ? "accent" : "default"}
+                      className={cn(
+                        "transition-all cursor-pointer group relative overflow-hidden",
+                        isActive ? "ring-1 ring-accent/20" : "hover:border-accent/30 bg-secondary/20 shadow-sm"
+                      )}
                     >
-                      <div className="flex flex-col gap-1">
-                        <div className="flex justify-between items-start">
-                          <p
-                            className={`transition-colors truncate pr-4 font-bold ${
-                              isActive
-                                ? "text-accent"
-                                : "text-foreground group-hover:text-accent"
-                            }`}
-                          >
-                            {entry.title || "Untitled"}
-                          </p>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] uppercase tracking-tighter text-muted-foreground font-bold">
-                              {entry.createdAt
-                                ? new Date(entry.createdAt).toLocaleDateString(
-                                    "en-US",
-                                    { month: "short", day: "numeric" },
-                                  )
-                                : "New"}
-                            </span>
+                      <div className="p-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex justify-between items-start">
+                            <p
+                              className={cn(
+                                "transition-colors truncate pr-4 font-bold",
+                                isActive ? "text-accent" : "text-foreground group-hover:text-accent"
+                              )}
+                            >
+                              {entry.title || "Untitled"}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] uppercase tracking-tighter text-muted-foreground font-bold">
+                                {entry.createdAt
+                                  ? new Date(entry.createdAt).toLocaleDateString(
+                                      "en-US",
+                                      { month: "short", day: "numeric" },
+                                    )
+                                  : "New"}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground italic font-medium">
-                            <BookOpen className="w-3 h-3 text-accent/60" />
-                            <span className="truncate">
-                              {entry.scriptureReference || "No reference"}
-                            </span>
-                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground italic font-medium">
+                              <BookOpen className="w-3 h-3 text-accent/60" />
+                              <span className="truncate">
+                                {entry.scriptureReference || "No reference"}
+                              </span>
+                            </div>
 
-                          <div
-                            className={`flex items-center gap-1 transition-all ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
-                          >
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                selectEntry(entry);
-                              }}
-                              className="p-1.5 rounded-md hover:bg-accent/10 text-accent transition-colors"
+                            <div
+                              className={cn(
+                                "flex items-center gap-1 transition-all",
+                                isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                              )}
                             >
-                              <Edit3 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={(e) => handleDelete(id!, e)}
-                              className="p-1.5 rounded-md hover:bg-red-50 text-red-500 transition-colors"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  selectEntry(entry);
+                                }}
+                                className="h-8 w-8 text-accent"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={(e) => handleDelete(id!, e)}
+                                className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </Card>
                   );
                 })
               )}
             </div>
           </Card>
 
-          <div className="bg-accent/5 rounded-2xl border border-accent/10 p-6">
+          <Card variant="accent" className="bg-accent/5 border-accent/10 p-6">
             <h4 className="text-accent font-bold text-sm mb-2 flex items-center gap-2">
               <Edit3 className="w-4 h-4" />
               Spiritual Habit
@@ -347,7 +359,7 @@ export function SundayJournal() {
               Consistently recording your Sunday messages helps you retain 80%
               more of what you learned. Review your records weekly!
             </p>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

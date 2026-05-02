@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { ListFilter } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function SalvationRecordsTable({ data }: { data: any[] }) {
   const { searchTerm, setSearchTerm } = useSearch();
@@ -55,9 +56,11 @@ export default function SalvationRecordsTable({ data }: { data: any[] }) {
         </div>
         <div className="flex items-center gap-4 flex-wrap">
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-2">
-              <ListFilter className="w-4 h-4" />
-              Filter
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-2 h-auto py-1.5 font-normal">
+                <ListFilter className="w-4 h-4" />
+                Filter
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>All Sundays</DropdownMenuItem>

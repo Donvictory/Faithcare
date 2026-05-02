@@ -3,7 +3,6 @@ import {
   Sparkles,
   ArrowRight,
   User,
-  Mail,
   MapPin,
   Check,
   Loader2,
@@ -16,73 +15,70 @@ import { completeIndividualOnboarding } from "@/api/individual";
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
 import Logo from "../components/Logo";
+import { useForm } from "react-hook-form";
+import { Form } from "../components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { InputField } from "../components/ui/InputField";
+import { Button } from "@/components/ui/button";
+import z from "zod";
+
+const individualOnboardingSchema = z.object({
+  location: z.string().min(1, "Location is required"),
+  churchName: z.string().min(1, "Church name is required"),
+  goals: z.array(z.string()).min(1, "Please select at least one spiritual goal"),
+});
+
+type IndividualOnboardingValues = z.infer<typeof individualOnboardingSchema>;
+
+const goalOptions = [
+  { label: "Daily Bible reading", key: "dailyBibleReading" },
+  { label: "Daily prayer", key: "dailyPrayer" },
+  { label: "Consistent prayer life", key: "consistentPrayerLife" },
+  { label: "Scripture memorization", key: "scriptureMemorization" },
+  { label: "Spiritual journaling", key: "scripturalJournaling" },
+  { label: "Better time management", key: "betterTimeManagement" },
+  { label: "Deeper faith", key: "deeperFaith" },
+];
 
 export function IndividualOnboarding() {
-  const { user, accessToken, logout } = useAuth();
+  const { user, logout } = useAuth();
   const userId = user?.id || user?._id || user?.userId || "";
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<IndividualOnboardingValues>({
+    resolver: zodResolver(individualOnboardingSchema),
+    defaultValues: {
+      location: "",
+      churchName: "",
+      goals: [],
+    },
+  });
 
   const handleSignOut = async () => {
     await logout();
     navigate("/sign-in");
   };
 
-  const [formData, setFormData] = useState({
-    location: "",
-    churchId: "",
-    churchName: "",
-    goals: [] as string[],
-  });
-
-  const goalOptions = [
-    { label: "Daily Bible reading", key: "dailyBibleReading" },
-    { label: "Daily prayer", key: "dailyPrayer" },
-    { label: "Consistent prayer life", key: "consistentPrayerLife" },
-    { label: "Scripture memorization", key: "scriptureMemorization" },
-    { label: "Spiritual journaling", key: "scripturalJournaling" },
-    { label: "Better time management", key: "betterTimeManagement" },
-    { label: "Deeper faith", key: "deeperFaith" },
-  ];
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value });
-  };
-
-  const toggleGoal = (goalKey: string) => {
-    if (formData.goals.includes(goalKey)) {
-      setFormData({
-        ...formData,
-        goals: formData.goals.filter((g) => g !== goalKey),
-      });
-    } else {
-      setFormData({
-        ...formData,
-        goals: [...formData.goals, goalKey],
-      });
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: IndividualOnboardingValues) => {
     setIsLoading(true);
 
     const spiritualGoals = {
-      dailyBibleReading: formData.goals.includes("dailyBibleReading"),
-      dailyPrayer: formData.goals.includes("dailyPrayer"),
-      consistentPrayerLife: formData.goals.includes("consistentPrayerLife"),
-      scriptureMemorization: formData.goals.includes("scriptureMemorization"),
-      scripturalJournaling: formData.goals.includes("scripturalJournaling"),
-      betterTimeManagement: formData.goals.includes("betterTimeManagement"),
-      deeperFaith: formData.goals.includes("deeperFaith"),
+      dailyBibleReading: data.goals.includes("dailyBibleReading"),
+      dailyPrayer: data.goals.includes("dailyPrayer"),
+      consistentPrayerLife: data.goals.includes("consistentPrayerLife"),
+      scriptureMemorization: data.goals.includes("scriptureMemorization"),
+      scripturalJournaling: data.goals.includes("scripturalJournaling"),
+      betterTimeManagement: data.goals.includes("betterTimeManagement"),
+      deeperFaith: data.goals.includes("deeperFaith"),
     };
 
     const payload = {
-      userId: user?.id || user?._id || user?.userId || "",
-      location: formData.location,
-      organization: formData.churchId || "64a1f2c3e4b5d6e7f8a9b0c1", // Fallback ID
-      churchName: formData.churchName,
+      userId: userId,
+      location: data.location,
+      organization: "64a1f2c3e4b5d6e7f8a9b0c1", // Fallback ID
+      churchName: data.churchName,
       spiritualGoals: [spiritualGoals],
       dailyBibleReadingStreakCount: 0,
     };
@@ -141,14 +137,15 @@ export function IndividualOnboarding() {
 
       {/* Right Side - Form */}
       <div className="flex-1 flex items-center justify-center p-8 md:p-16 bg-background relative overflow-hidden">
-        <button 
+        <Button 
+          variant="outline"
           onClick={handleSignOut}
           type="button"
-          className="absolute top-8 right-8 z-50 flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground bg-secondary/30 hover:bg-secondary/50 border border-border/50 rounded-xl transition-all"
+          className="absolute top-8 right-8 z-50 text-muted-foreground hover:text-foreground bg-secondary/30 hover:bg-secondary/50 font-medium"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="w-4 h-4 mr-2" />
           Sign Out
-        </button>
+        </Button>
 
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px] -mr-64 -mt-64 opacity-30" />
         <div className="w-full max-w-2xl relative z-10">
@@ -162,99 +159,54 @@ export function IndividualOnboarding() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-12">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-3">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 opacity-60">
-                  Location
-                </label>
-                <div className="relative group">
-                  <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors opacity-60" />
-                  <input
-                    type="text"
-                    placeholder="e.g. Lagos, Nigeria"
-                    value={formData.location}
-                    onChange={(e) =>
-                      handleInputChange("location", e.target.value)
-                    }
-                    className="w-full pl-14 pr-6 py-5 bg-secondary/30 border border-border/60 focus:border-accent focus:ring-4 focus:ring-accent/5 rounded-[24px] outline-none transition-all text-foreground font-bold tracking-tight text-lg"
-                  />
-                </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12">
+              <div className="grid md:grid-cols-2 gap-8">
+                <InputField
+                  control={form.control}
+                  name="location"
+                  label="Location"
+                  placeholder="e.g. Lagos, Nigeria"
+                  type="text"
+                  icon={MapPin}
+                />
+                
+                <InputField
+                  control={form.control}
+                  name="churchName"
+                  label="Your Church"
+                  placeholder="e.g. Grace Chapel"
+                  type="text"
+                  icon={Building2}
+                />
               </div>
-              <div className="space-y-3">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 opacity-60">
-                  Your Church
-                </label>
-                <div className="relative group">
-                  <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors opacity-60" />
-                  <input
-                    type="text"
-                    placeholder="e.g. Grace Chapel"
-                    value={formData.churchName}
-                    onChange={(e) =>
-                      handleInputChange("churchName", e.target.value)
-                    }
-                    className="w-full pl-14 pr-6 py-5 bg-secondary/30 border border-border/60 focus:border-accent focus:ring-4 focus:ring-accent/5 rounded-[24px] outline-none transition-all text-foreground font-bold tracking-tight text-lg"
-                  />
-                </div>
-              </div>
-            </div>
 
-            <div className="space-y-6">
-              <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 opacity-60">
-                  Spiritual Intentions
-                </label>
-                <p className="text-sm font-bold text-muted-foreground opacity-40 italic">
-                  Select as many as resonate with your current walk...
-                </p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {goalOptions.map((goal) => (
-                  <button
-                    key={goal.key}
-                    type="button"
-                    onClick={() => toggleGoal(goal.key)}
-                    className={`p-6 rounded-[28px] border-2 transition-all text-left flex items-center justify-between group relative overflow-hidden active:scale-95 ${
-                      formData.goals.includes(goal.key)
-                        ? "border-accent bg-accent/5 ring-4 ring-accent/5"
-                        : "border-border/60 hover:border-accent/40 bg-card/40"
-                    }`}
-                  >
-                    <span
-                      className={`text-sm font-bold tracking-tight transition-colors ${formData.goals.includes(goal.key) ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"}`}
-                    >
-                      {goal.label}
+                <InputField
+                  control={form.control}
+                  name="goals"
+                  label="Spiritual Intentions"
+                  description="Select as many as resonate with your current walk..."
+                  type="card-multi-select"
+                  options={goalOptions.map(g => ({ label: g.label, value: g.key }))}
+                  className="space-y-4"
+                />
+
+              <Button
+                isLoading={isLoading}
+                type="submit"
+                className="w-full mt-8 shadow-2xl shadow-primary/20 group font-bold"
+              >
+                {isLoading ? "Beginning..." : (
+                  <>
+                    <span className="text-lg uppercase tracking-widest">
+                      Begin Your Journey
                     </span>
-                    <div
-                      className={`w-6 h-6 rounded-xl border-2 flex items-center justify-center transition-all duration-500 ${formData.goals.includes(goal.key) ? "bg-accent border-accent rotate-0 scale-100" : "border-muted group-hover:border-accent/40 rotate-90 scale-90"}`}
-                    >
-                      {formData.goals.includes(goal.key) && (
-                        <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              disabled={isLoading}
-              type="submit"
-              className="w-full flex items-center justify-center gap-4 px-10 py-6 bg-primary text-primary-foreground rounded-[28px] hover:bg-primary/90 transition-all font-bold shadow-2xl shadow-primary/20 active:scale-95 disabled:opacity-50 group mt-8"
-            >
-              {isLoading ? (
-                <div className="w-6 h-6 border-4 border-primary-foreground/20 border-t-primary-foreground rounded-full animate-spin" />
-              ) : (
-                <>
-                  <span className="text-lg uppercase tracking-widest">
-                    Begin Your Journey
-                  </span>
-                  <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-1" />
-                </>
-              )}
-            </button>
-          </form>
+                    <ArrowRight className="w-6 h-6 ml-2 transition-transform group-hover:translate-x-1" />
+                  </>
+                )}
+              </Button>
+            </form>
+          </Form>
         </div>
       </div>
     </div>

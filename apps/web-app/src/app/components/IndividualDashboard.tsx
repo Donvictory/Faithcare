@@ -18,10 +18,10 @@ import {
   completeIndividualOnboarding,
 } from "@/api/individual";
 import { Link } from "react-router-dom";
-import { LoadingScreen } from "./LoadingScreen";
 import { toast } from "react-hot-toast";
 import { useSearch } from "../contexts/SearchContext";
-import { Card } from "./ui/card";
+import { Card, CardTitle, CardDescription } from "./ui/card";
+import { Button } from "@/components/ui/button";
 
 export function IndividualDashboard() {
   const { setHeader, addNotification } = useLayout();
@@ -164,21 +164,31 @@ export function IndividualDashboard() {
       const metadataItem = Array.isArray(metadataResponse.data)
         ? metadataResponse.data[0]
         : metadataResponse.data;
-        
+
       const currentStreak =
         metadataItem?.dailyBibleReadingStreakCount ?? metadataItem?.streak ?? 0;
       const metadataId = metadataItem?._id || metadataItem?.id;
 
       const today = new Date();
-      const utcToday = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+      const utcToday = Date.UTC(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+      );
 
       // Use DB lastLoginDate if available, fallback to localStorage
-      const lastLoginStr = metadataItem?.lastLoginDate || localStorage.getItem(`lastStreakUpdate_${userId}`);
+      const lastLoginStr =
+        metadataItem?.lastLoginDate ||
+        localStorage.getItem(`lastStreakUpdate_${userId}`);
       const lastUpdate = lastLoginStr ? new Date(lastLoginStr) : null;
       let utcLastUpdate = null;
-      
+
       if (lastUpdate) {
-        utcLastUpdate = Date.UTC(lastUpdate.getFullYear(), lastUpdate.getMonth(), lastUpdate.getDate());
+        utcLastUpdate = Date.UTC(
+          lastUpdate.getFullYear(),
+          lastUpdate.getMonth(),
+          lastUpdate.getDate(),
+        );
       }
 
       // If already logged in today, do nothing
@@ -191,11 +201,17 @@ export function IndividualDashboard() {
           lastLoginDate: today.toISOString(),
         }).then((res) => {
           if (res.success) {
-            localStorage.setItem(`lastStreakUpdate_${userId}`, today.toISOString());
-            queryClient.invalidateQueries({ queryKey: ["individual-metadata", userId] });
+            localStorage.setItem(
+              `lastStreakUpdate_${userId}`,
+              today.toISOString(),
+            );
+            queryClient.invalidateQueries({
+              queryKey: ["individual-metadata", userId],
+            });
             addNotification({
               title: "First Login Streak!",
-              description: "We're glad to have you. Your journey of spiritual growth starts today.",
+              description:
+                "We're glad to have you. Your journey of spiritual growth starts today.",
               time: "Just now",
               icon: "Sparkles",
               color: "text-accent",
@@ -205,9 +221,10 @@ export function IndividualDashboard() {
           }
         });
       } else {
-        const diffDays = utcLastUpdate !== null 
-          ? Math.round((utcToday - utcLastUpdate) / (1000 * 60 * 60 * 24)) 
-          : null;
+        const diffDays =
+          utcLastUpdate !== null
+            ? Math.round((utcToday - utcLastUpdate) / (1000 * 60 * 60 * 24))
+            : null;
 
         if (diffDays === null) {
           // Missing history entirely
@@ -217,8 +234,13 @@ export function IndividualDashboard() {
               lastLoginDate: today.toISOString(),
             }).then((res) => {
               if (res.success) {
-                localStorage.setItem(`lastStreakUpdate_${userId}`, today.toISOString());
-                queryClient.invalidateQueries({ queryKey: ["individual-metadata", userId] });
+                localStorage.setItem(
+                  `lastStreakUpdate_${userId}`,
+                  today.toISOString(),
+                );
+                queryClient.invalidateQueries({
+                  queryKey: ["individual-metadata", userId],
+                });
               }
             });
           } else if (metadataId) {
@@ -227,8 +249,13 @@ export function IndividualDashboard() {
               lastLoginDate: today.toISOString(),
             }).then((res) => {
               if (res.success) {
-                localStorage.setItem(`lastStreakUpdate_${userId}`, today.toISOString());
-                queryClient.invalidateQueries({ queryKey: ["individual-metadata", userId] });
+                localStorage.setItem(
+                  `lastStreakUpdate_${userId}`,
+                  today.toISOString(),
+                );
+                queryClient.invalidateQueries({
+                  queryKey: ["individual-metadata", userId],
+                });
               }
             });
           }
@@ -239,8 +266,13 @@ export function IndividualDashboard() {
             lastLoginDate: today.toISOString(),
           }).then((res) => {
             if (res.success) {
-              localStorage.setItem(`lastStreakUpdate_${userId}`, today.toISOString());
-              queryClient.invalidateQueries({ queryKey: ["individual-metadata", userId] });
+              localStorage.setItem(
+                `lastStreakUpdate_${userId}`,
+                today.toISOString(),
+              );
+              queryClient.invalidateQueries({
+                queryKey: ["individual-metadata", userId],
+              });
               addNotification({
                 title: "Login Maintained",
                 description: `You've logged in for ${currentStreak + 1} consecutive days!`,
@@ -259,8 +291,13 @@ export function IndividualDashboard() {
             lastLoginDate: today.toISOString(),
           }).then((res) => {
             if (res.success) {
-              localStorage.setItem(`lastStreakUpdate_${userId}`, today.toISOString());
-              queryClient.invalidateQueries({ queryKey: ["individual-metadata", userId] });
+              localStorage.setItem(
+                `lastStreakUpdate_${userId}`,
+                today.toISOString(),
+              );
+              queryClient.invalidateQueries({
+                queryKey: ["individual-metadata", userId],
+              });
             }
           });
         }
@@ -301,7 +338,9 @@ export function IndividualDashboard() {
 
   if (isMetadataLoading || isJournalsLoading || isTimerLoading) {
     return (
-      <LoadingScreen churchName={user?.churchName || user?.organizationName} />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 text-accent animate-spin" />
+      </div>
     );
   }
 
@@ -315,60 +354,43 @@ export function IndividualDashboard() {
       </p>
       <div className="space-y-6 md:space-y-8 max-w-7xl mx-auto">
         {/* Welcome Section */}
-        <div className="bg-card rounded-3xl p-5 sm:p-8 border border-border relative overflow-hidden shadow-xl shadow-accent/5">
+        <Card className="relative overflow-hidden shadow-xl shadow-accent/5 p-5 sm:p-8">
           <div className="absolute top-0 right-0 p-6 sm:p-10 opacity-[0.03] dark:opacity-[0.07]">
             <Sparkles className="w-48 h-48 sm:w-64 sm:h-64 text-accent" />
           </div>
           <div className="relative z-10 flex flex-col md:flex-row items-start justify-between gap-6 sm:gap-8">
             <div className="flex-1 space-y-2">
-              <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+              <CardTitle className="text-xl sm:text-2xl">
                 Peace be with you.
-              </h2>
-              <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-5xl leading-relaxed opacity-80">
+              </CardTitle>
+              <CardDescription className="text-sm sm:text-base max-w-5xl leading-relaxed opacity-80 pb-6">
                 You've completed {journalCount} meditations this month. Your
                 commitment to your spiritual walk is inspiring.
-              </p>
-              <Link
-                to="/daily-scripture"
-                className="inline-flex items-center justify-center px-8 sm:px-10 py-3 sm:py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 font-bold text-sm sm:text-base"
+              </CardDescription>
+              <Button
+                href="/daily-scripture"
+                className="inline-flex px-8 sm:px-10 shadow-xl shadow-primary/20"
               >
                 Today's Scripture
-              </Link>
+              </Button>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Live Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              // <Card key={stat.title}>
-              //   <div className="flex items-start justify-between">
-              //     <div>
-              //       <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] mb-3">
-              //         {stat.title}
-              //       </p>
-              //       <p className="text-3xl text-foreground group-hover:text-accent transition-colors">
-              //         {stat.value}
-              //       </p>
-              //     </div>
-              //     <div
-              //       className="p-4 rounded-2xl transition-all duration-500 group-hover:rotate-12 group-hover:scale-110 shadow-inner"
-              //       style={{ backgroundColor: `${stat.color}15` }}
-              //     >
-              //       <Icon className="w-6 h-6" style={{ color: stat.color }} />
-              //     </div>
-              //   </div>
-              // </Card>
-
               <Card>
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs sm:text-sm font-semibold mb-2 sm:mb-3 text-accent-foreground/70">
+                    <p className="text-xs sm:text-sm font-medium mb-1 sm:mb-2 text-accent-foreground/70">
                       {stat.title}
                     </p>
-                    <h3 className="text-2xl sm:text-3xl font-bold">{stat.value}</h3>
+                    <h3 className="text-lg sm:text-xl font-bold leading-tight">
+                      {stat.value}
+                    </h3>
                   </div>
                   <div
                     className="w-12 h-12 rounded-lg flex items-center justify-center"
@@ -385,7 +407,7 @@ export function IndividualDashboard() {
         {/* Progress and Journals */}
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Recent Bible Entries (Real) */}
-          <Card padding="lg" radius="lg">
+          <Card padding="lg">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
                 <div className="p-2 bg-accent/10 rounded-lg">
@@ -393,12 +415,13 @@ export function IndividualDashboard() {
                 </div>
                 {searchTerm ? `Search:"${searchTerm}"` : "Latest Meditations"}
               </h3>
-              <Link
-                to="/sunday-journal"
-                className="text-[10px] text-accent hover:underline uppercase tracking-widest bg-accent/5 px-3 py-1.5 rounded-full font-bold"
+              <Button
+                asChild
+                variant="ghost"
+                className="h-auto p-0 text-[10px] text-accent uppercase tracking-widest bg-accent/5 px-3 py-1.5 rounded-full hover:bg-accent/10"
               >
-                View All
-              </Link>
+                <Link to="/sunday-journal">View All</Link>
+              </Button>
             </div>
 
             <div className="space-y-4">
@@ -406,48 +429,61 @@ export function IndividualDashboard() {
                 filteredJournals
                   .slice(0, 3)
                   .map((entry: any, index: number) => (
-                    <div
+                    <Card
+                      asChild
                       key={entry._id || index}
-                      className="p-5 rounded-2xl border border-border hover:bg-muted/40 transition-all cursor-pointer group"
+                      variant="interactive"
+                      padding="none"
+                      className="group"
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm text-foreground group-hover:text-accent transition-colors">
-                          {entry.title}
+                      <Link
+                        to={`/sunday-journal/${entry._id}`}
+                        className="p-5 block"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-sm text-foreground group-hover:text-accent transition-colors">
+                            {entry.title}
+                          </p>
+                          <p className="text-[10px] font-bold text-muted-foreground bg-muted/50 px-2 py-0.5 rounded uppercase">
+                            {new Date(entry.createdAt).toLocaleDateString(
+                              undefined,
+                              { month: "short", day: "numeric" },
+                            )}
+                          </p>
+                        </div>
+                        <p className="text-xs text-accent italic opacity-80 font-medium">
+                          {entry.scriptureReference}
                         </p>
-                        <p className="text-[10px] font-bold text-muted-foreground bg-muted/50 px-2 py-0.5 rounded uppercase">
-                          {new Date(entry.createdAt).toLocaleDateString(
-                            undefined,
-                            { month: "short", day: "numeric" },
-                          )}
-                        </p>
-                      </div>
-                      <p className="text-xs text-accent italic opacity-80 font-medium">
-                        {entry.scriptureReference}
-                      </p>
-                    </div>
+                      </Link>
+                    </Card>
                   ))
               ) : (
-                <div className="py-16 text-center bg-muted/20 rounded-2xl border border-dashed border-border">
+                <Card
+                  variant="ghost"
+                  padding="xl"
+                  className="text-center rounded-lg"
+                >
                   <BookOpen className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
                   <p className="text-sm text-muted-foreground italic">
                     {searchTerm
                       ? `No meditations found matching"${searchTerm}"`
                       : "Begin your first entry to track your growth."}
                   </p>
-                </div>
+                </Card>
               )}
             </div>
 
-            <Link
-              to="/sunday-journal"
-              className="block w-full mt-8 px-4 py-4 bg-muted/40 text-foreground rounded-2xl hover:bg-muted/60 transition-all border border-border text-center text-sm"
+            <Button
+              href="/sunday-journal"
+              variant="outline"
+              className="w-full mt-8 bg-muted/40"
             >
               Write New Entry
-            </Link>
+            </Button>
           </Card>
 
           {/* Consistency Tracking */}
-          <Card padding="lg" radius="lg">
+          <Card padding="lg">
             <h3 className="text-xl font-bold text-foreground mb-10 flex items-center gap-3">
               <div className="p-2 bg-green-500/10 rounded-lg">
                 <TrendingUp className="w-5 h-5 text-green-500" />
@@ -520,7 +556,7 @@ export function IndividualDashboard() {
         </div>
 
         {/* Quick Tools */}
-        <Card padding="lg" radius="lg">
+        <Card padding="lg">
           <h3 className="text-xl font-bold text-foreground mb-8">
             Spiritual Disciplines
           </h3>
@@ -531,16 +567,20 @@ export function IndividualDashboard() {
               { to: "/focus-timer", icon: Timer, label: "Focus" },
               { to: "/settings", icon: TrendingUp, label: "Insights" },
             ].map((tool) => (
-              <Link
+              <Card
+                asChild
                 key={tool.to}
-                to={tool.to}
-                className="p-4 sm:p-8 rounded-3xl bg-muted/20 border border-border hover:border-accent hover:bg-accent/5 transition-all text-center group active:scale-95"
+                variant="interactive"
+                padding="none"
+                className="group active:scale-95"
               >
-                <tool.icon className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-4 text-accent transition-all group-hover:scale-125 group-hover:rotate-12" />
-                <p className="text-[10px] sm:text-sm font-bold text-foreground uppercase tracking-widest">
-                  {tool.label}
-                </p>
-              </Link>
+                <Link to={tool.to} className="p-4 sm:p-8 block text-center">
+                  <tool.icon className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-4 text-accent transition-all group-hover:scale-125 group-hover:rotate-12" />
+                  <p className="text-[10px] sm:text-sm font-bold text-foreground uppercase tracking-widest">
+                    {tool.label}
+                  </p>
+                </Link>
+              </Card>
             ))}
           </div>
         </Card>

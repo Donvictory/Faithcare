@@ -22,9 +22,9 @@ import {
   getTimerSessions,
 } from "@/api/individual";
 import { toast } from "react-hot-toast";
-import { LoadingScreen } from "./LoadingScreen";
 import { useSearch } from "../contexts/SearchContext";
 import { Card } from "./ui/card";
+import { Button } from "@/components/ui/button";
 
 interface TimerSession {
   _id: string;
@@ -302,7 +302,9 @@ export function FocusTimer() {
 
   if (isInitializing) {
     return (
-      <LoadingScreen churchName={user?.churchName || user?.organizationName} />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 text-accent animate-spin" />
+      </div>
     );
   }
 
@@ -332,12 +334,12 @@ export function FocusTimer() {
                   "Whatever you do, work at it with all your heart, as working
                   for the Lord..."
                 </blockquote>
-                <button
+                <Button
                   onClick={handleReset}
-                  className="px-12 py-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all font-bold shadow-lg shadow-primary/20 active:scale-95"
+                  className="px-12 py-4 font-bold shadow-lg shadow-primary/20"
                 >
                   Start New Session
-                </button>
+                </Button>
               </div>
             ) : (
               <>
@@ -382,9 +384,9 @@ export function FocusTimer() {
                   </div>
                 </div>
                 <div className="flex items-center justify-center gap-6">
-                  <button
+                  <Button
                     onClick={handleStartPause}
-                    className="flex items-center gap-3 px-12 py-5 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 font-bold"
+                    className="flex items-center gap-3 px-12 py-5 shadow-xl shadow-primary/20 font-bold"
                   >
                     {isRunning ? (
                       <>
@@ -395,14 +397,15 @@ export function FocusTimer() {
                         <Play className="w-6 h-6 fill-current ml-1" /> Start
                       </>
                     )}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="outline"
                     onClick={handleReset}
-                    className="p-5 border-2 border-border rounded-2xl hover:bg-muted transition-all text-foreground active:scale-90"
+                    className="h-16 w-16 border-neutral-200"
                     title="Reset Timer"
                   >
                     <RotateCcw className="w-6 h-6" />
-                  </button>
+                  </Button>
                 </div>
               </>
             )}
@@ -427,23 +430,27 @@ export function FocusTimer() {
                         setTimeLeft(mins * 60);
                         setTotalDuration(mins * 60);
                       }}
-                      className="w-full pl-12 pr-4 py-4 bg-muted/50 border-2 border-transparent focus:border-accent rounded-2xl outline-none transition-all text-xl font-bold"
+                      className="w-full pl-12 pr-4 py-4 bg-muted/50 border border-neutral-200 focus:border-accent rounded-lg outline-none transition-all text-xl font-bold"
                       placeholder="Minutes"
                     />
                   </div>
                   <div className="flex gap-2">
                     {[15, 25, 45, 60].map((mins) => (
-                      <button
+                      <Button
                         key={mins}
+                        variant={parseInt(customMinutes) === mins ? "default" : "outline"}
                         onClick={() => {
                           setCustomMinutes(mins.toString());
                           setTimeLeft(mins * 60);
                           setTotalDuration(mins * 60);
                         }}
-                        className={`flex-1 px-4 py-4 rounded-2xl border-2 transition-all font-bold ${parseInt(customMinutes) === mins ? "bg-accent border-accent text-white shadow-lg shadow-accent/20" : "bg-card border-border hover:border-accent/40"}`}
+                        className={cn(
+                          "flex-1 h-16 font-bold",
+                          parseInt(customMinutes) === mins ? "shadow-lg shadow-accent/20 bg-accent hover:bg-accent/90" : "border-neutral-200 hover:border-accent/40"
+                        )}
                       >
                         {mins}m
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
@@ -484,7 +491,7 @@ export function FocusTimer() {
                 filteredHistory.map((session) => (
                   <div
                     key={session._id || session.id}
-                    className="group bg-muted/40 hover:bg-muted/80 border border-border/50 rounded-2xl p-4 transition-all duration-300 shadow-sm"
+                    className="group bg-muted/40 hover:bg-muted/80 border border-transparent hover:border-neutral-200 rounded-lg p-4 transition-all duration-300 shadow-sm"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex gap-3">
@@ -521,14 +528,16 @@ export function FocusTimer() {
                           </p>
                         </div>
                       </div>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() =>
                           handleDeleteHistory(session._id || session.id!)
                         }
-                        className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                        className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))

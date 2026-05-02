@@ -4,6 +4,7 @@ import { ChangePasswordForm } from "../components/ChangePasswordForm";
 import { Card } from "../components/ui/card";
 import { Lock, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export function ChangePassword() {
   const { setHeader } = useLayout();
@@ -15,13 +16,14 @@ export function ChangePassword() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <button
+      <Button
+        variant="ghost"
         onClick={() => navigate("/settings")}
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 p-0 h-auto font-medium"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Settings
-      </button>
+      </Button>
 
       <Card>
         <div className="flex items-center gap-3 mb-6">

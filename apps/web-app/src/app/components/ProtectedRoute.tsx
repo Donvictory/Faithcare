@@ -1,16 +1,16 @@
 import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/app/providers/AuthProvider";
-import { LoadingScreen } from "@/app/components/LoadingScreen";
 import UnauthorizedPage from "@/app/Pages/UnauthorizedPage";
 import { useQuery } from "@tanstack/react-query";
 import { getMetadataByUserId } from "@/api/individual";
+import { LoadingScreen } from "./LoadingScreen";
 
 interface ProtectedRouteProps {
   /** Role strings that are allowed to access this route (case-insensitive).
    *  Omit to allow any authenticated user regardless of role. */
   allowedRoles?: string[];
-  /** Optional children — render as a layout wrapper. Omit when used as a
+  /** Optional children â€” render as a layout wrapper. Omit when used as a
    *  plain <Route element> so it falls through to <Outlet />. */
   children?: React.ReactNode;
 }
@@ -28,21 +28,25 @@ export default function ProtectedRoute({
   const { data: metadataRes, isLoading: isMetadataLoading } = useQuery({
     queryKey: ["userMetadata", user?.id || user?._id],
     queryFn: () => getMetadataByUserId(user?.id || user?._id),
-    enabled: !!accessToken && userType === "individual" && !!(user?.id || user?._id),
+    enabled:
+      !!accessToken && userType === "individual" && !!(user?.id || user?._id),
     retry: false,
   });
 
-  // Wait for the auth state and metadata check to resolve before making any access decision
-  if (isAuthLoading || (userType === "individual" && isMetadataLoading && !!accessToken)) {
+  // Wait for auth state or the metadata check to resolve before making any access decision
+  if (
+    isAuthLoading ||
+    (userType === "individual" && isMetadataLoading && !!accessToken)
+  ) {
     return <LoadingScreen />;
   }
 
-  // Not authenticated — redirect to sign-in
+  // Not authenticated â€” redirect to sign-in
   if (!accessToken) {
     return <Navigate to="/sign-in" replace />;
   }
 
-  // Role guard — only applied when allowedRoles is explicitly provided
+  // Role guard â€” only applied when allowedRoles is explicitly provided
   if (
     allowedRoles &&
     allowedRoles.length > 0 &&
@@ -51,7 +55,7 @@ export default function ProtectedRoute({
     return <UnauthorizedPage />;
   }
 
-  // ── Onboarding Checks ──
+  // â”€â”€ Onboarding Checks â”€â”€
 
   // Admin Check
   if (
@@ -60,9 +64,18 @@ export default function ProtectedRoute({
     user?.role === "ADMIN"
   ) {
     // If backend already provides isOnboarded, use it. Otherwise rely on organizationId check.
-    if (user?.isOnboarded === false || (user?.isOnboarded === undefined && !user?.organizationId)) {
+    if (
+      user?.isOnboarded === false ||
+      (user?.isOnboarded === undefined && !user?.organizationId)
+    ) {
       if (location.pathname !== "/organization-onboarding") {
-        return <Navigate to="/organization-onboarding" replace state={{ from: location }} />;
+        return (
+          <Navigate
+            to="/organization-onboarding"
+            replace
+            state={{ from: location }}
+          />
+        );
       }
     } else if (location.pathname === "/organization-onboarding") {
       // User is already onboarded, prevent access to onboarding page
@@ -73,9 +86,19 @@ export default function ProtectedRoute({
   // Individual Check
   if (userType === "individual") {
     // If backend already provides isOnboarded, use it. Otherwise rely on metadata check.
-    if (user?.isOnboarded === false || (user?.isOnboarded === undefined && (!metadataRes?.success || !metadataRes?.data))) {
+    if (
+      user?.isOnboarded === false ||
+      (user?.isOnboarded === undefined &&
+        (!metadataRes?.success || !metadataRes?.data))
+    ) {
       if (location.pathname !== "/individual-onboarding") {
-        return <Navigate to="/individual-onboarding" replace state={{ from: location }} />;
+        return (
+          <Navigate
+            to="/individual-onboarding"
+            replace
+            state={{ from: location }}
+          />
+        );
       }
     } else if (location.pathname === "/individual-onboarding") {
       // User is already onboarded, prevent access to onboarding page

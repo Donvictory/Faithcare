@@ -3,9 +3,8 @@ import { useLayout } from "../contexts/LayoutContext";
 import { useAuth } from "../providers/AuthProvider";
 import { useQuery } from "@tanstack/react-query";
 import { getDashboardTrends, getFirstTimers, getFollowUps } from "@/api/church";
-import { UserPlus, CheckCircle, Heart, TrendingUp } from "lucide-react";
+import { UserPlus, CheckCircle, Heart, TrendingUp, Loader2 } from "lucide-react";
 import { DashboardOverview } from "./DashboardOverview";
-import { LoadingScreen } from "./LoadingScreen";
 import { useSearch } from "../contexts/SearchContext";
 import { Card } from "./ui/card";
 import {
@@ -15,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Button } from "@/components/ui/button";
+import { Badge } from "./ui/badge";
 
 export function OrganizationDashboard() {
   const { setHeader } = useLayout();
@@ -87,9 +88,9 @@ export function OrganizationDashboard() {
 
   if (leadsLoading) {
     return (
-      <LoadingScreen
-        churchName={user?.churchName || user?.name || "FaithCare"}
-      />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 text-accent animate-spin" />
+      </div>
     );
   }
 
@@ -117,9 +118,12 @@ export function OrganizationDashboard() {
               <h3 className="text-lg font-bold text-foreground">
                 {searchTerm ? `Activity:"${searchTerm}"` : "Recent Activity"}
               </h3>
-              <button className="text-[10px] text-accent hover:underline uppercase tracking-widest bg-accent/5 px-3 py-1.5 rounded-full font-medium">
+              <Button
+                variant="ghost"
+                className="h-auto p-0 text-[10px] text-accent uppercase tracking-widest bg-accent/5 px-3 py-1.5 rounded-full hover:bg-accent/10"
+              >
                 Live Feed
-              </button>
+              </Button>
             </div>
             <div className="space-y-4">
               {filteredActivity.length > 0 ? (
@@ -128,7 +132,7 @@ export function OrganizationDashboard() {
                   .map((activity: any, index: number) => (
                     <div
                       key={index}
-                      className="flex items-start gap-4 p-4 rounded-xl hover:bg-muted/30 transition-all border border-transparent hover:border-border"
+                      className="flex items-start gap-4 p-4 rounded-lg hover:bg-muted/30 transition-all border border-transparent hover:border-neutral-200"
                     >
                       <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
                         <UserPlus className="w-6 h-6 text-accent" />
@@ -202,9 +206,9 @@ export function OrganizationDashboard() {
                 </div>
               )}
             </div>
-            <button className="w-full mt-6 px-4 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg active:scale-95 font-medium">
+            <Button className="w-full mt-6 shadow-lg">
               Manage All Follow Ups
-            </button>
+            </Button>
           </Card>
         </div>
       </div>
@@ -212,12 +216,4 @@ export function OrganizationDashboard() {
   );
 }
 
-function Badge({ children, className }: any) {
-  return (
-    <span
-      className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider border ${className}`}
-    >
-      {children}
-    </span>
-  );
-}
+

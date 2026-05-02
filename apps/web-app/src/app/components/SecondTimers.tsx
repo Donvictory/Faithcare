@@ -1,10 +1,10 @@
-import { useLayout } from "../contexts/LayoutContext";
+﻿import { useLayout } from "../contexts/LayoutContext";
 import { useEffect, useState } from "react";
 import { CheckCircle, Send, Loader2, Plus } from "lucide-react";
 import { useSearch } from "../contexts/SearchContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card } from "./ui/card";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import SecondTimersTable from "./SecondTimersTable";
 import { getFirstTimers } from "@/api/church";
 import { useAuth } from "../providers/AuthProvider";
@@ -22,7 +22,7 @@ export function SecondTimers() {
   const queryClient = useQueryClient();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Uses its own "second-timers" key — completely isolated from "first-timers" queries.
+  // Uses its own "second-timers" key â€” completely isolated from "first-timers" queries.
   // Only refreshes when:
   //   1. "Make second timer" button is clicked (invalidates ["second-timers"])
   //   2. A member is manually added via the modal below (invalidates ["second-timers"])
@@ -110,7 +110,7 @@ export function SecondTimers() {
         </Button>
       </div>
 
-      {/* Only invalidates 'second-timers' — first-timers page is never touched */}
+      {/* Only invalidates 'second-timers' â€” first-timers page is never touched */}
       <AddMemberModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}

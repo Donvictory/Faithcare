@@ -9,24 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "./ui/form";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { Textarea } from "./ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
+import { Form } from "./ui/form";
+import { Button } from "@/components/ui/button";
+import { InputField } from "./ui/InputField";
 import { toast } from "react-hot-toast";
 import {
   createFirstTimer,
@@ -39,9 +24,9 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
-// ── Schemas ────────────────────────────────────────────────────────────────
+// â”€â”€ Schemas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// Accepts E.164 format (+<country code><number>, 8–16 digits total) or
+// Accepts E.164 format (+<country code><number>, 8â€“16 digits total) or
 // common local formats with optional spaces/dashes (min 7 digits stripped).
 const phoneRegex = /^\+?[1-9]\d{6,14}$/;
 const phoneValidation = z
@@ -87,7 +72,7 @@ const followUpSchema = z.object({
   dueDate: z.string().min(1, "Due date is required"),
 });
 
-// ── Types ───────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface AddMemberModalProps {
   isOpen: boolean;
@@ -101,14 +86,13 @@ interface AddMemberModalProps {
   onSuccess: () => void;
 }
 
-// ── Shared field styles ─────────────────────────────────────────────────────
+// â”€â”€ Shared field styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const labelCls =
-  "text-xs uppercase tracking-widest text-muted-foreground font-bold";
-const inputCls = "rounded-xl border-border bg-muted/20 h-12";
-const selectCls = "rounded-xl border-border bg-muted/20 h-12";
+  "text-base text-muted-foreground ml-1 font-medium mb-2 block";
+const inputCls = "rounded-xl border-neutral-200 bg-muted/20 h-11 sm:h-12";
 
-// ── Component ───────────────────────────────────────────────────────────────
+// â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function AddMemberModal({
   isOpen,
@@ -249,7 +233,7 @@ export function AddMemberModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[520px] rounded-3xl p-5 sm:p-8 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[520px] rounded-lg p-5 sm:p-8 max-h-[90vh] overflow-y-auto border-neutral-200">
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight">
             Add New {title.slice(0, -1)}
@@ -264,294 +248,179 @@ export function AddMemberModal({
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4 mt-4"
           >
-            {/* ── Name ── */}
-            <FormField
+            {/* â”€â”€ Name â”€â”€ */}
+            <InputField
               control={form.control}
               name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={labelCls}>Full Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Amara Nwosu"
-                      className={inputCls}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Full Name"
+              placeholder="Amara Nwosu"
+              type="text"
+              labelClassName={labelCls}
+              inputClassName={inputCls}
             />
 
-            {/* ── Email + Phone ── */}
+            {/* â”€â”€ Email + Phone â”€â”€ */}
             <div className="grid grid-cols-2 gap-4">
-              <FormField
+              <InputField
                 control={form.control}
                 name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelCls}>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="amara@example.com"
-                        className={inputCls}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Email"
+                placeholder="amara@example.com"
+                type="email"
+                labelClassName={labelCls}
+                inputClassName={inputCls}
               />
-              <FormField
+
+              <InputField
                 control={form.control}
                 name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelCls}>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="+2349087654321"
-                        className={inputCls}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Phone Number"
+                placeholder="+2349087654321"
+                type="text"
+                labelClassName={labelCls}
+                inputClassName={inputCls}
               />
             </div>
 
-            {/* ── First / Second Timer fields ── */}
+            {/* â”€â”€ First / Second Timer fields â”€â”€ */}
             {isFirstOrSecond && (
               <>
-                {/* Visit Type — read-only, locked to the form type */}
-                <FormField
+                <InputField
                   control={form.control}
                   name="visitType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className={labelCls}>Visit Type</FormLabel>
-                      {/* Hidden input keeps the value registered in the form */}
+                  label="Visit Type"
+                  type="custom"
+                  labelClassName={labelCls}
+                >
+                  {(field) => (
+                    <>
                       <input type="hidden" {...field} />
-                      <FormControl>
-                        <div className={`${inputCls} flex items-center px-4 text-foreground/80 bg-muted/30 cursor-not-allowed select-none`}>
-                          {type === "second-timers" ? "Second Time" : "First Time"}
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                      <div className={`${inputCls} flex items-center px-4 text-foreground/80 bg-muted/30 cursor-not-allowed select-none`}>
+                        {type === "second-timers" ? "Second Time" : "First Time"}
+                      </div>
+                    </>
                   )}
-                />
+                </InputField>
 
-                {/* Service Date */}
-                <FormField
+                <InputField
                   control={form.control}
                   name="serviceDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className={labelCls}>Service Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" className={inputCls} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Service Date"
+                  type="text"
+                  labelClassName={labelCls}
+                  inputClassName={inputCls}
                 />
 
-                {/* Prayer Request */}
-                <FormField
+                <InputField
                   control={form.control}
                   name="prayerRequest"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className={labelCls}>
-                        Prayer Request{" "}
-                        <span className="normal-case text-muted-foreground/60">
-                          (optional)
-                        </span>
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Trusting God for a new job opportunity."
-                          className="rounded-xl border-border bg-muted/20 min-h-[90px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Prayer Request (optional)"
+                  placeholder="Trusting God for a new job opportunity."
+                  type="textarea"
+                  labelClassName={labelCls}
+                  inputClassName="rounded-lg border-neutral-200 bg-muted/20 min-h-[90px]"
                 />
 
-                {/* First Timer ID (optional, hidden unless populated) */}
-                <FormField
+                <InputField
                   control={form.control}
                   name="firstTimerId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className={labelCls}>
-                        First Timer ID{" "}
-                        <span className="normal-case text-muted-foreground/60">
-                          (optional)
-                        </span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Leave blank to auto-assign"
-                          className={inputCls}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="First Timer ID (optional)"
+                  placeholder="Leave blank to auto-assign"
+                  type="text"
+                  labelClassName={labelCls}
+                  inputClassName={inputCls}
                 />
               </>
             )}
 
-            {/* ── Salvation Record fields ── */}
+            {/* â”€â”€ Salvation Record fields â”€â”€ */}
             {type === "salvation-records" && (
               <>
-                <FormField
+                <InputField
                   control={form.control}
                   name="dateOfDecision"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className={labelCls}>
-                        Date of Decision
-                      </FormLabel>
-                      <FormControl>
-                        <Input type="date" className={inputCls} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Date of Decision"
+                  type="text"
+                  labelClassName={labelCls}
+                  inputClassName={inputCls}
                 />
-                <FormField
+
+                <InputField
                   control={form.control}
                   name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className={labelCls}>Notes (optional)</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Made decision during altar call..."
-                          className="rounded-xl border-border bg-muted/20 min-h-[90px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Notes (optional)"
+                  placeholder="Made decision during altar call..."
+                  type="textarea"
+                  labelClassName={labelCls}
+                  inputClassName="rounded-lg border-neutral-200 bg-muted/20 min-h-[90px]"
                 />
               </>
             )}
 
-            {/* ── Prayer Request fields ── */}
+            {/* â”€â”€ Prayer Request fields â”€â”€ */}
             {type === "prayer-requests" && (
               <>
-                <FormField
+                <InputField
                   control={form.control}
                   name="request"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className={labelCls}>Prayer Request</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Details of the request..."
-                          className="rounded-xl border-border bg-muted/20 min-h-[100px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Prayer Request"
+                  placeholder="Details of the request..."
+                  type="textarea"
+                  labelClassName={labelCls}
+                  inputClassName="rounded-lg border-neutral-200 bg-muted/20 min-h-[100px]"
                 />
-                <FormField
+
+                <InputField
                   control={form.control}
                   name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className={labelCls}>Priority</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className={selectCls}>
-                            <SelectValue placeholder="Select priority" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="rounded-2xl border-border">
-                          <SelectItem value="HIGH">High</SelectItem>
-                          <SelectItem value="MEDIUM">Medium</SelectItem>
-                          <SelectItem value="LOW">Low</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Priority"
+                  type="select"
+                  options={[
+                    { value: "HIGH", label: "High" },
+                    { value: "MEDIUM", label: "Medium" },
+                    { value: "LOW", label: "Low" },
+                  ]}
+                  placeholder="Select priority"
+                  labelClassName={labelCls}
                 />
               </>
             )}
 
-            {/* ── Follow-up fields ── */}
+            {/* â”€â”€ Follow-up fields â”€â”€ */}
             {type === "follow-ups" && (
               <>
-                <FormField
+                <InputField
                   control={form.control}
                   name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className={labelCls}>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Follow up details..."
-                          className="rounded-xl border-border bg-muted/20 min-h-[100px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Description"
+                  placeholder="Follow up details..."
+                  type="textarea"
+                  labelClassName={labelCls}
+                  inputClassName="rounded-lg border-neutral-200 bg-muted/20 min-h-[100px]"
                 />
+
                 <div className="grid grid-cols-2 gap-4">
-                  <FormField
+                  <InputField
                     control={form.control}
                     name="dueDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={labelCls}>Due Date</FormLabel>
-                        <FormControl>
-                          <Input type="date" className={inputCls} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Due Date"
+                    type="text"
+                    labelClassName={labelCls}
+                    inputClassName={inputCls}
                   />
-                  <FormField
+
+                  <InputField
                     control={form.control}
                     name="priority"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={labelCls}>Priority</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className={selectCls}>
-                              <SelectValue placeholder="Select priority" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="rounded-2xl border-border">
-                            <SelectItem value="HIGH">High</SelectItem>
-                            <SelectItem value="MEDIUM">Medium</SelectItem>
-                            <SelectItem value="LOW">Low</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Priority"
+                    type="select"
+                    options={[
+                      { value: "HIGH", label: "High" },
+                      { value: "MEDIUM", label: "Medium" },
+                      { value: "LOW", label: "Low" },
+                    ]}
+                    placeholder="Select priority"
+                    labelClassName={labelCls}
                   />
                 </div>
               </>
@@ -562,18 +431,14 @@ export function AddMemberModal({
                 type="button"
                 variant="ghost"
                 onClick={onClose}
-                className="rounded-xl h-12"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading}
-                className="rounded-xl h-12 px-8 bg-primary text-primary-foreground"
+                isLoading={isLoading}
+                className="px-8"
               >
-                {isLoading && (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                )}
                 Add Entry
               </Button>
             </DialogFooter>

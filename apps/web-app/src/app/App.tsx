@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+﻿import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { SignIn } from "./Pages/SignIn";
 import { LandingPage } from "./Pages/LandingPage";
 import { SignUpChoice } from "./Pages/SignUpChoice";
@@ -38,7 +38,7 @@ export default function App() {
       <Toaster position="top-center" reverseOrder={false} />
       <AuthProvider>
         <Routes>
-          {/* ── Public routes ── */}
+          {/* â”€â”€ Public routes â”€â”€ */}
           <Route path="/" element={<LandingPage />} />
 
           <Route element={<GuestRoute />}>
@@ -64,7 +64,7 @@ export default function App() {
             />
           </Route>
 
-          {/* ── Protected routes — AppLayout handles auth guard + renders Sidebar/Header ── */}
+          {/* â”€â”€ Protected routes â€” AppLayout handles auth guard + renders Sidebar/Header â”€â”€ */}
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/settings" element={<Settings />} />
@@ -88,7 +88,7 @@ export default function App() {
             <Route path="/bulk-messaging" element={<BulkMessaging />} />
           </Route>
 
-          {/* ── Fallbacks ── */}
+          {/* â”€â”€ Fallbacks â”€â”€ */}
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

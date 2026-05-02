@@ -13,41 +13,68 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
-import { completeOrganizationOnboarding, getOrganizationBySlug } from "@/api/church";
+import {
+  completeOrganizationOnboarding,
+  getOrganizationBySlug,
+} from "@/api/church";
 import { toast } from "react-hot-toast";
-import { LoadingScreen } from "../components/LoadingScreen";
 import Logo from "../components/Logo";
 import SearchableSelect from "../components/ui/SearchableSelect";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form } from "../components/ui/form";
+import { InputField } from "../components/ui/InputField";
+import z from "zod";
+import { Button } from "@/components/ui/button";
+
+const orgSchema = z.object({
+  churchName: z.string().min(1, "Church name is required"),
+  denomination: z.string().optional(),
+  address: z.string().min(1, "Address is required"),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
+  zipCode: z.string().min(1, "ZIP Code is required"),
+  phone: z.string().min(1, "Phone number is required"),
+  website: z.string().optional(),
+  memberCount: z.string().optional(),
+  role: z.string().min(1, "Role is required"),
+});
+
+type OrgValues = z.infer<typeof orgSchema>;
 
 export function OrganizationOnboarding() {
   const navigate = useNavigate();
-  const { accessToken, user, setUser, logout } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [isSearchingChurch, setIsSearchingChurch] = useState(false);
+  const [churchOptions, setChurchOptions] = useState<
+    { id: string; name: string }[]
+  >([]);
+
+  const totalSteps = 3;
+
+  const form = useForm<OrgValues>({
+    resolver: zodResolver(orgSchema),
+    defaultValues: {
+      churchName: "",
+      denomination: "",
+      address: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      phone: "",
+      website: "",
+      memberCount: "",
+      role: "",
+    },
+    mode: "onChange",
+  });
 
   const handleSignOut = async () => {
     await logout();
     navigate("/sign-in");
-  };
-  const [isSearchingChurch, setIsSearchingChurch] = useState(false);
-  const [churchOptions, setChurchOptions] = useState<{ id: string; name: string }[]>([]);
-  const [formData, setFormData] = useState({
-    churchName: "",
-    denomination: "",
-    address: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    phone: "",
-    website: "",
-    memberCount: "",
-    role: "",
-  });
-
-  const totalSteps = 3;
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value });
   };
 
   const handleChurchSearch = async (searchTerm: string) => {
@@ -55,7 +82,7 @@ export function OrganizationOnboarding() {
       setChurchOptions([]);
       return;
     }
-    
+
     setIsSearchingChurch(true);
     const slug = searchTerm
       .toLowerCase()
@@ -63,7 +90,7 @@ export function OrganizationOnboarding() {
       .replace(/[^\w-]+/g, "");
 
     const res = await getOrganizationBySlug(slug);
-    
+
     if (res.success && res.data) {
       setChurchOptions([res.data]);
     } else {
@@ -72,8 +99,21 @@ export function OrganizationOnboarding() {
     setIsSearchingChurch(false);
   };
 
-  const handleNext = () => {
-    if (step < totalSteps) {
+  const handleNext = async () => {
+    let isValid = false;
+    if (step === 1) {
+      isValid = await form.trigger([
+        "churchName",
+        "address",
+        "city",
+        "state",
+        "zipCode",
+      ]);
+    } else if (step === 2) {
+      isValid = await form.trigger(["phone", "website"]);
+    }
+
+    if (isValid && step < totalSteps) {
       setStep(step + 1);
     }
   };
@@ -83,224 +123,225 @@ export function OrganizationOnboarding() {
       setStep(step - 1);
     }
   };
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (step === totalSteps) {
-      setIsLoading(true);
-      const payload = {
-        name: formData.churchName,
-        slug: formData.churchName
-          .toLowerCase()
-          .replace(/ /g, "-")
-          .replace(/[^\w-]+/g, ""),
-        email: user?.email || localStorage.getItem("pendingEmail") || "",
-        denomination: formData.denomination.toUpperCase(),
-        address: formData.address,
-        city: formData.city,
-        state: formData.state,
-        zipCode: formData.zipCode,
-        phoneNumber: formData.phone,
-        websiteUrl: formData.website,
-        memberCountRange: formData.memberCount,
-        organizationRole: formData.role.toUpperCase().replace(/-/g, "_"),
-      };
 
-      const res = await completeOrganizationOnboarding(payload);
-      setIsLoading(false);
-
-      if (res.success) {
-        if (res.data) {
-          setUser({ ...user, organizationId: res.data.id });
-        }
-        toast.success("Profile set up successfully!");
-        navigate("/dashboard");
-      } else {
-        toast.error(res.error || "Failed to complete setup");
-      }
-    } else {
+  const onSubmit = async (data: OrgValues) => {
+    if (step !== totalSteps) {
       handleNext();
+      return;
+    }
+
+    setIsLoading(true);
+    const payload = {
+      name: data.churchName,
+      slug: data.churchName
+        .toLowerCase()
+        .replace(/ /g, "-")
+        .replace(/[^\w-]+/g, ""),
+      email: user?.email || localStorage.getItem("pendingEmail") || "",
+      denomination: data.denomination?.toUpperCase() || "",
+      address: data.address,
+      city: data.city,
+      state: data.state,
+      zipCode: data.zipCode,
+      phoneNumber: data.phone,
+      websiteUrl: data.website || "",
+      memberCountRange: data.memberCount || "",
+      organizationRole: data.role.toUpperCase().replace(/-/g, "_"),
+    };
+
+    const res = await completeOrganizationOnboarding(payload);
+    setIsLoading(false);
+
+    if (res.success) {
+      if (res.data) {
+        setUser({ ...user, organizationId: res.data.id });
+      }
+      toast.success("Profile set up successfully!");
+      navigate("/dashboard");
+    } else {
+      toast.error(res.error || "Failed to complete setup");
     }
   };
 
-  if (isLoading) {
-    return <LoadingScreen churchName={formData.churchName} />;
-  }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="min-h-screen bg-background flex font-sans"
-    >
-      {/* Left Side - Progress & Info */}
-      <div className="hidden lg:flex flex-col w-96 bg-gradient-to-br from-accent/10 to-accent/5 p-12">
-        <div className="mb-12">
-          <Logo />
-          <h2 className="text-3xl font-bold text-foreground mb-3">
-            Welcome to FaithCare
-          </h2>
-          <p className="text-muted-foreground leading-relaxed">
-            Let's set up your church profile in just a few steps
-          </p>
-        </div>
-
-        {/* Progress Steps */}
-        <div className="space-y-8 flex-1">
-          <div
-            className={`flex gap-4 ${step >= 1 ? "opacity-100" : "opacity-40"}`}
-          >
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
-                step > 1
-                  ? "bg-accent border-accent shadow-lg shadow-accent/20"
-                  : step === 1
-                    ? "border-accent"
-                    : "border-border"
-              }`}
-            >
-              {step > 1 ? (
-                <Check className="w-5 h-5 text-white" />
-              ) : (
-                <span
-                  className={`font-bold ${step === 1 ? "text-accent" : "text-muted-foreground"}`}
-                >
-                  1
-                </span>
-              )}
-            </div>
-            <div>
-              <p className="text-foreground font-bold">Church Information</p>
-              <p className="text-xs text-muted-foreground">
-                Basic details about your church
-              </p>
-            </div>
-          </div>
-
-          <div
-            className={`flex gap-4 ${step >= 2 ? "opacity-100" : "opacity-40"}`}
-          >
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
-                step > 2
-                  ? "bg-accent border-accent shadow-lg shadow-accent/20"
-                  : step === 2
-                    ? "border-accent"
-                    : "border-border"
-              }`}
-            >
-              {step > 2 ? (
-                <Check className="w-5 h-5 text-white" />
-              ) : (
-                <span
-                  className={`font-bold ${step === 2 ? "text-accent" : "text-muted-foreground"}`}
-                >
-                  2
-                </span>
-              )}
-            </div>
-            <div>
-              <p className="text-foreground font-bold">Contact Details</p>
-              <p className="text-xs text-muted-foreground">
-                How to reach your church
-              </p>
-            </div>
-          </div>
-
-          <div
-            className={`flex gap-4 ${step >= 3 ? "opacity-100" : "opacity-40"}`}
-          >
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
-                step > 3
-                  ? "bg-accent border-accent shadow-lg shadow-accent/20"
-                  : step === 3
-                    ? "border-accent"
-                    : "border-border"
-              }`}
-            >
-              {step > 3 ? (
-                <Check className="w-5 h-5 text-white" />
-              ) : (
-                <span
-                  className={`font-bold ${step === 3 ? "text-accent" : "text-muted-foreground"}`}
-                >
-                  3
-                </span>
-              )}
-            </div>
-            <div>
-              <p className="text-foreground font-bold">Additional Info</p>
-              <p className="text-xs text-muted-foreground">
-                Help us personalize your experience
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Features */}
-        <div className="mt-12 space-y-4 bg-white/50 rounded-2xl p-6 border border-accent/10 shadow-inner">
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">
-            What you'll get:
-          </p>
-          <div className="flex items-center gap-3 text-sm text-foreground">
-            <div className="w-5 h-5 rounded-full flex items-center justify-center bg-success/10 border border-success/20">
-              <Check className="w-3 h-3 text-success" />
-            </div>
-            Member care management
-          </div>
-          <div className="flex items-center gap-3 text-sm text-foreground">
-            <div className="w-5 h-5 rounded-full flex items-center justify-center bg-success/10 border border-success/20">
-              <Check className="w-3 h-3 text-success" />
-            </div>
-            Prayer request tracking
-          </div>
-          <div className="flex items-center gap-3 text-sm text-foreground">
-            <div className="w-5 h-5 rounded-full flex items-center justify-center bg-success/10 border border-success/20">
-              <Check className="w-3 h-3 text-success" />
-            </div>
-            Spiritual productivity tools
-          </div>
-          <div className="flex items-center gap-3 text-sm text-foreground">
-            <div className="w-5 h-5 rounded-full flex items-center justify-center bg-success/10 border border-success/20">
-              <Check className="w-3 h-3 text-success" />
-            </div>
-            Follow-up automation
-          </div>
-        </div>
-      </div>
-
-      {/* Right Side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-background relative">
-        <button 
-          onClick={handleSignOut}
-          type="button"
-          className="absolute top-8 right-8 z-50 flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground bg-secondary/30 hover:bg-secondary/50 border border-border/50 rounded-xl transition-all"
-        >
-          <LogOut className="w-4 h-4" />
-          Sign Out
-        </button>
-
-        <div className="w-full max-w-2xl mt-8">
-          {/* Mobile Logo */}
-          <Logo className="lg:hidden" />
-
-          {/* Step Indicator */}
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="min-h-screen bg-background flex font-sans"
+      >
+        {/* Left Side - Progress & Info */}
+        <div className="hidden lg:flex flex-col w-96 bg-gradient-to-br from-accent/10 to-accent/5 p-12">
           <div className="mb-12">
-            <div className="flex items-center gap-4 mb-4">
-              <span className="text-xs text-muted-foreground uppercase tracking-widest">
-                Step {step} of {totalSteps}
-              </span>
-              <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden shadow-inner">
-                <div
-                  className="h-full bg-accent transition-all duration-1000 shadow-[0_0_8px_rgba(212,165,116,0.3)]"
-                  style={{ width: `${(step / totalSteps) * 100}%` }}
-                ></div>
+            <Logo />
+            <h2 className="text-3xl font-bold text-foreground mb-3">
+              Welcome to FaithCare
+            </h2>
+            <p className="text-muted-foreground leading-relaxed">
+              Let's set up your church profile in just a few steps
+            </p>
+          </div>
+
+          {/* Progress Steps */}
+          <div className="space-y-8 flex-1">
+            <div
+              className={`flex gap-4 ${step >= 1 ? "opacity-100" : "opacity-40"}`}
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
+                  step > 1
+                    ? "bg-accent border-accent shadow-lg shadow-accent/20"
+                    : step === 1
+                      ? "border-accent"
+                      : "border-border"
+                }`}
+              >
+                {step > 1 ? (
+                  <Check className="w-5 h-5 text-white" />
+                ) : (
+                  <span
+                    className={`font-bold ${step === 1 ? "text-accent" : "text-muted-foreground"}`}
+                  >
+                    1
+                  </span>
+                )}
+              </div>
+              <div>
+                <p className="text-foreground font-bold">Church Information</p>
+                <p className="text-xs text-muted-foreground">
+                  Basic details about your church
+                </p>
+              </div>
+            </div>
+
+            <div
+              className={`flex gap-4 ${step >= 2 ? "opacity-100" : "opacity-40"}`}
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
+                  step > 2
+                    ? "bg-accent border-accent shadow-lg shadow-accent/20"
+                    : step === 2
+                      ? "border-accent"
+                      : "border-border"
+                }`}
+              >
+                {step > 2 ? (
+                  <Check className="w-5 h-5 text-white" />
+                ) : (
+                  <span
+                    className={`font-bold ${step === 2 ? "text-accent" : "text-muted-foreground"}`}
+                  >
+                    2
+                  </span>
+                )}
+              </div>
+              <div>
+                <p className="text-foreground font-bold">Contact Details</p>
+                <p className="text-xs text-muted-foreground">
+                  How to reach your church
+                </p>
+              </div>
+            </div>
+
+            <div
+              className={`flex gap-4 ${step >= 3 ? "opacity-100" : "opacity-40"}`}
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
+                  step > 3
+                    ? "bg-accent border-accent shadow-lg shadow-accent/20"
+                    : step === 3
+                      ? "border-accent"
+                      : "border-border"
+                }`}
+              >
+                {step > 3 ? (
+                  <Check className="w-5 h-5 text-white" />
+                ) : (
+                  <span
+                    className={`font-bold ${step === 3 ? "text-accent" : "text-muted-foreground"}`}
+                  >
+                    3
+                  </span>
+                )}
+              </div>
+              <div>
+                <p className="text-foreground font-bold">Additional Info</p>
+                <p className="text-xs text-muted-foreground">
+                  Help us personalize your experience
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Step 1: Church Information */}
-          {step === 1 && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {/* Features */}
+          <div className="mt-12 space-y-4 bg-white/50 rounded-2xl p-6 border border-accent/10 shadow-inner">
+            <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">
+              What you'll get:
+            </p>
+            <div className="flex items-center gap-3 text-sm text-foreground">
+              <div className="w-5 h-5 rounded-full flex items-center justify-center bg-success/10 border border-success/20">
+                <Check className="w-3 h-3 text-success" />
+              </div>
+              Member care management
+            </div>
+            <div className="flex items-center gap-3 text-sm text-foreground">
+              <div className="w-5 h-5 rounded-full flex items-center justify-center bg-success/10 border border-success/20">
+                <Check className="w-3 h-3 text-success" />
+              </div>
+              Prayer request tracking
+            </div>
+            <div className="flex items-center gap-3 text-sm text-foreground">
+              <div className="w-5 h-5 rounded-full flex items-center justify-center bg-success/10 border border-success/20">
+                <Check className="w-3 h-3 text-success" />
+              </div>
+              Spiritual productivity tools
+            </div>
+            <div className="flex items-center gap-3 text-sm text-foreground">
+              <div className="w-5 h-5 rounded-full flex items-center justify-center bg-success/10 border border-success/20">
+                <Check className="w-3 h-3 text-success" />
+              </div>
+              Follow-up automation
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side - Form */}
+        <div className="flex-1 flex items-center justify-center p-8 bg-background relative">
+          <Button
+            variant="outline"
+            onClick={handleSignOut}
+            type="button"
+            className="absolute top-8 right-8 z-50 text-muted-foreground hover:text-foreground bg-secondary/30 hover:bg-secondary/50 font-medium"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
+
+          <div className="w-full max-w-2xl mt-8">
+            {/* Mobile Logo */}
+            <Logo className="lg:hidden" />
+
+            {/* Step Indicator */}
+            <div className="mb-12">
+              <div className="flex items-center gap-4 mb-4">
+                <span className="text-xs text-muted-foreground uppercase tracking-widest">
+                  Step {step} of {totalSteps}
+                </span>
+                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden shadow-inner">
+                  <div
+                    className="h-full bg-accent transition-all duration-1000 shadow-[0_0_8px_rgba(212,165,116,0.3)]"
+                    style={{ width: `${(step / totalSteps) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 1: Church Information */}
+            <div
+              className={`space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ${step === 1 ? "block" : "hidden"}`}
+            >
               <div className="mb-10">
                 <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
                   Church Information
@@ -311,159 +352,127 @@ export function OrganizationOnboarding() {
               </div>
 
               <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground ml-1">
-                    Church Name *
-                  </label>
-                  <SearchableSelect
-                    placeholder="Grace Community Church"
-                    value={formData.churchName}
-                    onInputChange={(value) => handleInputChange("churchName", value)}
-                    onSearch={handleChurchSearch}
-                    options={churchOptions}
-                    isLoading={isSearchingChurch}
-                    getDisplayValue={(item) => item.name}
-                    getStringValue={(item) => item.name}
-                    getListDisplayValue={(item: any) => (
-                      <div className="flex flex-col gap-1.5 py-1.5">
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="font-bold text-foreground text-base leading-tight">
-                            {item.name}
-                          </span>
-                          {item.denomination && (
-                            <span className="text-[10px] uppercase tracking-wider bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
-                              {item.denomination}
+                <InputField
+                  control={form.control}
+                  name="churchName"
+                  label="Church Name *"
+                  type="custom"
+                  className="space-y-2"
+                >
+                  {(field) => (
+                    <SearchableSelect
+                      placeholder="Grace Community Church"
+                      value={field.value}
+                      onInputChange={(value) => field.onChange(value)}
+                      onSearch={handleChurchSearch}
+                      options={churchOptions}
+                      isLoading={isSearchingChurch}
+                      getDisplayValue={(item) => item.name}
+                      getStringValue={(item) => item.name}
+                      getListDisplayValue={(item: any) => (
+                        <div className="flex flex-col gap-1.5 py-1.5">
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="font-bold text-foreground text-base leading-tight">
+                              {item.name}
                             </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground font-medium">
-                          {(item.city || item.state) && (
-                            <div className="flex items-center gap-1">
-                              <MapPin className="w-3.5 h-3.5 opacity-70" />
-                              <span className="truncate max-w-[150px]">
-                                {[item.city, item.state].filter(Boolean).join(", ")}
+                            {item.denomination && (
+                              <span className="text-[10px] uppercase tracking-wider bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
+                                {item.denomination}
                               </span>
-                            </div>
-                          )}
-                          {item.memberCountRange && (
-                            <div className="flex items-center gap-1">
-                              <Users className="w-3.5 h-3.5 opacity-70" />
-                              <span>{item.memberCountRange} members</span>
-                            </div>
-                          )}
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground font-medium">
+                            {(item.city || item.state) && (
+                              <div className="flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5 opacity-70" />
+                                <span className="truncate max-w-[150px]">
+                                  {[item.city, item.state]
+                                    .filter(Boolean)
+                                    .join(", ")}
+                                </span>
+                              </div>
+                            )}
+                            {item.memberCountRange && (
+                              <div className="flex items-center gap-1">
+                                <Users className="w-3.5 h-3.5 opacity-70" />
+                                <span>{item.memberCountRange} members</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    onSelect={(item) => {
-                      if (item) {
-                        handleInputChange("churchName", item.name);
-                      }
-                    }}
-                    icon={<Building2 className="w-5 h-5" />}
-                    inputClassName="w-full pl-12 pr-5 py-4 bg-secondary/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground ml-1">
-                    Denomination / Affiliation
-                  </label>
-                  <select
-                    value={formData.denomination}
-                    onChange={(e) =>
-                      handleInputChange("denomination", e.target.value)
-                    }
-                    className="w-full px-5 py-4 bg-secondary/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg appearance-none cursor-pointer"
-                  >
-                    <option value="">Select denomination</option>
-                    <option value="non-denominational">
-                      Non-denominational
-                    </option>
-                    <option value="baptist">Baptist</option>
-                    <option value="methodist">Methodist</option>
-                    <option value="presbyterian">Presbyterian</option>
-                    <option value="pentecostal">Pentecostal</option>
-                    <option value="lutheran">Lutheran</option>
-                    <option value="episcopal">Episcopal</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground ml-1">
-                    Address *
-                  </label>
-                  <div className="relative group">
-                    <MapPin className="absolute left-4 top-4 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                    <input
-                      type="text"
-                      placeholder="123 Main Street"
-                      value={formData.address}
-                      onChange={(e) =>
-                        handleInputChange("address", e.target.value)
-                      }
-                      className="w-full pl-12 pr-5 py-4 bg-secondary/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg"
+                      )}
+                      onSelect={(item) => {
+                        if (item) {
+                          field.onChange(item.name);
+                        }
+                      }}
+                      icon={Building2}
                       required
                     />
-                  </div>
-                </div>
+                  )}
+                </InputField>
+
+                <InputField
+                  control={form.control}
+                  name="denomination"
+                  label="Denomination / Affiliation"
+                  type="select"
+                  options={[
+                    {
+                      value: "non-denominational",
+                      label: "Non-denominational",
+                    },
+                    { value: "baptist", label: "Baptist" },
+                    { value: "methodist", label: "Methodist" },
+                    { value: "presbyterian", label: "Presbyterian" },
+                    { value: "pentecostal", label: "Pentecostal" },
+                    { value: "lutheran", label: "Lutheran" },
+                    { value: "episcopal", label: "Episcopal" },
+                    { value: "other", label: "Other" },
+                  ]}
+                  placeholder="Select denomination"
+                />
+
+                <InputField
+                  control={form.control}
+                  name="address"
+                  label="Address *"
+                  placeholder="123 Main Street"
+                  type="text"
+                  icon={MapPin}
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm text-muted-foreground ml-1">
-                      City *
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="San Francisco"
-                      value={formData.city}
-                      onChange={(e) =>
-                        handleInputChange("city", e.target.value)
-                      }
-                      className="w-full px-5 py-4 bg-secondary/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm text-muted-foreground ml-1">
-                      State *
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="CA"
-                      value={formData.state}
-                      onChange={(e) =>
-                        handleInputChange("state", e.target.value)
-                      }
-                      className="w-full px-5 py-4 bg-secondary/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground ml-1">
-                    ZIP Code *
-                  </label>
-                  <input
+                  <InputField
+                    control={form.control}
+                    name="city"
+                    label="City *"
+                    placeholder="San Francisco"
                     type="text"
-                    placeholder="94102"
-                    value={formData.zipCode}
-                    onChange={(e) =>
-                      handleInputChange("zipCode", e.target.value)
-                    }
-                    className="w-full px-5 py-4 bg-secondary/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg"
-                    required
+                  />
+                  <InputField
+                    control={form.control}
+                    name="state"
+                    label="State *"
+                    placeholder="CA"
+                    type="text"
                   />
                 </div>
+
+                <InputField
+                  control={form.control}
+                  name="zipCode"
+                  label="ZIP Code *"
+                  placeholder="94102"
+                  type="text"
+                />
               </div>
             </div>
-          )}
 
-          {/* Step 2: Contact Details */}
-          {step === 2 && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Step 2: Contact Details */}
+            <div
+              className={`space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ${step === 2 ? "block" : "hidden"}`}
+            >
               <div className="mb-10">
                 <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
                   Contact Details
@@ -474,42 +483,23 @@ export function OrganizationOnboarding() {
               </div>
 
               <div className="space-y-8">
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground ml-1">
-                    Phone Number *
-                  </label>
-                  <div className="relative group">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                    <input
-                      type="tel"
-                      placeholder="(555) 123-4567"
-                      value={formData.phone}
-                      onChange={(e) =>
-                        handleInputChange("phone", e.target.value)
-                      }
-                      className="w-full pl-12 pr-5 py-4 bg-secondary/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg"
-                      required
-                    />
-                  </div>
-                </div>
+                <InputField
+                  control={form.control}
+                  name="phone"
+                  label="Phone Number *"
+                  placeholder="(555) 123-4567"
+                  type="text"
+                  icon={Phone}
+                />
 
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground ml-1">
-                    Website
-                  </label>
-                  <div className="relative group">
-                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                    <input
-                      type="url"
-                      placeholder="https://yourchurch.com"
-                      value={formData.website}
-                      onChange={(e) =>
-                        handleInputChange("website", e.target.value)
-                      }
-                      className="w-full pl-12 pr-5 py-4 bg-secondary/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg"
-                    />
-                  </div>
-                </div>
+                <InputField
+                  control={form.control}
+                  name="website"
+                  label="Website"
+                  placeholder="https://yourchurch.com"
+                  type="text"
+                  icon={Globe}
+                />
 
                 <div className="bg-accent/5 rounded-2xl p-8 border border-accent/20 shadow-inner">
                   <h4 className="text-lg font-bold text-foreground mb-4">
@@ -524,11 +514,11 @@ export function OrganizationOnboarding() {
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Step 3: Additional Info */}
-          {step === 3 && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Step 3: Additional Info */}
+            <div
+              className={`space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ${step === 3 ? "block" : "hidden"}`}
+            >
               <div className="mb-10">
                 <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
                   Additional Information
@@ -539,50 +529,39 @@ export function OrganizationOnboarding() {
               </div>
 
               <div className="space-y-8">
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground ml-1">
-                    Approximate Member Count
-                  </label>
-                  <div className="relative group">
-                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                    <select
-                      value={formData.memberCount}
-                      onChange={(e) =>
-                        handleInputChange("memberCount", e.target.value)
-                      }
-                      className="w-full pl-12 pr-5 py-4 bg-secondary/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg appearance-none cursor-pointer"
-                    >
-                      <option value="">Select member count</option>
-                      <option value="0-50">0-50 members</option>
-                      <option value="51-100">51-100 members</option>
-                      <option value="101-250">101-250 members</option>
-                      <option value="251-500">251-500 members</option>
-                      <option value="501-1000">501-1,000 members</option>
-                      <option value="1000+">1,000+ members</option>
-                    </select>
-                  </div>
-                </div>
+                <InputField
+                  control={form.control}
+                  name="memberCount"
+                  label="Approximate Member Count"
+                  type="select"
+                  options={[
+                    { value: "0-50", label: "0-50 members" },
+                    { value: "51-100", label: "51-100 members" },
+                    { value: "101-250", label: "101-250 members" },
+                    { value: "251-500", label: "251-500 members" },
+                    { value: "501-1000", label: "501-1,000 members" },
+                    { value: "1000+", label: "1,000+ members" },
+                  ]}
+                  placeholder="Select member count"
+                  icon={Users}
+                />
 
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground ml-1">
-                    Your Role *
-                  </label>
-                  <select
-                    value={formData.role}
-                    onChange={(e) => handleInputChange("role", e.target.value)}
-                    className="w-full px-5 py-4 bg-secondary/30 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg appearance-none cursor-pointer"
-                    required
-                  >
-                    <option value="">Select your role</option>
-                    <option value="senior-pastor">Senior Pastor</option>
-                    <option value="associate-pastor">Associate Pastor</option>
-                    <option value="youth-pastor">Youth Pastor</option>
-                    <option value="worship-leader">Worship Leader</option>
-                    <option value="administrator">Church Administrator</option>
-                    <option value="volunteer">Volunteer Leader</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
+                <InputField
+                  control={form.control}
+                  name="role"
+                  label="Your Role *"
+                  type="select"
+                  options={[
+                    { value: "senior-pastor", label: "Senior Pastor" },
+                    { value: "associate-pastor", label: "Associate Pastor" },
+                    { value: "youth-pastor", label: "Youth Pastor" },
+                    { value: "worship-leader", label: "Worship Leader" },
+                    { value: "administrator", label: "Church Administrator" },
+                    { value: "volunteer", label: "Volunteer Leader" },
+                    { value: "other", label: "Other" },
+                  ]}
+                  placeholder="Select your role"
+                />
 
                 <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-2xl p-8 border border-accent/20 shadow-xl shadow-accent/5">
                   <div className="flex items-start gap-5">
@@ -603,34 +582,35 @@ export function OrganizationOnboarding() {
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Navigation Buttons */}
-          <div className="flex items-center justify-between mt-12 pt-8 border-t border-border">
-            {step > 1 ? (
-              <button
-                onClick={handleBack}
-                className="flex items-center gap-2 px-8 py-4 border-2 border-border rounded-2xl hover:bg-secondary/50 transition-all text-foreground font-bold active:scale-95 shadow-sm"
-                type="button"
+            {/* Navigation Buttons */}
+            <div className="flex items-center justify-between mt-12 pt-8 border-t border-border">
+              {step > 1 ? (
+                <Button
+                  variant="outline"
+                  onClick={handleBack}
+                  type="button"
+                  className="px-8 font-bold border-2"
+                >
+                  <ArrowLeft className="w-5 h-5 mr-2" />
+                  Back
+                </Button>
+              ) : (
+                <div></div>
+              )}
+
+              <Button
+                type="submit"
+                isLoading={isLoading}
+                className="px-10 ml-auto shadow-xl shadow-primary/20 font-bold"
               >
-                <ArrowLeft className="w-5 h-5" />
-                Back
-              </button>
-            ) : (
-              <div></div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex items-center gap-3 px-10 py-4 bg-primary text-primary-foreground rounded-2xl font-bold hover:bg-primary/90 transition-all ml-auto shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
-            >
-              {step === totalSteps ? "Complete Setup" : "Continue"}
-              <ArrowRight className="w-5 h-5" />
-            </button>
+                {step === totalSteps ? "Complete Setup" : "Continue"}
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </Form>
   );
 }

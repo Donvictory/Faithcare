@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export interface SearchableSelectProps<T> {
   placeholder?: string;
@@ -13,7 +14,7 @@ export interface SearchableSelectProps<T> {
   getListDisplayValue?: (item: T) => React.ReactNode;
   value?: string;
   onInputChange?: (value: string) => void;
-  icon?: React.ReactNode;
+  icon?: any;
   containerClassName?: string;
   inputClassName?: string;
   required?: boolean;
@@ -148,8 +149,8 @@ const SearchableSelect = <T,>({
     <div className={`w-full relative inline-block ${containerClassName}`} ref={containerRef}>
       <div className="relative group">
         {icon && (
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-muted-foreground group-focus-within:text-accent transition-colors">
-            {icon}
+          <div className="absolute left-4.5 top-1/2 -translate-y-1/2 z-10 text-muted-foreground group-focus-within:text-accent transition-colors">
+            {React.isValidElement(icon) ? icon : React.createElement(icon, { className: "w-4 h-4", strokeWidth: 1.5 })}
           </div>
         )}
         <input
@@ -158,12 +159,14 @@ const SearchableSelect = <T,>({
           value={inputValue}
           onChange={handleInputChange}
           onFocus={handleInputFocus}
-          className={inputClassName || `w-full ${icon ? 'pl-12' : 'pl-4'} pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500`}
+          className={inputClassName || `w-full ${icon ? 'pl-12' : 'pl-4'} pr-10 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent`}
           required={required}
         />
-        <button
+        <Button
           type="button"
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100/50"
+          variant="ghost"
+          size="icon"
+          className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full hover:bg-gray-100/50"
           onClick={() => setIsOpen((o) => !o)}
           tabIndex={-1}
         >
@@ -172,7 +175,7 @@ const SearchableSelect = <T,>({
               isOpen ? "rotate-180" : ""
             }`}
           />
-        </button>
+        </Button>
       </div>
 
       {isOpen && (

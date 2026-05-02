@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 import Table from "./ui/table/Table";
 import { TableColumn } from "./ui/table/types";
 import { Card } from "./ui/card";
@@ -7,7 +7,7 @@ import { AddMemberModal } from "./AddMemberModal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { DataManagementActions } from "./DataManagementActions";
 
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { updateFirstTimerStatus, createFollowUp, updateFirstTimerVisitType } from "@/api/church";
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
@@ -34,7 +34,7 @@ export default function FirstTimersTable({ data }: { data: any[] }) {
   const followUpMutation = useMutation({
     mutationFn: (payload: any) => createFollowUp(organizationId, payload),
     onSuccess: (_, variables) => {
-      toast.success("Follow-up sent — status updated to Contacted");
+      toast.success("Follow-up sent â€” status updated to Contacted");
       // Update status to CONTACTED after a successful follow-up
       statusMutation.mutate({ id: variables.newMemberId, status: "CONTACTED" });
       queryClient.invalidateQueries({ queryKey: ["follow-ups"] });

@@ -1,17 +1,17 @@
-import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "./utils";
 
-// ─── Variant definition ────────────────────────────────────────────────────────
+// â”€â”€â”€ Variant definition â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-const cardVariants = cva("bg-card border border-border rounded-2xl", {
+const cardVariants = cva("bg-card border border-neutral-200 rounded-lg", {
   variants: {
     /**
-     * default    — no shadow, faint border. The standard in-app card style.
-     * elevated   — adds a subtle shadow for visual lift.
-     * interactive — hover lift + accent border tint; use for clickable cards.
-     * accent     — accent-tinted background; for callout or highlighted cards.
-     * ghost      — dashed border on muted bg; for empty-state placeholders.
+     * default    â€” no shadow, faint border. The standard in-app card style.
+     * elevated   â€” adds a subtle shadow for visual lift.
+     * interactive â€” hover lift + accent border tint; use for clickable cards.
+     * accent     â€” accent-tinted background; for callout or highlighted cards.
+     * ghost      â€” dashed border on muted bg; for empty-state placeholders.
      */
     variant: {
       default: "",
@@ -20,7 +20,7 @@ const cardVariants = cva("bg-card border border-border rounded-2xl", {
         "transition-all cursor-pointer hover:border-accent/40 hover:-translate-y-0.5 hover:shadow-sm",
       accent: "bg-accent/5 border-accent/20",
       ghost:
-        "bg-muted/10 border-2 border-dashed border-muted-foreground/20 rounded-3xl",
+        "bg-muted/10 border-2 border-dashed border-muted-foreground/20 rounded-lg",
     },
     /**
      * Padding shorthand. Use "none" for cards that contain full-bleed
@@ -35,9 +35,9 @@ const cardVariants = cva("bg-card border border-border rounded-2xl", {
     },
     /** Radius override for pages that need a tighter or looser rounding. */
     radius: {
-      sm: "rounded-xl",
-      default: "rounded-2xl",
-      lg: "rounded-3xl",
+      sm: "rounded-md",
+      default: "rounded-lg",
+      lg: "rounded-2xl",
     },
   },
   defaultVariants: {
@@ -47,36 +47,33 @@ const cardVariants = cva("bg-card border border-border rounded-2xl", {
   },
 });
 
-// ─── Card ──────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface CardProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof cardVariants> {}
+    VariantProps<typeof cardVariants> {
+  asChild?: boolean;
+}
 
 export function Card({
   variant,
   padding,
   radius,
   className,
-  children,
+  asChild = false,
   ...props
 }: CardProps) {
+  const Comp = asChild ? Slot : "div";
   return (
-    <div
-      className={cn(
-        cardVariants({ variant, padding, radius }),
-        className,
-        "p-6",
-      )}
+    <Comp
+      className={cn(cardVariants({ variant, padding, radius }), className)}
       {...props}
-    >
-      {children}
-    </div>
+    />
   );
 }
 
-// ─── Sub-components (structural card decomposition) ───────────────────────────
+// â”€â”€â”€ Sub-components (structural card decomposition) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function CardHeader({
   className,
@@ -128,7 +125,7 @@ export function CardFooter({
   return (
     <div
       className={cn(
-        "flex items-center justify-between mt-6 pt-4 border-t border-border",
+        "flex items-center justify-between mt-6 pt-4 border-t border-neutral-200",
         className,
       )}
       {...props}

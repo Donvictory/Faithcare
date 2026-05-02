@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { TableColumn, TableProps } from "./types";
 import { cn } from "@/app/components/ui/utils";
 import Pagination from "./Pagination";
+import { Button } from "@/components/ui/button";
 
 const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
   const {
@@ -113,7 +114,7 @@ const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
     <div className={cn("w-full", className)}>
       {/*
         Outer: carries the shadow and rounded corners.
-        NO overflow-hidden here — overflow-hidden clips box-shadow.
+        NO overflow-hidden here â€” overflow-hidden clips box-shadow.
       */}
       <div
         className={cn(
@@ -249,9 +250,10 @@ const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
                             className="relative inline-block text-left"
                             ref={dropdownRef}
                           >
-                            <button
-                              type="button"
-                              className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground shadow-sm hover:bg-muted transition-colors"
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="inline-flex items-center gap-1 h-9 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground shadow-sm hover:bg-muted transition-colors"
                               onClick={() => toggleDropdown(item.id)}
                             >
                               Actions
@@ -263,7 +265,7 @@ const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
                                     : "",
                                 )}
                               />
-                            </button>
+                            </Button>
                             {openDropdownId === item.id && (
                               <div className="absolute right-0 z-10 mt-1 w-40 origin-top-right rounded-xl border border-border bg-card shadow-lg overflow-hidden">
                                 {actions
@@ -273,19 +275,20 @@ const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
                                       action.condition(item),
                                   )
                                   .map((action, actionIndex) => (
-                                    <button
+                                    <Button
                                       key={actionIndex}
+                                      variant="ghost"
                                       onClick={() => {
                                         action.onClick(item);
                                         setOpenDropdownId(null);
                                       }}
                                       className={cn(
-                                        "block w-full px-4 py-2.5 text-left text-sm hover:bg-muted transition-colors",
+                                        "w-full px-4 py-2.5 text-left text-sm hover:bg-muted transition-colors justify-start h-auto rounded-none font-medium",
                                         action.className || "text-foreground",
                                       )}
                                     >
                                       {action.label}
-                                    </button>
+                                    </Button>
                                   ))}
                               </div>
                             )}

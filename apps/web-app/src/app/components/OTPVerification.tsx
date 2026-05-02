@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
-  Sparkles,
-  ArrowRight,
   ShieldCheck,
+  ArrowRight,
   RefreshCw,
   Loader2,
 } from "lucide-react";
@@ -10,9 +9,20 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { verifyOTP, resendOTP } from "@/api/auth";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../providers/AuthProvider";
-import { LoadingScreen } from "./LoadingScreen";
 import Logo from "./Logo";
 import ErrorMessage from "./ui/error-message";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form } from "./ui/form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { InputField } from "./ui/InputField";
+
+const otpSchema = z.object({
+  otp: z.string().length(6, "Please enter the full 6-digit code"),
+});
+
+type OtpValues = z.infer<typeof otpSchema>;
 
 export function OTPVerification() {
   const navigate = useNavigate();
@@ -23,13 +33,17 @@ export function OTPVerification() {
     localStorage.getItem("pendingEmail") ||
     "your email";
 
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isVerifying, setIsVerifying] = useState(false);
   const [resendTimer, setResendTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const form = useForm<OtpValues>({
+    resolver: zodResolver(otpSchema),
+    defaultValues: {
+      otp: "",
+    },
+  });
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -43,57 +57,11 @@ export function OTPVerification() {
     return () => clearInterval(interval);
   }, [resendTimer, canResend]);
 
-  const handleChange = (index: number, value: string) => {
-    if (isNaN(Number(value))) return;
-
-    const newOtp = [...otp];
-    newOtp[index] = value.substring(value.length - 1);
-    setOtp(newOtp);
-
-    // Move to next input if value is entered
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (
-    index: number,
-    e: React.KeyboardEvent<HTMLInputElement>,
-  ) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (pastedData) {
-      const newOtp = [...otp];
-      for (let i = 0; i < pastedData.length; i++) {
-        newOtp[i] = pastedData[i];
-      }
-      setOtp(newOtp);
-      
-      // Focus the next empty input or the last one
-      const nextIndex = Math.min(pastedData.length, 5);
-      inputRefs.current[nextIndex]?.focus();
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: OtpValues) => {
     setErrorMessage("");
 
-    const otpString = otp.join("");
-    if (otpString.length < 6) {
-      setErrorMessage("Please enter the full 6-digit code");
-      toast.error("Please enter the full 6-digit code");
-      return;
-    }
-
     setIsVerifying(true);
-    const res = await verifyOTP({ email, otp: otpString });
+    const res = await verifyOTP({ email, otp: data.otp });
     setIsVerifying(false);
 
     if (res.success) {
@@ -117,9 +85,9 @@ export function OTPVerification() {
         navigate("/organization-onboarding");
       }
     } else {
-      const errorMessage = res?.error || "Verification failed";
-      setErrorMessage(errorMessage);
-      toast.error(errorMessage);
+      const errorMsg = res?.error || "Verification failed";
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
@@ -153,9 +121,9 @@ export function OTPVerification() {
             ensure your account stays secure and private.
           </p>
 
-          <div className="bg-card rounded-2xl p-6 border border-accent/20 shadow-lg">
+          <div className="bg-card rounded-lg p-6 border border-neutral-200 shadow-lg">
             <div className="flex items-center gap-4 text-muted-foreground">
-              <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
                 <ShieldCheck className="w-6 h-6 text-accent" />
               </div>
               <div>
@@ -183,68 +151,62 @@ export function OTPVerification() {
               Enter the 6-digit code sent to{" "}
               <span className="text-foreground font-medium">{email}</span>
             </p>
-            <button
+            <Button
+              variant="link"
               onClick={() => navigate(-1)}
-              className="text-xs text-accent hover:underline mt-2 inline-block font-medium"
+              className="h-auto p-0 text-xs text-accent font-medium mt-2"
             >
               Entered the wrong email?
-            </button>
+            </Button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-10">
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                {otp.map((digit, index) => (
-                  <input
-                    key={index}
-                    ref={(el) => (inputRefs.current[index] = el)}
-                    type="text"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    onPaste={handlePaste}
-                    className="sm:w-16 w-12 sm:h-16 h-12 text-center text-3xl font-semibold bg-secondary/30 border border-neutral-300 rounded-md sm:rounded-2xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
+              <div className="space-y-3">
+                <div className="flex justify-center">
+                   <InputField
+                    control={form.control}
+                    name="otp"
+                    type="otp"
+                    otpLength={6}
                   />
-                ))}
+                </div>
+                {errorMessage && <ErrorMessage message={errorMessage} />}
               </div>
-              {errorMessage && <ErrorMessage message={errorMessage} />}
-            </div>
 
-            <div className="space-y-6">
-              <button
-                type="submit"
-                disabled={isVerifying}
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-medium hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
-              >
-                {isVerifying ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  <>
-                    Verify Code
-                    <ArrowRight className="w-5 h-5" />
-                  </>
-                )}
-              </button>
-
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={handleResend}
-                  disabled={!canResend}
-                  className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent/80 transition-all font-medium disabled:text-muted-foreground"
+              <div className="space-y-6">
+                <Button
+                  type="submit"
+                  isLoading={isVerifying}
+                  className="w-full shadow-xl shadow-primary/20"
                 >
-                  <RefreshCw
-                    className={`w-4 h-4 ${!canResend ? "animate-none" : ""}`}
-                  />
-                  {canResend ? "Resend Code" : `Resend in ${resendTimer}s`}
-                </button>
+                  {isVerifying ? (
+                    "Verifying..."
+                  ) : (
+                    <>
+                      Verify Code
+                      <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
+                </Button>
+
+                <div className="text-center">
+                  <Button
+                    variant="link"
+                    type="button"
+                    onClick={handleResend}
+                    disabled={!canResend}
+                    className="h-auto p-0 text-sm text-accent font-medium"
+                  >
+                    <RefreshCw
+                      className={`w-4 h-4 mr-2 ${!canResend ? "animate-none" : ""}`}
+                    />
+                    {canResend ? "Resend Code" : `Resend in ${resendTimer}s`}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
+          </Form>
 
           <p className="mt-12 text-center text-sm text-muted-foreground italic">
             Didn't receive the code? Check your spam folder or contact support.

@@ -1,4 +1,4 @@
-import { forgotPassword, resetPassword } from "@/api/auth";
+﻿import { forgotPassword, resetPassword } from "@/api/auth";
 import {
   Mail,
   ArrowRight,
@@ -16,6 +16,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Logo from "../components/Logo";
 import ErrorMessage from "../components/ui/error-message";
+import { Form } from "../components/ui/form";
+import { InputField } from "../components/ui/InputField";
+import { Button } from "@/components/ui/button";
 
 const emailSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -107,45 +110,32 @@ export default function ForgotPassword() {
                 </p>
               </div>
 
-              <form
-                onSubmit={emailForm.handleSubmit(onEmailSubmit)}
-                className="space-y-6"
-              >
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground ml-1">
-                    Email Address
-                  </label>
-                  <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                    <input
-                      {...emailForm.register("email")}
-                      type="email"
-                      placeholder="you@example.com"
-                      className={`w-full pl-12 pr-5 py-4 bg-secondary/30 border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg ${
-                        emailForm.formState.errors.email
-                          ? "border-destructive"
-                          : "border-border"
-                      }`}
-                    />
-                  </div>
-                  {emailForm.formState.errors.email && (
-                    <p className="text-xs text-destructive ml-1">
-                      {emailForm.formState.errors.email.message}
-                    </p>
-                  )}
-                </div>
+              <Form {...emailForm}>
+                <form
+                  onSubmit={emailForm.handleSubmit(onEmailSubmit)}
+                  className="space-y-6"
+                >
+                  <InputField
+                    control={emailForm.control}
+                    name="email"
+                    label="Email Address"
+                    placeholder="you@example.com"
+                    type="email"
+                    icon={Mail}
+                  />
 
                 {error && <ErrorMessage message={error} />}
 
-                <button
+                <Button
                   type="submit"
-                  disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-medium hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
+                  isLoading={isLoading}
+                  className="w-full shadow-xl shadow-primary/20"
                 >
                   {isLoading ? "Sending..." : "Send Reset Code"}
                   {!isLoading && <ArrowRight className="w-5 h-5" />}
-                </button>
-              </form>
+                </Button>
+                </form>
+              </Form>
             </>
           )}
 
@@ -153,16 +143,18 @@ export default function ForgotPassword() {
           {step === "reset" && (
             <>
               <div className="mb-10">
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => {
                     setStep("email");
                     setError(null);
                   }}
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+                  className="px-0 hover:bg-transparent text-muted-foreground hover:text-foreground mb-6"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-4 h-4 mr-2" />
                   Back
-                </button>
+                </Button>
                 <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
                   Set a new password
                 </h2>
@@ -175,116 +167,41 @@ export default function ForgotPassword() {
                 </p>
               </div>
 
-              <form
-                onSubmit={resetForm.handleSubmit(onResetSubmit)}
-                className="space-y-6"
-              >
-                {/* OTP */}
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground ml-1">
-                    Reset Code
-                  </label>
-                  <div className="relative group">
-                    <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                    <input
-                      {...resetForm.register("otp")}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={6}
-                      placeholder="123456"
-                      className={`w-full pl-12 pr-5 py-4 bg-secondary/30 border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg tracking-widest ${
-                        resetForm.formState.errors.otp
-                          ? "border-destructive"
-                          : "border-border"
-                      }`}
-                    />
-                  </div>
-                  {resetForm.formState.errors.otp && (
-                    <p className="text-xs text-destructive ml-1">
-                      {resetForm.formState.errors.otp.message}
-                    </p>
-                  )}
-                </div>
+              <Form {...resetForm}>
+                <form
+                  onSubmit={resetForm.handleSubmit(onResetSubmit)}
+                  className="space-y-6"
+                >
+                  {/* OTP */}
+                  <InputField
+                    control={resetForm.control}
+                    name="otp"
+                    label="Reset Code"
+                    placeholder="123456"
+                    type="otp"
+                    otpLength={6}
+                    className="flex flex-col items-start w-full"
+                  />
 
-                {/* New Password */}
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground ml-1">
-                    New Password
-                  </label>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                    <input
-                      {...resetForm.register("newPassword")}
-                      type={showPassword ? "text" : "password"}
-                      placeholder="At least 8 characters"
-                      className={`w-full pl-12 pr-12 py-4 bg-secondary/30 border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg ${
-                        resetForm.formState.errors.newPassword
-                          ? "border-destructive"
-                          : "border-border"
-                      }`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      tabIndex={-1}
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-                  {resetForm.formState.errors.newPassword && (
-                    <p className="text-xs text-destructive ml-1">
-                      {resetForm.formState.errors.newPassword.message}
-                    </p>
-                  )}
-                </div>
+                  {/* New Password */}
+                  <InputField
+                    control={resetForm.control}
+                    name="newPassword"
+                    label="New Password"
+                    placeholder="At least 8 characters"
+                    type="password"
+                    icon={Lock}
+                  />
 
-                {/* Confirm Password */}
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground ml-1">
-                    Confirm Password
-                  </label>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                    <input
-                      {...resetForm.register("confirmPassword")}
-                      type={showConfirm ? "text" : "password"}
-                      placeholder="Repeat your new password"
-                      className={`w-full pl-12 pr-12 py-4 bg-secondary/30 border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all text-foreground text-lg ${
-                        resetForm.formState.errors.confirmPassword
-                          ? "border-destructive"
-                          : "border-border"
-                      }`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirm((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      tabIndex={-1}
-                      aria-label={
-                        showConfirm ? "Hide password" : "Show password"
-                      }
-                    >
-                      {showConfirm ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-                  {resetForm.formState.errors.confirmPassword && (
-                    <p className="text-xs text-destructive ml-1">
-                      {resetForm.formState.errors.confirmPassword.message}
-                    </p>
-                  )}
-                </div>
+                  {/* Confirm Password */}
+                  <InputField
+                    control={resetForm.control}
+                    name="confirmPassword"
+                    label="Confirm Password"
+                    placeholder="Repeat your new password"
+                    type="password"
+                    icon={Lock}
+                  />
 
                 {error && (
                   <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-xl">
@@ -294,15 +211,16 @@ export default function ForgotPassword() {
                   </div>
                 )}
 
-                <button
+                <Button
                   type="submit"
-                  disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-medium hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
+                  isLoading={isLoading}
+                  className="w-full shadow-xl shadow-primary/20"
                 >
                   {isLoading ? "Resetting..." : "Reset Password"}
                   {!isLoading && <ArrowRight className="w-5 h-5" />}
-                </button>
-              </form>
+                </Button>
+                </form>
+              </Form>
             </>
           )}
 
@@ -331,13 +249,13 @@ export default function ForgotPassword() {
                 Your password has been updated successfully. You can now sign in
                 with your new password.
               </p>
-              <button
+              <Button
                 onClick={() => navigate("/")}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-medium hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95"
+                className="w-full shadow-xl shadow-primary/20"
               >
                 Back to Sign In
                 <ArrowRight className="w-5 h-5" />
-              </button>
+              </Button>
             </div>
           )}
 

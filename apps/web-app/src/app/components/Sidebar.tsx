@@ -17,6 +17,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useLayout } from "../contexts/LayoutContext";
 import { useAuth } from "../providers/AuthProvider";
 import Logo from "./Logo";
+import { Button } from "@/components/ui/button";
 
 interface SidebarProps {
   userType: "individual" | "organization";
@@ -67,13 +68,15 @@ export function Sidebar({ userType }: SidebarProps) {
               : "Church Management"}
           </p>
         </div>
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={closeSidebar}
-          className="lg:hidden p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground"
+          className="lg:hidden text-muted-foreground"
           aria-label="Close Menu"
         >
           <X className="w-5 h-5" />
-        </button>
+        </Button>
       </div>
 
       {/* Navigation */}
@@ -87,7 +90,7 @@ export function Sidebar({ userType }: SidebarProps) {
               key={item.id}
               to={item.id}
               onClick={closeSidebar}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${
                 isActive
                   ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -102,7 +105,7 @@ export function Sidebar({ userType }: SidebarProps) {
 
       {/* Footer */}
       <div className="p-4 mt-auto space-y-2">
-        <div className="flex items-center gap-3 px-4 py-3 bg-muted/40 rounded-2xl group transition-all hover:bg-muted/60">
+        <div className="flex items-center gap-3 px-4 py-3 bg-muted/40 rounded-lg group transition-all hover:bg-muted/60 border border-transparent hover:border-neutral-200">
           <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-bold shadow-inner">
             {userInitial}
           </div>
@@ -116,13 +119,14 @@ export function Sidebar({ userType }: SidebarProps) {
           </div>
         </div>
 
-        <button
+        <Button
+          variant="ghost"
           onClick={logout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all"
+          className="w-full justify-start gap-3 px-4 py-2.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
         >
           <LogOut className="w-5 h-5" />
           <span>Sign Out</span>
-        </button>
+        </Button>
       </div>
     </aside>
   );

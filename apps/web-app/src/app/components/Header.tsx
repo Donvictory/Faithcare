@@ -33,6 +33,7 @@ import { getJournalEntries } from "@/api/individual";
 import { useAuth } from "../providers/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import { useSearch } from "../contexts/SearchContext";
+import { Button } from "@/components/ui/button";
 
 // Icon mapping for notifications
 const iconMap: Record<string, any> = {
@@ -212,12 +213,14 @@ export function Header({ title, subtitle }: HeaderProps) {
     <header className="border-b border-border px-4 md:px-8 py-3 w-full sticky top-0 z-50 backdrop-blur-md bg-card/95 shadow-sm shadow-gray-300/30">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             onClick={toggleSidebar}
-            className="lg:hidden p-2 hover:bg-muted rounded-lg transition-colors border border-border"
+            className="lg:hidden border-border"
           >
             <Menu className="w-6 h-6 text-foreground" />
-          </button>
+          </Button>
           <div className="min-w-0">
             <h1 className="text-lg md:text-2xl font-bold text-foreground truncate tracking-tight">
               {title}
@@ -246,18 +249,20 @@ export function Header({ title, subtitle }: HeaderProps) {
                 onFocus={() => searchTerm.length >= 2 && setShowResults(true)}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search everything..."
-                className="w-full pl-11 pr-12 py-2.5 bg-secondary/30 border border-border rounded-2xl text-sm text-foreground transition-all focus:outline-none focus:ring-4 focus:ring-accent/10 focus:border-accent/40 placeholder:text-muted-foreground/50 font-medium"
+                className="w-full pl-11 pr-12 h-[52px] bg-secondary/30 border border-neutral-200 rounded-lg text-sm text-foreground transition-all focus:outline-none focus:ring-4 focus:ring-accent/10 focus:border-accent/40 placeholder:text-muted-foreground/50 font-medium"
               />
               {searchTerm && (
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => {
                     setSearchTerm("");
                     setShowResults(false);
                   }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full"
                 >
                   <X className="w-3 h-3 text-muted-foreground" />
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -274,23 +279,25 @@ export function Header({ title, subtitle }: HeaderProps) {
                 onFocus={() => searchTerm.length >= 2 && setShowResults(true)}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search..."
-                className="w-full pl-8 pr-2 py-1.5 bg-secondary/30 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 font-medium"
+                className="w-full pl-8 pr-2 h-10 bg-secondary/30 border border-neutral-200 rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 font-medium"
               />
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             </div>
           </div>
 
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => setShowNotifications(true)}
-            className="relative p-2.5 hover:bg-muted rounded-xl transition-all border border-border group active:scale-95"
+            className="relative border-neutral-200 group active:scale-95"
           >
             <Bell className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
             {(hasUnread || allRead) && (
               <span
-                className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full ring-2 ring-card transition-colors duration-500 ${hasUnread ? "bg-red-500 animate-pulse" : "bg-green-500"}`}
+                className={`absolute top-2 right-2 w-2 h-2 rounded-full ring-2 ring-card transition-colors duration-500 ${hasUnread ? "bg-red-500 animate-pulse" : "bg-green-500"}`}
               ></span>
             )}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -309,7 +316,7 @@ export function Header({ title, subtitle }: HeaderProps) {
               zIndex: 9999,
               transform: window.innerWidth < 768 ? "translateX(-40px)" : "none",
             }}
-            className="border border-accent/20 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.3)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 backdrop-blur-xl bg-card/98"
+            className="border border-neutral-200 rounded-lg shadow-[0_25px_60px_rgba(0,0,0,0.3)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 backdrop-blur-xl bg-card/98"
           >
             <div className="max-h-[400px] overflow-y-auto p-4 custom-scrollbar">
               <div className="space-y-6">
@@ -320,20 +327,21 @@ export function Header({ title, subtitle }: HeaderProps) {
                     </p>
                     <div className="space-y-1">
                       {searchResults.members.map((m: any) => (
-                        <button
+                        <Button
                           key={m.id || m._id}
+                          variant="ghost"
                           onClick={() => {
                             navigate("/first-timers");
                             setShowResults(false);
                             setSearchTerm("");
                           }}
-                          className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-accent/5 transition-all group text-left"
+                          className="w-full flex items-center justify-between p-3 h-auto rounded-2xl hover:bg-accent/5 transition-all group text-left font-normal"
                         >
                           <span className="text-sm font-bold text-foreground group-hover:text-accent">
                             {m.fullName || m.name}
                           </span>
                           <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -345,14 +353,15 @@ export function Header({ title, subtitle }: HeaderProps) {
                     </p>
                     <div className="space-y-1">
                       {searchResults.prayers.map((p: any) => (
-                        <button
+                        <Button
                           key={p.id || p._id}
+                          variant="ghost"
                           onClick={() => {
                             navigate("/prayer-requests");
                             setShowResults(false);
                             setSearchTerm("");
                           }}
-                          className="w-full p-3 rounded-2xl hover:bg-accent/5 transition-all group text-left"
+                          className="w-full p-3 h-auto rounded-2xl hover:bg-accent/5 transition-all group text-left font-normal block"
                         >
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-sm font-bold text-foreground group-hover:text-accent">
@@ -363,7 +372,7 @@ export function Header({ title, subtitle }: HeaderProps) {
                           <p className="text-xs text-muted-foreground truncate opacity-70 italic font-medium">
                             "{p.description || p.request}"
                           </p>
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -375,20 +384,21 @@ export function Header({ title, subtitle }: HeaderProps) {
                     </p>
                     <div className="space-y-1">
                       {searchResults.communities.map((c: any) => (
-                        <button
+                        <Button
                           key={c.id || c._id}
+                          variant="ghost"
                           onClick={() => {
                             navigate("/communities");
                             setShowResults(false);
                             setSearchTerm("");
                           }}
-                          className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-accent/5 transition-all group text-left"
+                          className="w-full flex items-center justify-between p-3 h-auto rounded-2xl hover:bg-accent/5 transition-all group text-left font-normal"
                         >
                           <span className="text-sm font-bold text-foreground group-hover:text-accent">
                             {c.name}
                           </span>
                           <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -400,14 +410,15 @@ export function Header({ title, subtitle }: HeaderProps) {
                     </p>
                     <div className="space-y-1">
                       {searchResults.journals.map((j: any) => (
-                        <button
+                        <Button
                           key={j.id || j._id}
+                          variant="ghost"
                           onClick={() => {
                             navigate("/sunday-journal");
                             setShowResults(false);
                             setSearchTerm("");
                           }}
-                          className="w-full p-3 rounded-2xl hover:bg-accent/5 transition-all group text-left"
+                          className="w-full p-3 h-auto rounded-2xl hover:bg-accent/5 transition-all group text-left font-normal block"
                         >
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-sm font-bold text-foreground group-hover:text-accent">
@@ -418,7 +429,7 @@ export function Header({ title, subtitle }: HeaderProps) {
                           <p className="text-xs text-muted-foreground truncate opacity-70 italic font-medium">
                             "{j.content}"
                           </p>
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -429,12 +440,13 @@ export function Header({ title, subtitle }: HeaderProps) {
               <p className="text-[9px] text-muted-foreground font-bold italic opacity-50">
                 Search Results
               </p>
-              <button
+              <Button
+                variant="link"
                 onClick={() => setShowResults(false)}
-                className="text-[10px] font-bold text-accent hover:underline uppercase"
+                className="h-auto p-0 text-[10px] font-bold text-accent uppercase"
               >
                 Hide
-              </button>
+              </Button>
             </div>
           </div>,
           document.body,
@@ -502,15 +514,15 @@ export function Header({ title, subtitle }: HeaderProps) {
             )}
           </div>
           <div className="p-8 border-t border-border mt-auto bg-card">
-            <button
+            <Button
               onClick={() => {
                 markAllNotificationsAsRead();
                 setShowNotifications(false);
               }}
-              className="w-full py-4 bg-primary text-primary-foreground rounded-2xl text-sm font-bold hover:bg-primary/90 transition-all shadow-lg"
+              className="w-full py-4 rounded-lg shadow-lg"
             >
               Mark all as read
-            </button>
+            </Button>
           </div>
         </SheetContent>
       </Sheet>

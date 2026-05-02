@@ -6,7 +6,7 @@ import {
   ListFilter,
   CloudUpload,
 } from "lucide-react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
 import { bulkUploadMembers } from "@/api/church";
 import { useAuth } from "../providers/AuthProvider";
@@ -83,9 +83,11 @@ export function DataManagementActions({
       {hasFilters && (
         <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-border hover:bg-muted transition-colors">
-              <ListFilter className="w-3.5 h-3.5" />
-              <span className="hidden xs:inline">Filter</span>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-border hover:bg-muted transition-colors h-auto font-normal">
+                <ListFilter className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline">Filter</span>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>All Sundays</DropdownMenuItem>

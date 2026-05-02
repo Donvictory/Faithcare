@@ -11,7 +11,7 @@ import { AddMemberModal } from "./AddMemberModal";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "./ui/card";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 
 export function FollowUps() {
   const { setHeader } = useLayout();
@@ -162,127 +162,136 @@ export function FollowUps() {
 
         <div className="space-y-6">
           {filteredFollowUps.length === 0 ? (
-            <div className="py-24 text-center bg-muted/10 rounded-3xl border-2 border-dashed border-border flex flex-col items-center justify-center space-y-4">
+            <Card variant="ghost" padding="xl" className="flex flex-col items-center justify-center space-y-4">
               <CheckCircle className="w-12 h-12 text-muted-foreground/30" />
-              <p className="text-muted-foreground italic">
+              <p className="text-muted-foreground italic text-center">
                 {searchTerm
                   ? `No follow-ups matching"${searchTerm}"`
                   : "No pending follow-ups at the moment."}
               </p>
-            </div>
+            </Card>
           ) : (
             filteredFollowUps.map((followUp: any) => (
-              <div
+              <Card
                 key={followUp.id || followUp._id}
-                className={`bg-card rounded-2xl p-4 sm:p-6 md:p-8 border transition-all group ${
+                padding="none"
+                className={`transition-all group ${
                   followUp.status?.toUpperCase() === "COMPLETED"
-                    ? "border-border opacity-60"
-                    : "border-border hover:shadow-xl hover:border-accent/40"
+                    ? "opacity-60"
+                    : "hover:shadow-xl hover:border-accent/40"
                 }`}
               >
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                  {/* Left Side */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-accent/10 flex items-center justify-center border border-accent/20 shrink-0">
-                        <User className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-foreground font-bold text-base sm:text-lg truncate">
-                          {followUp.name}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                          {(followUp.tags || []).map((tag: string) => (
+                <div className="p-4 sm:p-6 md:p-8">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    {/* Left Side */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-accent/10 flex items-center justify-center border border-accent/20 shrink-0">
+                          <User className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-foreground font-bold text-base sm:text-lg truncate">
+                            {followUp.name}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            {(followUp.tags || []).map((tag: string) => (
+                              <Badge
+                                key={tag}
+                                variant="outline"
+                                className={`${getTypeColor(tag)} font-bold text-[10px] tracking-wider uppercase px-2 py-0.5`}
+                              >
+                                {tag.replace("_", "")}
+                              </Badge>
+                            ))}
                             <Badge
-                              key={tag}
                               variant="outline"
-                              className={`${getTypeColor(tag)} font-bold text-[10px] tracking-wider uppercase px-2 py-0.5`}
+                              className={`${getPriorityColor(followUp.priority)} font-bold text-[10px] tracking-wider uppercase px-2 py-0.5`}
                             >
-                              {tag.replace("_", "")}
+                              {followUp.priority || "MEDIUM"}
                             </Badge>
-                          ))}
-                          <Badge
-                            variant="outline"
-                            className={`${getPriorityColor(followUp.priority)} font-bold text-[10px] tracking-wider uppercase px-2 py-0.5`}
-                          >
-                            {followUp.priority || "MEDIUM"}
-                          </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="pl-[52px] sm:pl-[60px]">
+                        <p className="text-foreground/80 mb-3 leading-relaxed text-sm sm:text-base">
+                          {followUp.description || followUp.note}
+                        </p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 w-fit px-3 py-1.5 rounded-lg border border-border/50">
+                          <Clock className="w-4 h-4" />
+                          <span className="font-bold">
+                            Due{" "}
+                            {followUp.dueDate
+                              ? new Date(followUp.dueDate).toLocaleDateString()
+                              : "N/A"}
+                          </span>
                         </div>
                       </div>
                     </div>
-                    <div className="pl-[52px] sm:pl-[60px]">
-                      <p className="text-foreground/80 mb-3 leading-relaxed text-sm sm:text-base">
-                        {followUp.description || followUp.note}
-                      </p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 w-fit px-3 py-1.5 rounded-lg border border-border/50">
-                        <Clock className="w-4 h-4" />
-                        <span className="font-bold">
-                          Due{" "}
-                          {followUp.dueDate
-                            ? new Date(followUp.dueDate).toLocaleDateString()
-                            : "N/A"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Right Side */}
-                  <div className="flex flex-col sm:flex-col items-stretch sm:items-end gap-3 w-full sm:w-auto mt-4 sm:mt-0">
-                    <div className="flex items-center gap-2 justify-center sm:justify-end">
-                      <button
-                        onClick={() => {
-                          toast.success(`Opening WhatsApp for ${followUp.name}`);
-                          window.open(`https://wa.me/${followUp.phone || ""}?text=${encodeURIComponent("Hi " + followUp.name + ", this is Faithcare...")}`, "_blank");
-                        }}
-                        className="p-2 sm:p-2.5 text-accent hover:bg-accent/10 rounded-xl transition-all active:scale-90 border border-accent/20"
-                        title="Send WhatsApp"
-                      >
-                        <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          toast.success(`Opening SMS for ${followUp.name}`);
-                        }}
-                        className="p-2 sm:p-2.5 text-blue-500 hover:bg-blue-50 rounded-xl transition-all active:scale-90 border border-blue-100"
-                        title="Send SMS"
-                      >
-                        <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm("Delete this follow-up record?")) {
-                            deleteMutation.mutate(followUp.id || followUp._id);
-                          }
-                        }}
-                        className="p-2 sm:p-2.5 text-muted-foreground hover:bg-red-50 hover:text-red-500 rounded-xl transition-all opacity-0 group-hover:opacity-100 active:scale-90"
-                      >
-                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </button>
-                    </div>
-                    {followUp.status?.toUpperCase() === "COMPLETED" ? (
-                      <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded-lg border border-green-200 w-full sm:w-auto">
-                        <CheckCircle className="w-4 h-4" />
-                        <span className="text-xs font-bold uppercase tracking-wider">
-                          Completed
-                        </span>
+                    {/* Right Side */}
+                    <div className="flex flex-col sm:flex-col items-stretch sm:items-end gap-3 w-full sm:w-auto mt-4 sm:mt-0">
+                      <div className="flex items-center gap-2 justify-center sm:justify-end">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            toast.success(`Opening WhatsApp for ${followUp.name}`);
+                            window.open(`https://wa.me/${followUp.phone || ""}?text=${encodeURIComponent("Hi " + followUp.name + ", this is Faithcare...")}`, "_blank");
+                          }}
+                          className="text-accent border-accent/20"
+                          title="Send WhatsApp"
+                        >
+                          <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            toast.success(`Opening SMS for ${followUp.name}`);
+                          }}
+                          className="text-blue-500 border-blue-100 hover:bg-blue-50"
+                          title="Send SMS"
+                        >
+                          <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            if (confirm("Delete this follow-up record?")) {
+                              deleteMutation.mutate(followUp.id || followUp._id);
+                            }
+                          }}
+                          className="text-muted-foreground hover:bg-red-50 hover:text-red-500 opacity-0 group-hover:opacity-100"
+                        >
+                          <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </Button>
                       </div>
-                    ) : (
-                      <button
-                        onClick={() =>
-                          updateMutation.mutate({
-                            id: followUp.id || followUp._id,
-                            status: "COMPLETED",
-                          })
-                        }
-                        disabled={updateMutation.isPending}
-                        className="w-full sm:w-auto px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 text-sm font-bold disabled:opacity-50"
-                      >
-                        Complete
-                      </button>
-                    )}
+                      {followUp.status?.toUpperCase() === "COMPLETED" ? (
+                        <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded-lg border border-green-200 w-full sm:w-auto">
+                          <CheckCircle className="w-4 h-4" />
+                          <span className="text-xs font-bold uppercase tracking-wider">
+                            Completed
+                          </span>
+                        </div>
+                      ) : (
+                        <Button
+                          onClick={() =>
+                            updateMutation.mutate({
+                              id: followUp.id || followUp._id,
+                              status: "COMPLETED",
+                            })
+                          }
+                          disabled={updateMutation.isPending}
+                          className="w-full sm:w-auto px-6 rounded-xl shadow-lg shadow-primary/20"
+                        >
+                          Complete
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Card>
             ))
           )}
         </div>

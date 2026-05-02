@@ -1,5 +1,5 @@
 import { Card } from "./ui/card";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "./ui/textarea";
 import { MessageCircle, MessageSquare, Send, ArrowLeft, Loader2, AlertCircle, Check, Users } from "lucide-react";
 import { useLayout } from "../contexts/LayoutContext";
@@ -151,7 +151,7 @@ export function BulkMessaging() {
                   <Button 
                     variant={selectedPlatform === "whatsapp" ? "default" : "outline"}
                     onClick={() => setSelectedPlatform("whatsapp")}
-                    className={`flex-1 flex gap-2 h-11 sm:h-12 rounded-xl transition-all text-sm ${selectedPlatform === "whatsapp" ? "bg-green-600 hover:bg-green-700 text-white" : ""}`}
+                    className={`flex-1 flex gap-2 h-11 sm:h-12 rounded-lg transition-all text-sm ${selectedPlatform === "whatsapp" ? "bg-green-600 hover:bg-green-700 text-white" : ""}`}
                   >
                     <MessageCircle className="w-4 h-4" />
                     WhatsApp
@@ -159,7 +159,7 @@ export function BulkMessaging() {
                   <Button 
                     variant={selectedPlatform === "sms" ? "default" : "outline"}
                     onClick={() => setSelectedPlatform("sms")}
-                    className={`flex-1 flex gap-2 h-11 sm:h-12 rounded-xl transition-all text-sm ${selectedPlatform === "sms" ? "bg-blue-600 hover:bg-blue-700 text-white" : ""}`}
+                    className={`flex-1 flex gap-2 h-11 sm:h-12 rounded-lg transition-all text-sm ${selectedPlatform === "sms" ? "bg-blue-600 hover:bg-blue-700 text-white" : ""}`}
                   >
                     <MessageSquare className="w-4 h-4" />
                     SMS
@@ -173,7 +173,7 @@ export function BulkMessaging() {
                   value={messageContent}
                   onChange={(e) => setMessageContent(e.target.value)}
                   placeholder="Hi {{name}}, we were glad to have you at Faithcare..." 
-                  className="min-h-[200px] rounded-2xl border-border focus:ring-accent text-lg p-4 leading-relaxed"
+                  className="min-h-[200px] rounded-lg border-neutral-200 focus:ring-accent text-lg p-4 leading-relaxed"
                 />
                 <div className="flex justify-between items-center">
                   <p className="text-[10px] text-muted-foreground italic">Use {"{{name}}"} to personalize the message.</p>
@@ -184,7 +184,7 @@ export function BulkMessaging() {
               <Button 
                 onClick={() => sendMutation.mutate()}
                 disabled={sendMutation.isPending || !messageContent.trim() || selectedRecipientIds.length === 0}
-                className="w-full h-12 sm:h-14 rounded-2xl bg-primary text-primary-foreground font-bold flex gap-3 hover:scale-[1.02] transition-all shadow-xl shadow-primary/20 text-base sm:text-lg disabled:opacity-50"
+                className="w-full h-12 sm:h-14 rounded-lg bg-primary text-primary-foreground font-bold flex gap-3 hover:scale-[1.02] transition-all shadow-xl shadow-primary/20 text-base sm:text-lg disabled:opacity-50"
               >
                 {sendMutation.isPending ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -215,7 +215,7 @@ export function BulkMessaging() {
             
             <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
               {pendingFollowUps.length === 0 ? (
-                <div className="text-center py-12 border-2 border-dashed border-border rounded-2xl bg-muted/20">
+                <div className="text-center py-12 border-2 border-dashed border-neutral-200 rounded-lg bg-muted/20">
                   <p className="text-muted-foreground text-sm">No pending follow-ups found.</p>
                 </div>
               ) : (
@@ -226,7 +226,7 @@ export function BulkMessaging() {
                     <div 
                       key={id}
                       onClick={() => toggleRecipient(id)}
-                      className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected ? "border-accent bg-accent/5" : "border-border hover:bg-muted/50"}`}
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${isSelected ? "border-accent bg-accent/5" : "border-neutral-200 hover:bg-muted/50"}`}
                     >
                       <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${isSelected ? "bg-accent border-accent text-white" : "border-muted-foreground/30 bg-card"}`}>
                         {isSelected && <Check className="w-3 h-3" />}

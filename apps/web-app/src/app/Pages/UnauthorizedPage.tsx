@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "../components/Logo";
+import { Button } from "@/components/ui/button";
 
 export default function UnauthorizedPage() {
   const navigate = useNavigate();
@@ -14,12 +15,12 @@ export default function UnauthorizedPage() {
         You do not have the necessary permissions to access this page. Please
         contact the administrator if you believe this is an error.
       </p>
-      <button
+      <Button
         onClick={() => navigate("/dashboard")}
-        className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-medium hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50 cursor-pointer"
+        className="w-full h-14 text-base shadow-xl shadow-primary/20 font-bold"
       >
         Back to Dashboard
-      </button>
+      </Button>
     </div>
   );
 }

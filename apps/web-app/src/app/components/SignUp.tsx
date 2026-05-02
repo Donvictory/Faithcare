@@ -17,6 +17,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Logo from "./Logo";
+import { Form } from "./ui/form";
+import { InputField } from "./ui/InputField";
+import { Button } from "@/components/ui/button";
 
 const signUpSchema = z
   .object({
@@ -47,11 +50,7 @@ export function SignUp({ type }: { type: string }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [serverEmailError, setServerEmailError] = useState<string | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignUpValues>({
+  const form = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       fullName: "",
@@ -151,47 +150,26 @@ export function SignUp({ type }: { type: string }) {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">
-                Full Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  {...register("fullName")}
-                  type="text"
-                  placeholder="John Doe"
-                  className={`w-full pl-11 pr-4 py-3 bg-input-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all ${
-                    errors.fullName ? "border-red-500" : "border-border"
-                  }`}
-                />
-              </div>
-              {errors.fullName && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.fullName.message}
-                </p>
-              )}
-            </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <InputField
+                control={form.control}
+                name="fullName"
+                label="Full Name"
+                placeholder="John Doe"
+                icon={User}
+              />
 
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  {...register("email")}
-                  type="email"
-                  placeholder="you@example.com"
-                  className={`w-full pl-11 pr-4 py-3 bg-input-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all ${
-                    errors.email || serverEmailError
-                      ? "border-red-500 focus:ring-red-400"
-                      : "border-border"
-                  }`}
-                />
-              </div>
-              {(errors.email || serverEmailError) && (
+              <InputField
+                control={form.control}
+                name="email"
+                label="Email Address"
+                placeholder="you@example.com"
+                type="email"
+                icon={Mail}
+              />
+
+              {serverEmailError && (
                 <div className="mt-2 flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
                   <svg
                     className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0"
@@ -206,167 +184,91 @@ export function SignUp({ type }: { type: string }) {
                   </svg>
                   <div>
                     <p className="text-sm text-red-500 font-bold">
-                      {errors.email?.message || serverEmailError}
+                      {serverEmailError}
                     </p>
-                    {serverEmailError && (
-                      <Link
-                        to="/sign-in"
-                        className="text-xs text-accent hover:underline mt-0.5 inline-block"
-                      >
-                        Sign in instead →
-                      </Link>
-                    )}
+                    <Link
+                      to="/sign-in"
+                      className="text-xs text-accent hover:underline mt-0.5 inline-block"
+                    >
+                      Sign in instead →
+                    </Link>
                   </div>
                 </div>
               )}
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">
-                Phone Number
-              </label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  {...register("phoneNumber")}
-                  type="text"
-                  placeholder="xxxxxxx"
-                  className={`w-full pl-11 pr-4 py-3 bg-input-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all ${
-                    errors.phoneNumber ? "border-red-500" : "border-border"
-                  }`}
-                />
-              </div>
-              {errors.phoneNumber && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.phoneNumber.message}
-                </p>
-              )}
-            </div>
 
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  {...register("password")}
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Create a strong password"
-                  className={`w-full pl-11 pr-11 py-3 bg-input-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all ${
-                    errors.password ? "border-red-500" : "border-border"
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  tabIndex={-1}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-              {errors.password ? (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.password.message}
-                </p>
-              ) : (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Must be at least 8 characters with letters and numbers
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  {...register("confirmPassword")}
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Re-enter your password"
-                  className={`w-full pl-11 pr-11 py-3 bg-input-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all ${
-                    errors.confirmPassword ? "border-red-500" : "border-border"
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  tabIndex={-1}
-                  aria-label={
-                    showConfirmPassword ? "Hide password" : "Show password"
-                  }
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-xs text-red-500 mt-2 flex items-center gap-1">
-                  <svg
-                    className="w-3.5 h-3.5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  {errors.confirmPassword.message}
-                </p>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <input
-                {...register("terms")}
-                type="checkbox"
-                id="terms"
-                className="w-4 h-4 rounded border-border text-accent focus:ring-accent"
+              <InputField
+                control={form.control}
+                name="phoneNumber"
+                label="Phone Number"
+                placeholder="xxxxxxx"
+                type="text"
+                icon={Phone}
               />
-              <label htmlFor="terms" className="text-sm text-muted-foreground">
-                I agree to the{" "}
-                <button
-                  type="button"
-                  className="text-accent hover:text-accent/80 transition-colors"
-                >
-                  Terms of Service
-                </button>{" "}
-                and{" "}
-                <button
-                  type="button"
-                  className="text-accent hover:text-accent/80 transition-colors"
-                >
-                  Privacy Policy
-                </button>
-              </label>
-            </div>
-            {errors.terms && (
-              <p className="text-xs text-red-500">{errors.terms.message}</p>
-            )}
 
-            <button
-              disabled={isLoading}
+              <InputField
+                control={form.control}
+                name="password"
+                label="Password"
+                placeholder="Create a strong password"
+                type="password"
+                icon={Lock}
+                description="Must be at least 8 characters with letters and numbers"
+              />
+
+              <InputField
+                control={form.control}
+                name="confirmPassword"
+                label="Confirm Password"
+                placeholder="Re-enter your password"
+                type="password"
+                icon={Lock}
+              />
+
+              <div className="flex items-center gap-2">
+                <InputField
+                  control={form.control}
+                  name="terms"
+                  type="checkbox"
+                  className="space-y-0"
+                  label={
+                    <>
+                      I agree to the{" "}
+                      <Button
+                        variant="link"
+                        type="button"
+                        className="h-auto p-0 text-accent font-normal"
+                      >
+                        Terms of Service
+                      </Button>{" "}
+                      and{" "}
+                      <Button
+                        variant="link"
+                        type="button"
+                        className="h-auto p-0 text-accent font-normal"
+                      >
+                        Privacy Policy
+                      </Button>
+                    </>
+                  }
+                />
+              </div>
+
+            <Button
+              isLoading={isLoading}
               type="submit"
-              className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-bold hover:bg-primary/90 transition-all disabled:opacity-50 disabled:grayscale active:scale-95 shadow-xl shadow-primary/20"
+              className="w-full shadow-xl shadow-primary/20 font-bold"
             >
-              {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
-              {isLoading ? "Creating Account..." : "Create Account"}
-              {!isLoading && <ArrowRight className="w-5 h-5" />}
-            </button>
-          </form>
+              {isLoading ? (
+                "Creating Account..."
+              ) : (
+                <>
+                  Create Account
+                  <ArrowRight className="w-5 h-5" />
+                </>
+              )}
+            </Button>
+            </form>
+          </Form>
 
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
@@ -380,8 +282,8 @@ export function SignUp({ type }: { type: string }) {
           </div>
 
           <div className="grid gap-4 mb-10">
-            <button className="flex items-center justify-center gap-3 px-4 py-4 border border-neutral-300 rounded-xl hover:bg-secondary/50 transition-all text-foreground font-medium active:scale-95">
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <Button variant="outline" type="button" className="w-full text-foreground font-medium">
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -400,7 +302,7 @@ export function SignUp({ type }: { type: string }) {
                 />
               </svg>
               Google
-            </button>
+            </Button>
           </div>
 
           {/* Sign In Link */}
