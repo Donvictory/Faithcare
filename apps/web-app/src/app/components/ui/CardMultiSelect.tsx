@@ -36,17 +36,16 @@ export function CardMultiSelect({
       {options.map((option) => {
         const isSelected = value.includes(option.value);
         return (
-          <Button
+          <button
             key={option.value}
             type="button"
-            variant="ghost"
             onClick={() => toggleOption(option.value)}
             disabled={disabled}
             className={cn(
-              "p-5 rounded-lg border transition-all text-left flex items-center justify-between group relative overflow-hidden active:scale-[0.98] min-h-[52px] h-auto font-normal",
+              "p-5 rounded-lg border transition-all text-left flex items-center justify-between group relative overflow-hidden active:scale-[0.98] min-h-[52px] h-auto font-normal outline-none",
               isSelected
                 ? "border-accent bg-accent/5 ring-4 ring-accent/5"
-                : "border-neutral-200 hover:border-accent/40 bg-secondary/30",
+                : "border-neutral-200 hover:border-accent bg-secondary/30",
               disabled && "opacity-50 cursor-not-allowed active:scale-100"
             )}
           >
@@ -70,7 +69,7 @@ export function CardMultiSelect({
                 <Check className="w-3 h-3 text-white stroke-[2.5px]" />
               )}
             </div>
-          </Button>
+          </button>
         );
       })}
     </div>

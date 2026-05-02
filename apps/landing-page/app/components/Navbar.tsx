@@ -4,8 +4,11 @@ import { useState, useEffect } from "react";
 import { SparklesIcon } from "lucide-react";
 
 // You can configure this in .env.local
-const webAppUrl = process.env.NEXT_PUBLIC_WEB_APP_URL ?? "http://localhost:5173";
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "https://faithcare-13a2dc003ee9.herokuapp.com/api/v1";
+const webAppUrl =
+  process.env.NEXT_PUBLIC_WEB_APP_URL ?? "http://localhost:5173";
+const apiUrl =
+  process.env.NEXT_PUBLIC_API_URL ??
+  "https://faithcare-13a2dc003ee9.herokuapp.com/api/v1";
 
 export function Navbar() {
   const [user, setUser] = useState<{ id: string; name: string } | null>(null);
@@ -65,9 +68,9 @@ export function Navbar() {
           {!isLoading && user ? (
             <a
               href={`${webAppUrl}/dashboard`}
-              className="text-sm font-semibold text-foreground bg-accent/10 px-4 py-2 rounded-full border border-accent/20 hover:bg-accent/20 transition-spring flex items-center gap-3"
+              className="text-sm font-semibold text-foreground rounded-full transition-spring flex items-center gap-3"
             >
-              <div className="w-7 h-7 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-xs">
+              <div className="w-7 h-7 rounded-full bg-accent text-white flex items-center justify-center text-xs">
                 {user.name?.charAt(0).toUpperCase()}
               </div>
               Dashboard

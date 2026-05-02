@@ -22,8 +22,6 @@
       "@/*": ["./*"],
       "@faithcare/ui": ["../../shared/index.ts"],
       "@faithcare/ui/*": ["../../shared/*"],
-      "react": ["./node_modules/react"],
-      "react-dom": ["./node_modules/react-dom"],
       "lucide-react": ["./node_modules/lucide-react"],
       "lucide-react/*": ["./node_modules/lucide-react/*"]
     }

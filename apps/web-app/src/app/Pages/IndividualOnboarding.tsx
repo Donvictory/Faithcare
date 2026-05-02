@@ -25,7 +25,9 @@ import z from "zod";
 const individualOnboardingSchema = z.object({
   location: z.string().min(1, "Location is required"),
   churchName: z.string().min(1, "Church name is required"),
-  goals: z.array(z.string()).min(1, "Please select at least one spiritual goal"),
+  goals: z
+    .array(z.string())
+    .min(1, "Please select at least one spiritual goal"),
 });
 
 type IndividualOnboardingValues = z.infer<typeof individualOnboardingSchema>;
@@ -137,7 +139,7 @@ export function IndividualOnboarding() {
 
       {/* Right Side - Form */}
       <div className="flex-1 flex items-center justify-center p-8 md:p-16 bg-background relative overflow-hidden">
-        <Button 
+        <Button
           variant="outline"
           onClick={handleSignOut}
           type="button"
@@ -170,7 +172,7 @@ export function IndividualOnboarding() {
                   type="text"
                   icon={MapPin}
                 />
-                
+
                 <InputField
                   control={form.control}
                   name="churchName"
@@ -181,26 +183,28 @@ export function IndividualOnboarding() {
                 />
               </div>
 
-                <InputField
-                  control={form.control}
-                  name="goals"
-                  label="Spiritual Intentions"
-                  description="Select as many as resonate with your current walk..."
-                  type="card-multi-select"
-                  options={goalOptions.map(g => ({ label: g.label, value: g.key }))}
-                  className="space-y-4"
-                />
+              <InputField
+                control={form.control}
+                name="goals"
+                label="Spiritual Intentions"
+                description="Select as many as resonate with your current walk..."
+                type="card-multi-select"
+                options={goalOptions.map((g) => ({
+                  label: g.label,
+                  value: g.key,
+                }))}
+              />
 
               <Button
                 isLoading={isLoading}
                 type="submit"
                 className="w-full mt-8 shadow-2xl shadow-primary/20 group font-bold"
               >
-                {isLoading ? "Beginning..." : (
+                {isLoading ? (
+                  "Beginning..."
+                ) : (
                   <>
-                    <span className="text-lg uppercase tracking-widest">
-                      Begin Your Journey
-                    </span>
+                    Begin Your Journey
                     <ArrowRight className="w-6 h-6 ml-2 transition-transform group-hover:translate-x-1" />
                   </>
                 )}
