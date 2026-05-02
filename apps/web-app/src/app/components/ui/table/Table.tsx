@@ -5,6 +5,12 @@ import { TableColumn, TableProps } from "./types";
 import { cn } from "@/app/components/ui/utils";
 import Pagination from "./Pagination";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../dropdown-menu";
 
 const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
   const {
@@ -26,37 +32,13 @@ const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
     totalPages = 1,
     onPageChange,
     hasHeaders = true,
+    containerClassName,
   } = props;
 
   const [selectedItems, setSelectedItems] = useState<Set<string | number>>(
     new Set(),
   );
   const [selectAll, setSelectAll] = useState(false);
-  const [openDropdownId, setOpenDropdownId] = useState<string | number | null>(
-    null,
-  );
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent): void => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as HTMLElement)
-      ) {
-        setOpenDropdownId(null);
-      }
-    };
-    if (openDropdownId) {
-      setTimeout(
-        () => document.addEventListener("click", handleClickOutside),
-        0,
-      );
-    }
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [openDropdownId]);
-
-  const toggleDropdown = (id: string | number) =>
-    setOpenDropdownId(openDropdownId === id ? null : id);
 
   const total = data?.length ?? 0;
   const selectedCount = selectedItems.size;
@@ -128,11 +110,12 @@ const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
         */}
         <div
           className={cn(
-            "w-full overflow-hidden",
+            "w-full",
             isPaginated ? "rounded-t-2xl" : "rounded-2xl",
+            containerClassName || "overflow-hidden",
           )}
         >
-          <div className="w-full overflow-x-auto">
+          <div className={cn("w-full", containerClassName ? "" : "overflow-x-auto")}>
             <table className="min-w-full divide-y divide-border">
               {hasHeaders && (
                 <thead className="bg-accent/10">
@@ -207,6 +190,8 @@ const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
                         onItemClick || getRowHref ? "cursor-pointer" : "",
                       )}
                       onClick={(e) => {
+                        // Prevent row click if clicking a button or interactive element
+                        if ((e.target as HTMLElement).closest("button")) return;
                         e.stopPropagation();
                         onItemClick?.(item);
                       }}
@@ -246,28 +231,18 @@ const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
                       ))}
                       {actions.length > 0 && (
                         <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
-                          <div
-                            className="relative inline-block text-left"
-                            ref={dropdownRef}
-                          >
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="inline-flex items-center gap-1 h-9 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground shadow-sm hover:bg-muted transition-colors"
-                              onClick={() => toggleDropdown(item.id)}
-                            >
-                              Actions
-                              <ChevronDown
-                                className={cn(
-                                  "h-4 w-4 transition-transform duration-200",
-                                  openDropdownId === item.id
-                                    ? "rotate-180"
-                                    : "",
-                                )}
-                              />
-                            </Button>
-                            {openDropdownId === item.id && (
-                              <div className="absolute right-0 z-10 mt-1 w-40 origin-top-right rounded-xl border border-border bg-card shadow-lg overflow-hidden">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="inline-flex items-center gap-1 h-9 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground shadow-sm hover:bg-muted transition-colors focus:ring-0 focus-visible:ring-0"
+                                >
+                                  Actions
+                                  <ChevronDown className="h-4 w-4 opacity-50" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
                                 {actions
                                   .filter(
                                     (action) =>
@@ -275,24 +250,19 @@ const Table = <T extends { id: string | number }>(props: TableProps<T>) => {
                                       action.condition(item),
                                   )
                                   .map((action, actionIndex) => (
-                                    <Button
+                                    <DropdownMenuItem
                                       key={actionIndex}
-                                      variant="ghost"
-                                      onClick={() => {
-                                        action.onClick(item);
-                                        setOpenDropdownId(null);
-                                      }}
+                                      onClick={() => action.onClick(item)}
                                       className={cn(
-                                        "w-full px-4 py-2.5 text-left text-sm hover:bg-muted transition-colors justify-start h-auto rounded-none font-medium",
-                                        action.className || "text-foreground",
+                                        "cursor-pointer",
+                                        action.className,
                                       )}
                                     >
                                       {action.label}
-                                    </Button>
+                                    </DropdownMenuItem>
                                   ))}
-                              </div>
-                            )}
-                          </div>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                         </td>
                       )}
                     </tr>

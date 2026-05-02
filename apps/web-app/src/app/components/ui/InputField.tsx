@@ -31,6 +31,7 @@ import { CardMultiSelect } from "./CardMultiSelect";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "./utils";
 import { Button } from "@/components/ui/button";
+import { Label } from "./label";
 
 export type InputFieldType =
   | "text"
@@ -49,7 +50,7 @@ export type InputFieldType =
   | "custom";
 
 export interface InputFieldProps {
-  control: Control<any>;
+  control?: Control<any>;
   name: string;
   label?: React.ReactNode;
   placeholder?: string;
@@ -61,6 +62,12 @@ export interface InputFieldProps {
   className?: string;
   inputClassName?: string;
   labelClassName?: string;
+
+  // Standard React / Non-hook-form props
+  value?: any;
+  onChange?: (e: any) => void;
+  onBlur?: (e: any) => void;
+  error?: string;
 
   // Select / Radio Group Props
   options?: { label: string; value: string }[];
@@ -91,6 +98,10 @@ export function InputField({
   className,
   inputClassName,
   labelClassName,
+  value,
+  onChange,
+  onBlur,
+  error,
   options = [],
   searchableOptions = [],
   getDisplayValue,
@@ -101,7 +112,10 @@ export function InputField({
 }: InputFieldProps) {
   const [showPassword, setShowPassword] = React.useState(false);
 
-  const renderField = (field: ControllerRenderProps<FieldValues, string>) => {
+  const renderFieldContent = (field: any) => {
+    const useForm = !!control;
+    const ControlWrapper = useForm ? FormControl : React.Fragment;
+
     switch (type) {
       case "text":
       case "email":
@@ -118,7 +132,7 @@ export function InputField({
                 {React.isValidElement(icon) ? icon : React.createElement(icon, { className: "w-4 h-4", strokeWidth: 1.5 })}
               </div>
             )}
-            <FormControl>
+            <ControlWrapper>
               <Input
                 type={isPassword ? (showPassword ? "text" : "password") : type}
                 placeholder={placeholder}
@@ -136,7 +150,7 @@ export function InputField({
                   field.onChange(val);
                 }}
               />
-            </FormControl>
+            </ControlWrapper>
             {isPassword && (
               <Button
                 type="button"
@@ -153,7 +167,7 @@ export function InputField({
 
       case "textarea":
         return (
-          <FormControl>
+          <ControlWrapper>
             <Textarea
               placeholder={placeholder}
               disabled={disabled}
@@ -164,24 +178,30 @@ export function InputField({
               {...field}
               value={field.value ?? ""}
             />
-          </FormControl>
+          </ControlWrapper>
         );
 
       case "checkbox":
         return (
           <div className="flex items-center gap-2">
-            <FormControl>
+            <ControlWrapper>
               <Checkbox
                 checked={field.value}
                 onCheckedChange={field.onChange}
                 disabled={disabled}
                 className={inputClassName}
               />
-            </FormControl>
+            </ControlWrapper>
             {label && (
-              <FormLabel className="text-sm font-medium cursor-pointer m-0 leading-none">
-                {label}
-              </FormLabel>
+              useForm ? (
+                <FormLabel className="text-sm font-medium cursor-pointer m-0 leading-none">
+                  {label}
+                </FormLabel>
+              ) : (
+                <Label className="text-sm font-medium cursor-pointer m-0 leading-none" htmlFor={name}>
+                  {label}
+                </Label>
+              )
             )}
           </div>
         );
@@ -210,11 +230,11 @@ export function InputField({
       case "select":
         return (
           <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-            <FormControl>
+            <ControlWrapper>
               <SelectTrigger className={cn("h-[52px] bg-secondary/30 rounded-lg border-neutral-200 font-medium", inputClassName)}>
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
-            </FormControl>
+            </ControlWrapper>
             <SelectContent>
               {options.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
@@ -248,14 +268,20 @@ export function InputField({
             disabled={disabled}
           >
             {options.map((option) => (
-              <FormItem className="flex items-center space-x-3 space-y-0" key={option.value}>
-                <FormControl>
+              <div className="flex items-center space-x-3 space-y-0" key={option.value}>
+                <ControlWrapper>
                   <RadioGroupItem value={option.value} />
-                </FormControl>
-                <FormLabel className="font-normal cursor-pointer">
-                  {option.label}
-                </FormLabel>
-              </FormItem>
+                </ControlWrapper>
+                {useForm ? (
+                  <FormLabel className="font-normal cursor-pointer">
+                    {option.label}
+                  </FormLabel>
+                ) : (
+                  <Label className="font-normal cursor-pointer">
+                    {option.label}
+                  </Label>
+                )}
+              </div>
             ))}
           </RadioGroup>
         );
@@ -284,7 +310,7 @@ export function InputField({
       
       case "file":
         return (
-          <FormControl>
+          <ControlWrapper>
             <Input
               type="file"
               disabled={disabled}
@@ -294,45 +320,87 @@ export function InputField({
               name={field.name}
               ref={field.ref}
             />
-          </FormControl>
+          </ControlWrapper>
         );
 
       case "custom":
         if (typeof children === "function") {
           return children(field);
         }
-        return <FormControl>{children}</FormControl>;
+        return <ControlWrapper>{children}</ControlWrapper>;
 
       default:
         return null;
     }
   };
 
+  if (control) {
+    return (
+      <FormField
+        control={control}
+        name={name}
+        render={({ field }) => (
+          <FormItem className={cn("w-full gap-2", className)}>
+            {type !== "checkbox" && label && (
+              <FormLabel className={cn(
+                "text-sm font-medium text-muted-foreground ml-1",
+                labelClassName
+              )}>
+                {label}
+              </FormLabel>
+            )}
+
+            {renderFieldContent(field)}
+
+            {description && (
+              <FormDescription className="text-sm font-medium text-muted-foreground/50 italic ml-1">
+                {description}
+              </FormDescription>
+            )}
+            <FormMessage className="ml-1" />
+          </FormItem>
+        )}
+      />
+    );
+  }
+
+  // Standalone version
+  const standaloneField = {
+    name,
+    value,
+    onChange: (val: any) => {
+      if (onChange) {
+        // If it looks like an event, pass it through, otherwise mock it
+        if (val && typeof val === "object" && "target" in val) {
+          onChange(val);
+        } else {
+          onChange({ target: { name, value: val } } as any);
+        }
+      }
+    },
+    onBlur: (e: any) => onBlur?.(e),
+    ref: () => {},
+  };
+
   return (
-    <FormField
-      control={control}
-      name={name}
-      render={({ field }) => (
-        <FormItem className={cn("w-full gap-2", className)}>
-          {type !== "checkbox" && label && (
-            <FormLabel className={cn(
-              "text-sm font-medium text-muted-foreground ml-1",
-              labelClassName
-            )}>
-              {label}
-            </FormLabel>
-          )}
-
-          {renderField(field)}
-
-          {description && (
-            <FormDescription className="text-sm font-medium text-muted-foreground/50 italic ml-1">
-              {description}
-            </FormDescription>
-          )}
-          <FormMessage className="ml-1" />
-        </FormItem>
+    <div className={cn("w-full grid gap-2", className)}>
+      {type !== "checkbox" && label && (
+        <Label className={cn(
+          "text-sm font-medium text-muted-foreground ml-1",
+          labelClassName
+        )} htmlFor={name}>
+          {label}
+        </Label>
       )}
-    />
+
+      {renderFieldContent(standaloneField)}
+
+      {description && (
+        <p className="text-sm font-medium text-muted-foreground/50 italic ml-1">
+          {description}
+        </p>
+      )}
+      {error && <p className="text-destructive text-sm ml-1">{error}</p>}
+    </div>
   );
 }

@@ -25,7 +25,8 @@ import { toast } from "react-hot-toast";
 import { useSearch } from "../contexts/SearchContext";
 import { Card } from "./ui/card";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { InputField } from "./ui/InputField";
+import TimerHistoryTable from "./TimerHistoryTable";
 
 interface TimerSession {
   _id: string;
@@ -401,8 +402,9 @@ export function FocusTimer() {
                   </Button>
                   <Button
                     variant="outline"
+                    size="iconSquare"
                     onClick={handleReset}
-                    className="h-16 w-16 border-neutral-200"
+                    className="border-neutral-200"
                     title="Reset Timer"
                   >
                     <RotateCcw className="w-6 h-6" />
@@ -419,22 +421,20 @@ export function FocusTimer() {
                   Set Custom Duration
                 </label>
                 <div className="flex flex-col md:flex-row gap-4">
-                  <div className="relative flex-1">
-                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
-                    <input
-                      type="number"
-                      value={customMinutes}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setCustomMinutes(val);
-                        const mins = parseInt(val) || 0;
-                        setTimeLeft(mins * 60);
-                        setTotalDuration(mins * 60);
-                      }}
-                      className="w-full pl-12 pr-4 py-4 bg-muted/50 border border-neutral-200 focus:border-accent rounded-lg outline-none transition-all text-xl font-bold"
-                      placeholder="Minutes"
-                    />
-                  </div>
+                  <InputField
+                    type="number"
+                    name="customMinutes"
+                    value={customMinutes}
+                    onChange={(e: any) => {
+                      const val = e.target.value;
+                      setCustomMinutes(val);
+                      const mins = parseInt(val) || 0;
+                      setTimeLeft(mins * 60);
+                      setTotalDuration(mins * 60);
+                    }}
+                    icon={<Clock className="w-5 h-5 text-accent" />}
+                    placeholder="Minutes"
+                  />
                   <div className="flex gap-2">
                     {[15, 25, 45, 60].map((mins) => (
                       <Button
@@ -449,12 +449,6 @@ export function FocusTimer() {
                           setTimeLeft(mins * 60);
                           setTotalDuration(mins * 60);
                         }}
-                        className={cn(
-                          "flex-1 h-16 font-bold",
-                          parseInt(customMinutes) === mins
-                            ? "shadow-lg shadow-accent/20 bg-accent hover:bg-accent/90"
-                            : "border-neutral-200 hover:border-accent/40",
-                        )}
                       >
                         {mins}m
                       </Button>
@@ -479,76 +473,15 @@ export function FocusTimer() {
                 {filteredHistory.length} Records
               </span>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-              {isLoadingHistory ? (
-                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                  <Loader2 className="w-8 h-8 animate-spin mb-4" />
-                  <p className="text-sm font-bold">Syncing history...</p>
-                </div>
-              ) : filteredHistory.length === 0 ? (
-                <div className="text-center py-12 px-6">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                    <History className="w-8 h-8 text-muted-foreground/30" />
-                  </div>
-                  <p className="text-sm text-muted-foreground font-medium italic">
-                    {searchTerm ? "No matches found." : "No records yet."}
-                  </p>
-                </div>
-              ) : (
-                filteredHistory.map((session) => (
-                  <div
-                    key={session._id || session.id}
-                    className="group bg-muted/40 hover:bg-muted/80 border border-transparent hover:border-neutral-200 rounded-lg p-4 transition-all duration-300 shadow-sm"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex gap-3">
-                        <div
-                          className={`mt-1 p-2 rounded-lg ${session.status === "COMPLETED" ? "bg-green-500/10 text-green-500" : "bg-yellow-500/10 text-yellow-500"}`}
-                        >
-                          {session.status === "COMPLETED" ? (
-                            <CheckCircle2 className="w-4 h-4" />
-                          ) : (
-                            <XCircle className="w-4 h-4" />
-                          )}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-foreground font-bold">
-                              {session.duration} mins
-                            </span>
-                            <span
-                              className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded tracking-widest ${session.status === "COMPLETED" ? "bg-green-500/20 text-green-600" : "bg-yellow-500/20 text-yellow-600"}`}
-                            >
-                              {session.status}
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-muted-foreground mt-1 font-bold">
-                            {new Date(session.createdAt).toLocaleDateString(
-                              undefined,
-                              {
-                                month: "short",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              },
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() =>
-                          handleDeleteHistory(session._id || session.id!)
-                        }
-                        className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              )}
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <TimerHistoryTable
+                data={filteredHistory}
+                onDelete={handleDeleteHistory}
+                isLoading={isLoadingHistory}
+                emptyMessage={
+                  searchTerm ? "No matches found." : "No records yet."
+                }
+              />
             </div>
           </Card>
         </div>
