@@ -1,14 +1,6 @@
 import { useLayout } from "../contexts/LayoutContext";
 import { useState, useEffect } from "react";
-import {
-  Save,
-  BookOpen,
-  Calendar,
-  Loader2,
-  Trash2,
-  Plus,
-  Edit3,
-} from "lucide-react";
+import { Save, BookOpen, Calendar, Loader2, Trash2, Plus, Edit3 } from "lucide-react";
 import {
   createJournalEntry,
   getJournalEntries,
@@ -19,9 +11,9 @@ import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
 import { useSearch } from "../contexts/SearchContext";
 import { Card } from "./ui/card";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "./ui/input";
+import { JournalEditor } from "./ui/JournalEditor";
+import { cn } from "@/lib/utils";
 
 interface JournalEntry {
   _id: string;
@@ -32,80 +24,89 @@ interface JournalEntry {
   createdAt: string;
 }
 
+/** Strip HTML tags to produce a plain-text excerpt for list previews. */
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function extractEntries(data: any): JournalEntry[] {
+  if (Array.isArray(data)) return data;
+  if (data?.entries && Array.isArray(data.entries)) return data.entries;
+  if (data?.data && Array.isArray(data.data)) return data.data;
+  if (data?.docs && Array.isArray(data.docs)) return data.docs;
+  return [];
+}
+
 export function SundayJournal() {
   const { setHeader } = useLayout();
   useEffect(() => {
-    setHeader(
-      "Sunday Journal",
-      "Keep a record of your spiritual growth and Sunday messages.",
-    );
+    setHeader("Sunday Journal", "Keep a record of your spiritual growth and Sunday messages.");
   }, []);
 
   const { user } = useAuth();
   const { searchTerm } = useSearch();
+
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
   const [scripture, setScripture] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [content, setContent] = useState("");   // HTML string from TipTap
+  const [isSaving, setIsSaving] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
-
-  // Debug Helper to identify the data structure
-  const extractEntries = (data: any): JournalEntry[] => {
-    if (Array.isArray(data)) return data;
-    if (data?.entries && Array.isArray(data.entries)) return data.entries;
-    if (data?.data && Array.isArray(data.data)) return data.data;
-    if (data?.docs && Array.isArray(data.docs)) return data.docs;
-    return [];
-  };
 
   const fetchEntries = async () => {
     const userId = user?.id || user?._id || user?.userId;
     if (!userId) return;
-
     setIsFetching(true);
     try {
       const res = await getJournalEntries({ userId });
-      if (res.success) {
-        const extracted = extractEntries(res.data);
-        setEntries(extracted);
-      }
-    } catch (err) {
-      console.error("Failed to load entries", err);
+      if (res.success) setEntries(extractEntries(res.data));
+    } catch {
+      // silent — handled by toast on save
     } finally {
       setIsFetching(false);
     }
   };
 
   useEffect(() => {
-    if (user) {
-      fetchEntries();
-    }
+    if (user) fetchEntries();
   }, [user?.id, user?._id]);
 
-  const filteredEntries = entries.filter(
-    (entry) =>
-      (entry.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (entry.content || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (entry.scriptureReference || "")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()),
-  );
+  const filteredEntries = entries.filter((entry) => {
+    const q = searchTerm.toLowerCase();
+    return (
+      (entry.title || "").toLowerCase().includes(q) ||
+      stripHtml(entry.content || "").toLowerCase().includes(q) ||
+      (entry.scriptureReference || "").toLowerCase().includes(q)
+    );
+  });
+
+  const handleNewEntry = () => {
+    setCurrentEntryId(null);
+    setTitle("");
+    setScripture("");
+    setContent("");
+  };
+
+  const selectEntry = (entry: JournalEntry) => {
+    const id = entry._id || entry.id;
+    if (!id) return;
+    setCurrentEntryId(id);
+    setTitle(entry.title || "");
+    setScripture(entry.scriptureReference || "");
+    setContent(entry.content || "");
+  };
 
   const handleSave = async () => {
     const userId = user?.id || user?._id || user?.userId;
-    if (!userId) {
-      toast.error("Auth session missing. Please try logging in again.");
+    if (!userId) { toast.error("Auth session missing. Please log in again."); return; }
+    if (!title.trim()) { toast.error("Please add a title for your reflection."); return; }
+    if (!content || stripHtml(content).trim().length === 0) {
+      toast.error("Please write your reflection before saving.");
       return;
     }
 
-    if (!title.trim() || !content.trim()) {
-      toast.error("Please provide a title and your reflections.");
-      return;
-    }
-
-    setIsLoading(true);
+    setIsSaving(true);
     const payload = {
       userId,
       title: title.trim(),
@@ -114,268 +115,218 @@ export function SundayJournal() {
     };
 
     try {
-      let res;
-      if (currentEntryId) {
-        res = await updateJournalEntry(currentEntryId, payload);
-      } else {
-        res = await createJournalEntry(payload);
-      }
+      const res = currentEntryId
+        ? await updateJournalEntry(currentEntryId, payload)
+        : await createJournalEntry(payload);
 
       if (res.success) {
-        toast.success(currentEntryId ? "Entry updated!" : "Entry saved!");
+        toast.success(currentEntryId ? "Reflection updated." : "Reflection saved.");
         if (!currentEntryId) handleNewEntry();
-        setTimeout(fetchEntries, 800);
+        setTimeout(fetchEntries, 600);
       } else {
-        toast.error(res.error || "Failed to save entry");
+        toast.error(res.error || "Failed to save.");
       }
-    } catch (err) {
+    } catch {
       toast.error("Network error. Please try again.");
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!window.confirm("Delete this journal entry?")) return;
-
     try {
       const res = await deleteJournalEntry(id);
       if (res.success) {
-        toast.success("Entry deleted");
+        toast.success("Entry deleted.");
         if (currentEntryId === id) handleNewEntry();
         fetchEntries();
       }
-    } catch (err) {
-      toast.error("Failed to delete entry");
+    } catch {
+      toast.error("Failed to delete entry.");
     }
-  };
-
-  const selectEntry = (entry: JournalEntry) => {
-    const id = entry._id || entry.id;
-    if (id) {
-      setCurrentEntryId(id);
-      setTitle(entry.title || "");
-      setContent(entry.content || "");
-      setScripture(entry.scriptureReference || "");
-    }
-  };
-
-  const handleNewEntry = () => {
-    setCurrentEntryId(null);
-    setTitle("");
-    setContent("");
-    setScripture("");
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col lg:flex-row gap-8 flex-1 max-w-[1600px] mx-auto w-full">
-        {/* Main Editor Section */}
-        <Card className="flex-1 flex flex-col h-fit p-5 sm:p-8">
-          <div className="flex justify-between items-center mb-6 sm:mb-8">
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-              {currentEntryId ? "Edit Reflection" : "New Reflection"}
-            </h2>
-            <Button
-              variant="ghost"
-              onClick={handleNewEntry}
-              className="flex items-center gap-2 px-4 text-accent"
-            >
-              <Plus className="w-4 h-4" />
-              Reset Form
-            </Button>
-          </div>
+    <div className="flex flex-col lg:flex-row gap-6 max-w-[1600px] mx-auto w-full">
 
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-sm text-muted-foreground ml-1 font-bold">
-                Message Title
-              </label>
+      {/* ── Left: Document Editor ─────────────────────────────────────── */}
+      <Card className="flex-1 flex flex-col min-h-[70vh]" padding="none">
+
+        {/* Document chrome — title + scripture + date */}
+        <div className="px-8 pt-10 pb-6 border-b border-border/40">
+          {/* Title */}
+          <input
+            type="text"
+            placeholder="Untitled Reflection"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full bg-transparent border-none outline-none text-4xl sm:text-5xl font-bold text-foreground placeholder:text-muted-foreground/20 tracking-tight mb-5 leading-tight"
+          />
+
+          {/* Metadata row */}
+          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary/50 rounded-full border border-border/40 transition-colors hover:border-accent/30 group">
+              <BookOpen className="w-3.5 h-3.5 text-accent/70 group-hover:text-accent transition-colors" />
               <input
                 type="text"
-                placeholder="What was the sermon title?"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full text-lg sm:text-2xl text-foreground placeholder:text-muted-foreground/50 bg-secondary/30 border border-border rounded-xl px-4 sm:px-5 py-3 sm:py-4 focus:ring-2 focus:ring-accent outline-none transition-all font-bold"
-              />
-              <Input
-                placeholder="What was the sermon title?"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Scripture reference…"
+                value={scripture}
+                onChange={(e) => setScripture(e.target.value)}
+                className="bg-transparent border-none outline-none text-sm w-36 sm:w-52 placeholder:text-muted-foreground/40 font-medium"
               />
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm text-muted-foreground ml-1 font-bold">
-                Scripture Reference
-              </label>
-              <div className="relative">
-                <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
-                <input
-                  type="text"
-                  placeholder="e.g. Philippians 4:13"
-                  value={scripture}
-                  onChange={(e) => setScripture(e.target.value)}
-                  className="w-full pl-11 sm:pl-12 pr-4 sm:pr-5 py-3 sm:py-4 bg-secondary/30 border border-border rounded-xl focus:ring-2 focus:ring-accent outline-none transition-all text-foreground text-sm sm:text-base font-medium"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm text-muted-foreground ml-1 font-bold">
-                Your Reflections
-              </label>
-              <textarea
-                placeholder="Write down key takeaways and how you plan to apply them..."
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="w-full min-h-[250px] sm:min-h-[350px] text-sm sm:text-base text-foreground placeholder:text-muted-foreground/50 bg-secondary/30 border border-border rounded-xl px-4 sm:px-5 py-3 sm:py-4 focus:ring-2 focus:ring-accent outline-none transition-all resize-none leading-relaxed"
-              />
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary/30 rounded-full text-xs font-medium uppercase tracking-widest opacity-40 select-none">
+              <Calendar className="w-3 h-3" />
+              {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
             </div>
           </div>
+        </div>
 
-          <div className="mt-8 flex justify-end">
-            <Button
-              onClick={handleSave}
-              disabled={isLoading}
-              className="w-full sm:w-auto px-8 sm:px-10 rounded-2xl shadow-lg shadow-primary/20"
-            >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Save className="w-5 h-5" />
-              )}
-              {currentEntryId ? "Update Record" : "Save Reflection"}
-            </Button>
+        {/* Writing area */}
+        <div className="flex-1 px-8 py-8">
+          <JournalEditor
+            value={content}
+            onChange={setContent}
+            placeholder="What stood out to you from today's message? Jot down key insights, challenges, or ways you plan to apply what you heard…"
+            className="text-lg"
+          />
+        </div>
+
+        {/* Footer actions */}
+        <div className="px-8 py-5 border-t border-border/40 flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleNewEntry}
+            className="text-muted-foreground hover:text-foreground gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            New entry
+          </Button>
+
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="gap-2 px-6 rounded-xl shadow-md shadow-primary/20"
+          >
+            {isSaving
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <Save className="w-4 h-4" />
+            }
+            {currentEntryId ? "Update" : "Save reflection"}
+          </Button>
+        </div>
+      </Card>
+
+      {/* ── Right: Records sidebar ────────────────────────────────────── */}
+      <div className="w-full lg:w-80 xl:w-96 flex flex-col gap-4 shrink-0">
+
+        {/* Records list */}
+        <Card padding="none" className="flex flex-col overflow-hidden">
+          <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between">
+            <h3 className="font-bold text-foreground flex items-center gap-2 text-sm">
+              <Calendar className="w-4 h-4 text-accent" />
+              {searchTerm ? `Results for "${searchTerm}"` : "Message Records"}
+            </h3>
+            {entries.length > 0 && (
+              <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
+                {filteredEntries.length}
+              </span>
+            )}
+          </div>
+
+          <div className="overflow-y-auto max-h-[calc(100vh-320px)] divide-y divide-border/40">
+            {isFetching ? (
+              <div className="flex items-center justify-center py-16 gap-3 text-muted-foreground">
+                <Loader2 className="w-5 h-5 animate-spin text-accent" />
+                <span className="text-sm font-medium">Syncing…</span>
+              </div>
+            ) : filteredEntries.length === 0 ? (
+              <div className="py-16 px-5 text-center">
+                <BookOpen className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground italic">
+                  {searchTerm ? `No entries match "${searchTerm}"` : "No entries yet. Start your first reflection."}
+                </p>
+              </div>
+            ) : (
+              filteredEntries.map((entry) => {
+                const id = entry._id || entry.id;
+                const isActive = currentEntryId === id;
+                const preview = stripHtml(entry.content || "");
+
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => selectEntry(entry)}
+                    className={cn(
+                      "w-full text-left px-5 py-4 transition-colors group",
+                      isActive
+                        ? "bg-accent/5 border-l-2 border-l-accent"
+                        : "hover:bg-muted/30 border-l-2 border-l-transparent",
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <p className={cn(
+                        "font-semibold text-sm truncate flex-1 transition-colors",
+                        isActive ? "text-accent" : "text-foreground group-hover:text-accent/80",
+                      )}>
+                        {entry.title || "Untitled"}
+                      </p>
+                      <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); selectEntry(entry); }}
+                          className="p-1 rounded-md hover:bg-accent/10 text-accent transition-colors"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDelete(id!, e)}
+                          className="p-1 rounded-md hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {entry.scriptureReference && (
+                      <p className="text-xs text-accent/70 font-medium mb-1 flex items-center gap-1">
+                        <BookOpen className="w-3 h-3" />
+                        {entry.scriptureReference}
+                      </p>
+                    )}
+
+                    {preview && (
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                        {preview}
+                      </p>
+                    )}
+
+                    <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-medium mt-2">
+                      {entry.createdAt
+                        ? new Date(entry.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                        : "Draft"}
+                    </p>
+                  </button>
+                );
+              })
+            )}
           </div>
         </Card>
 
-        {/* Previous Entries List */}
-        <div className="w-full lg:w-[400px] flex flex-col gap-6 h-fit">
-          <Card className="flex flex-col max-h-[calc(100vh-200px)]">
-            <h3 className="text-foreground mb-6 flex items-center gap-2 font-bold text-xl">
-              <Calendar className="w-5 h-5 text-accent" />
-              {searchTerm ? "Search Results" : "Message Records"}
-            </h3>
-
-            <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar">
-              {isFetching ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-accent mb-2" />
-                  <p className="text-sm text-muted-foreground font-bold">
-                    Syncing records...
-                  </p>
-                </div>
-              ) : filteredEntries.length === 0 ? (
-                <div className="text-center py-12 px-4 border-2 border-dashed border-border rounded-2xl">
-                  <p className="text-sm text-muted-foreground italic">
-                    {searchTerm
-                      ? `No records matching"${searchTerm}"`
-                      : "No records found. Start your first journal entry!"}
-                  </p>
-                </div>
-              ) : (
-                filteredEntries.map((entry) => {
-                  const id = entry._id || entry.id;
-                  const isActive = currentEntryId === id;
-                  return (
-                    <Card
-                      key={id}
-                      onClick={() => selectEntry(entry)}
-                      padding="none"
-                      variant={isActive ? "accent" : "default"}
-                      className={cn(
-                        "transition-all cursor-pointer group relative overflow-hidden",
-                        isActive
-                          ? "ring-1 ring-accent/20"
-                          : "hover:border-accent/30 bg-secondary/20 shadow-sm",
-                      )}
-                    >
-                      <div className="p-4">
-                        <div className="flex flex-col gap-1">
-                          <div className="flex justify-between items-start">
-                            <p
-                              className={cn(
-                                "transition-colors truncate pr-4 font-bold",
-                                isActive
-                                  ? "text-accent"
-                                  : "text-foreground group-hover:text-accent",
-                              )}
-                            >
-                              {entry.title || "Untitled"}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] uppercase tracking-tighter text-muted-foreground font-bold">
-                                {entry.createdAt
-                                  ? new Date(
-                                      entry.createdAt,
-                                    ).toLocaleDateString("en-US", {
-                                      month: "short",
-                                      day: "numeric",
-                                    })
-                                  : "New"}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground italic font-medium">
-                              <BookOpen className="w-3 h-3 text-accent/60" />
-                              <span className="truncate">
-                                {entry.scriptureReference || "No reference"}
-                              </span>
-                            </div>
-
-                            <div
-                              className={cn(
-                                "flex items-center gap-1 transition-all",
-                                isActive
-                                  ? "opacity-100"
-                                  : "opacity-0 group-hover:opacity-100",
-                              )}
-                            >
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  selectEntry(entry);
-                                }}
-                                className="h-8 w-8 text-accent"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => handleDelete(id!, e)}
-                                className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  );
-                })
-              )}
-            </div>
-          </Card>
-
-          <Card variant="accent" className="bg-accent/5 border-accent/10 p-6">
-            <h4 className="text-accent font-bold text-sm mb-2 flex items-center gap-2">
-              <Edit3 className="w-4 h-4" />
-              Spiritual Habit
-            </h4>
-            <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-              Consistently recording your Sunday messages helps you retain 80%
-              more of what you learned. Review your records weekly!
-            </p>
-          </Card>
-        </div>
+        {/* Habit tip */}
+        <Card variant="accent" padding="sm">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            <span className="font-semibold text-accent block mb-1">📖 Spiritual Habit</span>
+            Consistently recording your Sunday messages helps you retain 80% more of what you learned. Review your records weekly!
+          </p>
+        </Card>
       </div>
+
     </div>
   );
 }

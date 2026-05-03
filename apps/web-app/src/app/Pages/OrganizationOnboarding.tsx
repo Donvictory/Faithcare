@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Sparkles,
   ArrowRight,
@@ -10,22 +10,25 @@ import {
   Globe,
   Check,
   LogOut,
+  CheckCircle2,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
-import {
-  completeOrganizationOnboarding,
-  getOrganizationBySlug,
-} from "@/api/church";
+import { completeOrganizationOnboarding } from "@/api/church";
 import { toast } from "react-hot-toast";
 import Logo from "../components/Logo";
-import SearchableSelect from "../components/ui/SearchableSelect";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "../components/ui/form";
 import { InputField } from "../components/ui/InputField";
 import z from "zod";
 import { Button } from "@/components/ui/button";
+import { Card } from "../components/ui/card";
+import {
+  DENOMINATION_OPTIONS,
+  MEMBERS_COUNT,
+  ORGANIZATION_ROLE_OPTIONS,
+} from "../constants/select-options.constants";
 
 const orgSchema = z.object({
   churchName: z.string().min(1, "Church name is required"),
@@ -44,16 +47,21 @@ type OrgValues = z.infer<typeof orgSchema>;
 
 export function OrganizationOnboarding() {
   const navigate = useNavigate();
-  const { user, setUser, logout } = useAuth();
+  const { user, setUser, logout, refreshSession } = useAuth();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [isSearchingChurch, setIsSearchingChurch] = useState(false);
-  const [churchOptions, setChurchOptions] = useState<
-    { id: string; name: string }[]
-  >([]);
-
   const totalSteps = 3;
+  const location = useLocation();
+
+  useEffect(() => {
+    if (
+      user?.organizationId &&
+      location.pathname === "/organization-onboarding"
+    ) {
+      navigate("/dashboard");
+    }
+  }, [user?.organizationId, navigate, location.pathname]);
 
   const form = useForm<OrgValues>({
     resolver: zodResolver(orgSchema),
@@ -77,30 +85,6 @@ export function OrganizationOnboarding() {
     navigate("/sign-in");
   };
 
-  const handleChurchSearch = async (searchTerm: string) => {
-    if (!searchTerm || searchTerm.length < 2) {
-      setChurchOptions([]);
-      return;
-    }
-
-    setIsSearchingChurch(true);
-    const slug = searchTerm
-      .toLowerCase()
-      .replace(/ /g, "-")
-      .replace(/[^\w-]+/g, "");
-
-    const res = await getOrganizationBySlug(slug);
-    console.log("[handleChurchSearch] res:", res);
-
-    if (res.success && Array.isArray(res.data)) {
-      setChurchOptions(res.data);
-    } else if (res.success && res.data) {
-      setChurchOptions([res.data]);
-    } else {
-      setChurchOptions([]);
-    }
-    setIsSearchingChurch(false);
-  };
 
   const handleNext = async () => {
     let isValid = false;
@@ -112,6 +96,7 @@ export function OrganizationOnboarding() {
         "state",
         "zipCode",
       ]);
+      console.log(isValid);
     } else if (step === 2) {
       isValid = await form.trigger(["phone", "website"]);
     }
@@ -128,11 +113,6 @@ export function OrganizationOnboarding() {
   };
 
   const onSubmit = async (data: OrgValues) => {
-    if (step !== totalSteps) {
-      handleNext();
-      return;
-    }
-
     setIsLoading(true);
     const payload = {
       name: data.churchName,
@@ -156,11 +136,8 @@ export function OrganizationOnboarding() {
     setIsLoading(false);
 
     if (res.success) {
-      if (res.data) {
-        setUser({ ...user, organizationId: res.data.id });
-      }
+      await refreshSession();
       toast.success("Profile set up successfully!");
-      navigate("/dashboard");
     } else {
       toast.error(res.error || "Failed to complete setup");
     }
@@ -178,16 +155,16 @@ export function OrganizationOnboarding() {
         <div className="hidden lg:flex flex-col w-96 bg-gradient-to-br from-accent/10 to-accent/5 p-12">
           <div className="mb-12">
             <Logo />
-            <h2 className="text-3xl font-bold text-foreground mb-3">
+            <h2 className="text-sm uppercase tracking-widest font-medium mb-2">
               Welcome to FaithCare
             </h2>
-            <p className="text-muted-foreground leading-relaxed">
+            <p className="text-muted-foreground">
               Let's set up your church profile in just a few steps
             </p>
           </div>
 
           {/* Progress Steps */}
-          <div className="space-y-8 flex-1">
+          <div className="space-y-8">
             <div
               className={`flex gap-4 ${step >= 1 ? "opacity-100" : "opacity-40"}`}
             >
@@ -280,341 +257,261 @@ export function OrganizationOnboarding() {
           </div>
 
           {/* Features */}
-          <div className="mt-12 space-y-4 bg-white/50 rounded-2xl p-6 border border-accent/10 shadow-inner">
+          <Card className="mt-12 space-y-4 bg-white">
             <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">
               What you'll get:
             </p>
             <div className="flex items-center gap-3 text-sm text-foreground">
-              <div className="w-5 h-5 rounded-full flex items-center justify-center bg-success/10 border border-success/20">
-                <Check className="w-3 h-3 text-success" />
-              </div>
+              <CheckCircle2 className="w-5 h-5 text-success" strokeWidth={2} />
               Member care management
             </div>
             <div className="flex items-center gap-3 text-sm text-foreground">
-              <div className="w-5 h-5 rounded-full flex items-center justify-center bg-success/10 border border-success/20">
-                <Check className="w-3 h-3 text-success" />
-              </div>
+              <CheckCircle2 className="w-5 h-5 text-success" strokeWidth={2} />
               Prayer request tracking
             </div>
             <div className="flex items-center gap-3 text-sm text-foreground">
-              <div className="w-5 h-5 rounded-full flex items-center justify-center bg-success/10 border border-success/20">
-                <Check className="w-3 h-3 text-success" />
-              </div>
+              <CheckCircle2 className="w-5 h-5 text-success" strokeWidth={2} />
               Spiritual productivity tools
             </div>
             <div className="flex items-center gap-3 text-sm text-foreground">
-              <div className="w-5 h-5 rounded-full flex items-center justify-center bg-success/10 border border-success/20">
-                <Check className="w-3 h-3 text-success" />
-              </div>
+              <CheckCircle2 className="w-5 h-5 text-success" strokeWidth={2} />
               Follow-up automation
             </div>
-          </div>
+          </Card>
         </div>
 
         {/* Right Side - Form */}
-        <div className="flex-1 flex items-center justify-center p-8 bg-background relative">
-          <Button
-            variant="ghost"
-            onClick={handleSignOut}
-            type="button"
-            className="absolute top-8 right-8 z-50 text-muted-foreground hover:text-foreground bg-secondary/30 hover:bg-secondary/50 font-medium"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
-
-          <div className="w-full max-w-2xl mt-8">
-            {/* Mobile Logo */}
-            <Logo className="lg:hidden" />
-
-            {/* Step Indicator */}
-            <div className="mb-12">
-              <div className="flex items-center gap-4 mb-4">
-                <span className="text-xs text-muted-foreground uppercase tracking-widest">
-                  Step {step} of {totalSteps}
-                </span>
-                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden shadow-inner">
-                  <div
-                    className="h-full bg-accent transition-all duration-1000 shadow-[0_0_8px_rgba(212,165,116,0.3)]"
-                    style={{ width: `${(step / totalSteps) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 1: Church Information */}
-            <div
-              className={`space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ${step === 1 ? "block" : "hidden"}`}
+        <div className="p-5 bg-background flex-1 max-w-2xl mx-auto">
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              onClick={handleSignOut}
+              type="button"
+              className="text-muted-foreground hover:text-foreground bg-secondary/30 hover:bg-secondary/50 font-medium"
             >
-              <div className="mb-10">
-                <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
-                  Church Information
-                </h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  Tell us about your church organization
-                </p>
-              </div>
-
-              <div className="space-y-6">
-                <InputField
-                  control={form.control}
-                  name="churchName"
-                  label="Church Name *"
-                  type="custom"
-                  className="w-full"
-                >
-                  {(field) => (
-                    <SearchableSelect
-                      placeholder="Grace Community Church"
-                      value={field.value}
-                      onInputChange={(value) => field.onChange(value)}
-                      onSearch={handleChurchSearch}
-                      options={churchOptions}
-                      isLoading={isSearchingChurch}
-                      getDisplayValue={(item) => item.name}
-                      getStringValue={(item) => item.name}
-                      getListDisplayValue={(item: any) => (
-                        <div className="flex flex-col gap-1.5 py-1.5">
-                          <div className="flex items-start justify-between gap-2">
-                            <span className="font-bold text-foreground text-base leading-tight">
-                              {item.name}
-                            </span>
-                            {item.denomination && (
-                              <span className="text-[10px] uppercase tracking-wider bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
-                                {item.denomination}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground font-medium">
-                            {(item.city || item.state) && (
-                              <div className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5 opacity-70" />
-                                <span className="truncate max-w-[150px]">
-                                  {[item.city, item.state]
-                                    .filter(Boolean)
-                                    .join(", ")}
-                                </span>
-                              </div>
-                            )}
-                            {item.memberCountRange && (
-                              <div className="flex items-center gap-1">
-                                <Users className="w-3.5 h-3.5 opacity-70" />
-                                <span>{item.memberCountRange} members</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      onSelect={(item) => {
-                        if (item) {
-                          field.onChange(item.name);
-                        }
-                      }}
-                      icon={Building2}
-                      required
-                    />
-                  )}
-                </InputField>
-
-                <InputField
-                  control={form.control}
-                  name="denomination"
-                  label="Denomination / Affiliation"
-                  type="select"
-                  options={[
-                    {
-                      value: "non-denominational",
-                      label: "Non-denominational",
-                    },
-                    { value: "baptist", label: "Baptist" },
-                    { value: "methodist", label: "Methodist" },
-                    { value: "presbyterian", label: "Presbyterian" },
-                    { value: "pentecostal", label: "Pentecostal" },
-                    { value: "lutheran", label: "Lutheran" },
-                    { value: "episcopal", label: "Episcopal" },
-                    { value: "other", label: "Other" },
-                  ]}
-                  placeholder="Select denomination"
-                />
-
-                <InputField
-                  control={form.control}
-                  name="address"
-                  label="Address *"
-                  placeholder="123 Main Street"
-                  type="text"
-                  icon={MapPin}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <InputField
-                    control={form.control}
-                    name="city"
-                    label="City *"
-                    placeholder="San Francisco"
-                    type="text"
-                  />
-                  <InputField
-                    control={form.control}
-                    name="state"
-                    label="State *"
-                    placeholder="CA"
-                    type="text"
-                  />
-                </div>
-
-                <InputField
-                  control={form.control}
-                  name="zipCode"
-                  label="ZIP Code *"
-                  placeholder="94102"
-                  type="text"
-                />
-              </div>
-            </div>
-
-            {/* Step 2: Contact Details */}
-            <div
-              className={`space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ${step === 2 ? "block" : "hidden"}`}
-            >
-              <div className="mb-10">
-                <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
-                  Contact Details
-                </h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  How can people reach your church?
-                </p>
-              </div>
-
-              <div className="space-y-8">
-                <InputField
-                  control={form.control}
-                  name="phone"
-                  label="Phone Number *"
-                  placeholder="(555) 123-4567"
-                  type="text"
-                  icon={Phone}
-                />
-
-                <InputField
-                  control={form.control}
-                  name="website"
-                  label="Website"
-                  placeholder="https://yourchurch.com"
-                  type="text"
-                  icon={Globe}
-                />
-
-                <div className="bg-accent/5 rounded-2xl p-8 border border-accent/20 shadow-inner">
-                  <h4 className="text-lg font-bold text-foreground mb-4">
-                    Contact Information Usage
-                  </h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed italic opacity-80">
-                    Your contact information will be used to help first-timers
-                    and members reach out to your church. It will also appear on
-                    any materials generated through FaithCare, such as QR codes
-                    and follow-up messages.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 3: Additional Info */}
-            <div
-              className={`space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ${step === 3 ? "block" : "hidden"}`}
-            >
-              <div className="mb-10">
-                <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
-                  Additional Information
-                </h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  Help us personalize your FaithCare experience
-                </p>
-              </div>
-
-              <div className="space-y-8">
-                <InputField
-                  control={form.control}
-                  name="memberCount"
-                  label="Approximate Member Count"
-                  type="select"
-                  options={[
-                    { value: "0-50", label: "0-50 members" },
-                    { value: "51-100", label: "51-100 members" },
-                    { value: "101-250", label: "101-250 members" },
-                    { value: "251-500", label: "251-500 members" },
-                    { value: "501-1000", label: "501-1,000 members" },
-                    { value: "1000+", label: "1,000+ members" },
-                  ]}
-                  placeholder="Select member count"
-                  icon={Users}
-                />
-
-                <InputField
-                  control={form.control}
-                  name="role"
-                  label="Your Role *"
-                  type="select"
-                  options={[
-                    { value: "SENIOR_PASTOR", label: "Senior Pastor" },
-                    { value: "ASSOCIATE_PASTOR", label: "Associate Pastor" },
-                    { value: "YOUTH_PASTOR", label: "Youth Pastor" },
-                    { value: "WORSHIP_LEADER", label: "Worship Leader" },
-                    { value: "CHURCH_ADMIN", label: "Church Administrator" },
-                    { value: "VOLUNTEER_LEADER", label: "Volunteer Leader" },
-                    { value: "OTHER", label: "Other" },
-                  ]}
-                  placeholder="Select your role"
-                />
-
-                <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-2xl p-8 border border-accent/20 shadow-xl shadow-accent/5">
-                  <div className="flex items-start gap-5">
-                    <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center border border-accent/20 flex-shrink-0 shadow-md">
-                      <Sparkles className="w-8 h-8 text-accent" />
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-bold text-foreground mb-2">
-                        You're almost there!
-                      </h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed opacity-90">
-                        Once you complete this setup, you'll have access to all
-                        of FaithCare's powerful features to help your church
-                        grow and your members thrive spiritually.
-                      </p>
-                    </div>
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+          <div className="flex-1 flex items-center justify-center relative mb-4">
+            <div className="w-full mt-4">
+              {/* Mobile Logo */}
+              <Logo className="lg:hidden" />
+              {/* Step Indicator */}
+              <div className="mb-12">
+                <div className="flex items-center gap-4 mb-4">
+                  <span className="text-xs text-muted-foreground uppercase tracking-widest">
+                    Step {step} of {totalSteps}
+                  </span>
+                  <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden shadow-inner">
+                    <div
+                      className="h-full bg-accent transition-all duration-1000 shadow-[0_0_8px_rgba(212,165,116,0.3)]"
+                      style={{ width: `${(step / totalSteps) * 100}%` }}
+                    ></div>
                   </div>
                 </div>
               </div>
-            </div>
+              {/* Step 1: Church Information */}
+              {step === 1 && <ChurchInfoForm form={form} />}
+              {/* Step 2: Contact Details */}
+              {step === 2 && <ContactInfoForm form={form} />}
+              {/* Step 3: Additional Info */}
+              {step === 3 && <AdditionalInfoForm form={form} />}
 
-            {/* Navigation Buttons */}
-            <div className="flex items-center justify-between mt-12">
-              {step > 1 ? (
+              {/* Navigation Buttons */}
+              <div className="flex items-center justify-between mt-12">
+                {step > 1 ? (
+                  <Button
+                    variant="outline"
+                    onClick={handleBack}
+                    type="button"
+                    className="px-8 font-bold border-2"
+                  >
+                    <ArrowLeft className="w-5 h-5 mr-2" />
+                    Back
+                  </Button>
+                ) : (
+                  <div></div>
+                )}
                 <Button
-                  variant="outline"
-                  onClick={handleBack}
-                  type="button"
-                  className="px-8 font-bold border-2"
+                  type={step === totalSteps ? "submit" : "button"}
+                  onClick={step === totalSteps ? undefined : handleNext}
+                  isLoading={isLoading}
+                  className="px-10 ml-auto shadow-xl shadow-primary/20 font-bold"
                 >
-                  <ArrowLeft className="w-5 h-5 mr-2" />
-                  Back
+                  {step === totalSteps ? "Complete Setup" : "Continue"}
+                  <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
-              ) : (
-                <div></div>
-              )}
-
-              <Button
-                type="submit"
-                isLoading={isLoading}
-                className="px-10 ml-auto shadow-xl shadow-primary/20 font-bold"
-              >
-                {step === totalSteps ? "Complete Setup" : "Continue"}
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
+              </div>
             </div>
           </div>
         </div>
       </form>
     </Form>
+  );
+}
+
+function ChurchInfoForm({ form }: { form: UseFormReturn<OrgValues> }) {
+  return (
+    <div
+      className={`space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500`}
+    >
+      <div className="mb-10">
+        <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
+          Church Information
+        </h2>
+        <p className="text-muted-foreground leading-relaxed">
+          Tell us about your church organization
+        </p>
+      </div>
+      <div className="space-y-6">
+        <InputField
+          control={form.control}
+          name="churchName"
+          label="Church Name *"
+          placeholder="Grace Community Church"
+          type="text"
+          icon={Building2}
+          className="w-full"
+        />
+        <InputField
+          control={form.control}
+          name="denomination"
+          label="Denomination / Affiliation"
+          type="select"
+          options={DENOMINATION_OPTIONS}
+          placeholder="Select denomination"
+        />
+        <InputField
+          control={form.control}
+          name="address"
+          label="Address *"
+          placeholder="123 Main Street"
+          type="text"
+          icon={MapPin}
+        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <InputField
+            control={form.control}
+            name="city"
+            label="City *"
+            placeholder="San Francisco"
+            type="text"
+          />
+          <InputField
+            control={form.control}
+            name="state"
+            label="State *"
+            placeholder="CA"
+            type="text"
+          />
+        </div>
+        <InputField
+          control={form.control}
+          name="zipCode"
+          label="ZIP Code *"
+          placeholder="94102"
+          type="text"
+        />
+      </div>
+    </div>
+  );
+}
+
+function ContactInfoForm({ form }: { form: UseFormReturn<OrgValues> }) {
+  return (
+    <div
+      className={`space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500`}
+    >
+      <div className="mb-10">
+        <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
+          Contact Details
+        </h2>
+        <p className="text-muted-foreground leading-relaxed">
+          How can people reach your church?
+        </p>
+      </div>
+      <div className="space-y-8">
+        <InputField
+          control={form.control}
+          name="phone"
+          label="Phone Number *"
+          placeholder="Phone number"
+          type="phone"
+        />
+        <InputField
+          control={form.control}
+          name="website"
+          label="Website"
+          placeholder="https://yourchurch.com"
+          type="text"
+          icon={Globe}
+        />
+        <div className="bg-accent/5 rounded-2xl p-8 border border-accent/20 shadow-inner">
+          <h4 className="text-lg font-bold text-foreground mb-4">
+            Contact Information Usage
+          </h4>
+          <p className="text-sm text-muted-foreground leading-relaxed italic opacity-80">
+            Your contact information will be used to help first-timers and
+            members reach out to your church. It will also appear on any
+            materials generated through FaithCare, such as QR codes and
+            follow-up messages.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdditionalInfoForm({ form }: { form: UseFormReturn<OrgValues> }) {
+  return (
+    <div
+      className={`space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500`}
+    >
+      <div className="mb-10">
+        <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
+          Additional Information
+        </h2>
+        <p className="text-muted-foreground leading-relaxed">
+          Help us personalize your FaithCare experience
+        </p>
+      </div>
+      <div className="space-y-8">
+        <InputField
+          control={form.control}
+          name="memberCount"
+          label="Approximate Member Count"
+          type="select"
+          options={MEMBERS_COUNT}
+          placeholder="Select member count"
+          icon={Users}
+        />
+        <InputField
+          control={form.control}
+          name="role"
+          label="Your Role *"
+          type="select"
+          options={ORGANIZATION_ROLE_OPTIONS}
+          placeholder="Select your role"
+        />
+        <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-2xl p-8 border border-accent/20 shadow-xl shadow-accent/5">
+          <div className="flex items-start gap-5">
+            <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center border border-accent/20 flex-shrink-0 shadow-md">
+              <Sparkles className="w-8 h-8 text-accent" />
+            </div>
+            <div>
+              <h4 className="text-lg font-bold text-foreground mb-2">
+                You're almost there!
+              </h4>
+              <p className="text-sm text-muted-foreground leading-relaxed opacity-90">
+                Once you complete this setup, you'll have access to all of
+                FaithCare's powerful features to help your church grow and your
+                members thrive spiritually.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -239,7 +239,7 @@ export function Header({ title, subtitle }: HeaderProps) {
             ref={searchRef}
             className="relative hidden md:flex items-center gap-2 max-w-sm w-full lg:max-w-md"
           >
-            <div className="relative flex-1 group">
+            {/* <div className="relative flex-1 group">
               <Search
                 className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${searchTerm ? "text-accent" : "text-muted-foreground group-focus-within:text-accent"}`}
               />
@@ -264,11 +264,11 @@ export function Header({ title, subtitle }: HeaderProps) {
                   <X className="w-3 h-3 text-muted-foreground" />
                 </Button>
               )}
-            </div>
+            </div> */}
           </div>
 
           {/* Mobile Search - Now with Button */}
-          <div
+          {/* <div
             ref={mobileSearchRef}
             className="relative md:hidden flex items-center gap-1 flex-1 max-w-[180px]"
           >
@@ -283,7 +283,7 @@ export function Header({ title, subtitle }: HeaderProps) {
               />
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             </div>
-          </div>
+          </div> */}
 
           <Button
             variant="outline"

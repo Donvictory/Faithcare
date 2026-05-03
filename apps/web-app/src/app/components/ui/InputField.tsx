@@ -28,10 +28,22 @@ import {
 import SearchableSelect, { SearchableSelectProps } from "./SearchableSelect";
 import { MultiSelect } from "./MultiSelect";
 import { CardMultiSelect } from "./CardMultiSelect";
-import { Eye, EyeOff } from "lucide-react";
+import { PhoneInput } from "./PhoneInput";
+import { MinimalistEditor } from "./MinimalistEditor";
+import { RichTextEditor } from "./RichTextEditor";
+import { Eye, EyeOff, Search, ChevronDown, Check } from "lucide-react";
 import { cn } from "./utils";
 import { Button } from "@/components/ui/button";
 import { Label } from "./label";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "./command";
 
 export type InputFieldType =
   | "text"
@@ -47,6 +59,9 @@ export type InputFieldType =
   | "radio-group"
   | "multi-select"
   | "card-multi-select"
+  | "phone"
+  | "document"
+  | "rich-text"
   | "custom";
 
 export interface InputFieldProps {
@@ -117,6 +132,8 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
     ref,
   ) => {
     const [showPassword, setShowPassword] = React.useState(false);
+    const [search, setSearch] = React.useState("");
+    const [open, setOpen] = React.useState(false);
 
     const renderFieldContent = (field: any) => {
       const useForm = !!control;
@@ -261,30 +278,83 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
 
         case "select":
           return (
-            <Select
-              onValueChange={field.onChange}
-              defaultValue={field.value}
-              value={field.value}
+            <Popover
+              open={open}
+              onOpenChange={(newOpen) => {
+                setOpen(newOpen);
+                if (!newOpen) setSearch("");
+              }}
             >
               <ControlWrapper>
-                <SelectTrigger
-                  ref={field.ref || ref}
-                  className={cn(
-                    "w-full h-[52px]! bg-secondary/30 border border-neutral-200 rounded-lg focus-visible:ring-4 focus-visible:ring-accent/5 focus-visible:border-accent transition-all text-foreground font-medium tracking-tight text-lg pl-6 py-3",
-                    inputClassName,
-                  )}
-                >
-                  <SelectValue placeholder={placeholder} />
-                </SelectTrigger>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    disabled={disabled}
+                    className={cn(
+                      "w-full h-[52px] bg-secondary/30 border border-neutral-200 rounded-lg transition-all text-foreground font-medium tracking-tight text-lg pl-6 py-3 justify-between hover:bg-secondary/40",
+                      !field.value && "text-muted-foreground font-normal",
+                      inputClassName,
+                    )}
+                    ref={field.ref || ref}
+                  >
+                    {field.value
+                      ? options.find((option) => option.value === field.value)
+                          ?.label
+                      : placeholder}
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
               </ControlWrapper>
-              <SelectContent>
-                {options.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput
+                    placeholder="Search..."
+                    value={search}
+                    onValueChange={setSearch}
+                  />
+                  <CommandList className="max-h-[300px] overflow-y-auto">
+                    <CommandEmpty>No result found.</CommandEmpty>
+                    <CommandGroup>
+                      {options
+                        .filter((option) =>
+                          option.label
+                            .toLowerCase()
+                            .includes(search.toLowerCase()),
+                        )
+                        .map((option) => (
+                          <CommandItem
+                            key={option.value}
+                            value={option.value}
+                            onSelect={() => {
+                              field.onChange(option.value);
+                              setSearch("");
+                              setOpen(false);
+                            }}
+                            className={cn(
+                              "flex items-center gap-2 px-3 py-2 text-sm cursor-pointer transition-colors",
+                              field.value === option.value
+                                ? "bg-neutral-100 font-semibold text-foreground"
+                                : "hover:bg-neutral-50 text-foreground/80 hover:text-foreground",
+                            )}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4 text-accent",
+                                field.value === option.value
+                                  ? "opacity-100"
+                                  : "opacity-0",
+                              )}
+                            />
+                            {option.label}
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           );
 
         case "searchable-select":
@@ -360,6 +430,19 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
             />
           );
 
+        case "phone":
+          return (
+            <ControlWrapper>
+              <PhoneInput
+                {...field}
+                placeholder={placeholder}
+                disabled={disabled}
+                className={inputClassName}
+                ref={field.ref || ref}
+              />
+            </ControlWrapper>
+          );
+
         case "file":
           return (
             <ControlWrapper>
@@ -374,6 +457,32 @@ export const InputField = React.forwardRef<any, InputFieldProps>(
                 onBlur={field.onBlur}
                 name={field.name}
                 ref={field.ref || ref}
+              />
+            </ControlWrapper>
+          );
+
+        case "document":
+          return (
+            <ControlWrapper>
+              <MinimalistEditor
+                placeholder={placeholder}
+                disabled={disabled}
+                className={cn("min-h-[200px]", inputClassName)}
+                {...field}
+                ref={field.ref || ref}
+                value={field.value ?? ""}
+              />
+            </ControlWrapper>
+          );
+
+        case "rich-text":
+          return (
+            <ControlWrapper>
+              <RichTextEditor
+                placeholder={placeholder}
+                className={cn("min-h-[350px]", inputClassName)}
+                {...field}
+                value={field.value ?? ""}
               />
             </ControlWrapper>
           );

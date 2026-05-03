@@ -102,6 +102,20 @@ export async function updateUserChurch(payload: {
   }
 }
 
+export async function getMyMetadata() {
+  try {
+    const response = await apiRequest(`/users/metadata/me`);
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(data.message || "Failed to fetch my metadata");
+    return data;
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
 export async function getMetadataByUserId(userId: string) {
   try {
     const response = await apiRequest(`/users/metadata/user/${userId}`);
