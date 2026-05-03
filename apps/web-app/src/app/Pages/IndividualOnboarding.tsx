@@ -11,10 +11,15 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  completeOrganizationOnboarding,
+  getOrganizationBySlug,
+} from "@/api/church";
 import { completeIndividualOnboarding } from "@/api/individual";
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
 import Logo from "../components/Logo";
+import SearchableSelect from "../components/ui/SearchableSelect";
 import { useForm } from "react-hook-form";
 import { Form } from "../components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,11 +49,15 @@ const goalOptions = [
 ];
 
 export function IndividualOnboarding() {
-  const { user, logout, isLoading: isAuthLoading } = useAuth();
+  const { user, logout, refreshSession, isLoading: isAuthLoading } = useAuth();
   const userId = user?.id || user?._id || user?.userId || "";
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSearchingChurch, setIsSearchingChurch] = useState(false);
+  const [churchOptions, setChurchOptions] = useState<
+    { id: string; name: string }[]
+  >([]);
 
   const form = useForm<IndividualOnboardingValues>({
     resolver: zodResolver(individualOnboardingSchema),
@@ -62,6 +71,29 @@ export function IndividualOnboarding() {
   const handleSignOut = async () => {
     await logout();
     navigate("/sign-in");
+  };
+
+  const handleChurchSearch = async (searchTerm: string) => {
+    if (!searchTerm || searchTerm.length < 2) {
+      setChurchOptions([]);
+      return;
+    }
+
+    setIsSearchingChurch(true);
+    const slug = searchTerm
+      .toLowerCase()
+      .replace(/ /g, "-")
+      .replace(/[^\w-]+/g, "");
+
+    const res = await getOrganizationBySlug(slug);
+    if (res.success && Array.isArray(res.data)) {
+      setChurchOptions(res.data);
+    } else if (res.success && res.data) {
+      setChurchOptions([res.data]);
+    } else {
+      setChurchOptions([]);
+    }
+    setIsSearchingChurch(false);
   };
 
   const onSubmit = async (data: IndividualOnboardingValues) => {
@@ -84,17 +116,16 @@ export function IndividualOnboarding() {
     };
 
     const payload = {
-      userId: userId,
       location: data.location,
-      organization: "64a1f2c3e4b5d6e7f8a9b0c1", // Fallback ID
       churchName: data.churchName,
       spiritualGoals: spiritualGoals,
-      dailyBibleReadingStreakCount: 0,
     };
 
     const res = await completeIndividualOnboarding(payload);
 
     if (res.success) {
+      await queryClient.invalidateQueries({ queryKey: ["myMetadata"] });
+      await refreshSession();
       toast.success("Welcome to FaithCare!");
       navigate("/dashboard");
     } else {
@@ -107,14 +138,14 @@ export function IndividualOnboarding() {
   return (
     <div className="min-h-screen bg-background flex font-sans">
       {/* Left Side - Info */}
-      <div className="hidden lg:flex flex-col w-[400px] bg-gradient-to-br from-secondary/50 via-secondary/30 to-background p-16 border-r border-border/40 relative overflow-hidden">
+      <div className="hidden lg:flex flex-col w-96 bg-gradient-to-br from-accent/10 to-accent/5 p-12">
         <div className="absolute -top-24 -left-24 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
         <div className="mb-16 relative z-10">
           <Logo />
-          <h2 className="text-4xl font-bold text-foreground mb-4 tracking-tight leading-tight">
+          <h2 className="text-sm mb-2 leading-tight tracking-widest uppercase">
             Start your journey
           </h2>
-          <p className="text-muted-foreground text-lg leading-relaxed opacity-70">
+          <p className="text-neutral-700 opacity-70">
             Personalize your experience so we can help you stay consistent in
             your walk with God.
           </p>
@@ -126,10 +157,10 @@ export function IndividualOnboarding() {
               <Check className="w-6 h-6 text-emerald-500" />
             </div>
             <div className="space-y-2">
-              <h4 className="text-xl font-bold text-foreground tracking-tight">
+              <h4 className="text-foreground font-bold tracking-tight">
                 Stay Consistent
               </h4>
-              <p className="text-sm font-bold text-muted-foreground leading-relaxed opacity-70">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 Track your spiritual streaks and build meaningful daily habits
                 that last a lifetime.
               </p>
@@ -145,24 +176,25 @@ export function IndividualOnboarding() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 md:p-16 bg-background relative overflow-hidden">
-        <Button
-          variant="ghost"
-          onClick={handleSignOut}
-          type="button"
-          className="absolute top-8 right-8 z-50 text-muted-foreground hover:text-foreground bg-secondary/30 hover:bg-secondary/50 font-medium"
-        >
-          <LogOut className="w-4 h-4 mr-2" />
-          Sign Out
-        </Button>
+      <div className="flex-1 items-center justify-center p-5 bg-background relative overflow-hidden max-w-2xl mx-auto">
+        <div className="flex justify-end w-full">
+          <Button
+            variant="ghost"
+            onClick={handleSignOut}
+            type="button"
+            className="text-muted-foreground hover:text-foreground bg-secondary/30 hover:bg-secondary/50 font-medium"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
 
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px] -mr-64 -mt-64 opacity-30" />
-        <div className="w-full max-w-2xl relative z-10">
+        <div className="w-full relative z-10">
           <div className="mb-16 mt-8">
-            <h2 className="text-4xl font-bold text-foreground mb-4 tracking-tight">
+            <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
               Tell us about yourself
             </h2>
-            <p className="text-muted-foreground text-lg leading-relaxed opacity-70">
+            <p className="text-muted-foreground leading-relaxed">
               We'll use these intentional details to tailor your daily
               devotionals and focus areas.
             </p>
@@ -184,8 +216,8 @@ export function IndividualOnboarding() {
                   control={form.control}
                   name="churchName"
                   label="Your Church"
-                  placeholder="e.g. Grace Chapel"
                   type="text"
+                  placeholder="e.g. Faith Chapel International"
                   icon={Building2}
                 />
               </div>

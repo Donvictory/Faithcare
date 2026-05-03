@@ -17,18 +17,12 @@ interface AuthContextType {
   isLoading: boolean;
   logout: () => Promise<void>;
   switchOrganization: (orgId: string) => Promise<void>;
+  refreshSession: () => Promise<any>;
 }
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUserState] = useState<any>(() => {
-    const savedUser = localStorage.getItem("user");
-    try {
-      return savedUser ? JSON.parse(savedUser) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUserState] = useState<any>(null);
   const [accessToken, setAccessTokenState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
@@ -46,24 +40,49 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return "individual";
   };
 
+  const decodeJWT = (token: string) => {
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        window
+          .atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join(""),
+      );
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      console.error("JWT Decode failed", e);
+      return null;
+    }
+  };
+
   const setAccessToken = (token: string | null) => {
     setAccessTokenState(token);
+    // SYNC with apiRequest() helper
     setInMemoryToken(token);
   };
 
   const setUser = (userData: any) => {
     setUserState(userData);
-    if (userData) {
-      localStorage.setItem("user", JSON.stringify(userData));
-    } else {
-      localStorage.removeItem("user");
-    }
   };
 
   const login = (userData: any, token: string, remember: boolean) => {
-    localStorage.setItem("rememberMe", remember ? "true" : "false");
+    const decoded = decodeJWT(token);
+    
+    // Remove standard JWT claims to avoid polluting the user object
+    const { iat, exp, nbf, jti, ...cleanPayload } = decoded || {};
+
+    const mergedUser = {
+      ...cleanPayload,
+      ...(userData || {}),
+    };
+
     setAccessToken(token);
-    setUser(userData);
+    setUser(mergedUser);
+    // Clear any stale queries from previous sessions
+    queryClient.clear();
   };
 
   const switchOrganization = async (orgId: string) => {
@@ -72,8 +91,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         await import("@/api/auth");
       const result = await callSwitchOrgAPI(orgId);
       if (result.success && result.data) {
-        const remember = localStorage.getItem("rememberMe") === "true";
-        login(result.data.user, result.data.accessToken, remember);
+        login(result.data.user, result.data.accessToken, true);
         queryClient.clear();
       } else {
         throw new Error(result.error || "Failed to switch organization");
@@ -101,8 +119,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (result.success && token) {
-        const remember = localStorage.getItem("rememberMe") === "true";
-
         // Robust user extraction
         const userData =
           sessionData.user ||
@@ -110,16 +126,20 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             ? { ...sessionData, accessToken: undefined }
             : null);
 
-        // Use the new user data if available, otherwise keep the current user (from localStorage)
-        login(userData || user, token, remember);
+        // Use the new user data if available, otherwise keep the current user
+        const finalUser = userData || user;
+        login(finalUser, token, true);
+        return { success: true, user: finalUser, token };
       } else {
         setAccessToken(null);
         setUser(null);
+        return { success: false };
       }
     } catch (error) {
       console.error("Failed to initialize session:", error);
       setAccessToken(null);
       setUser(null);
+      return { success: false, error };
     } finally {
       setIsLoading(false);
     }
@@ -133,9 +153,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       setAccessToken(null);
       setUser(null);
-      localStorage.removeItem("rememberMe");
-      localStorage.removeItem("userType");
-      localStorage.removeItem("pendingEmail");
       queryClient.clear();
     }
   };
@@ -158,6 +175,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isLoading,
         logout,
         switchOrganization,
+        refreshSession: initializeSession,
       }}
     >
       {children}

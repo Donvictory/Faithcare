@@ -3,7 +3,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/app/providers/AuthProvider";
 import UnauthorizedPage from "@/app/Pages/UnauthorizedPage";
 import { useQuery } from "@tanstack/react-query";
-import { getMetadataByUserId } from "@/api/individual";
+import { getMetadataByUserId, getMyMetadata } from "@/api/individual";
 import { LoadingScreen } from "./LoadingScreen";
 
 interface ProtectedRouteProps {
@@ -49,15 +49,32 @@ export default function ProtectedRoute({
     return <UnauthorizedPage />;
   }
 
-  // â”€â”€ Onboarding Checks â”€â”€
+  // ── Metadata Fetch for Individuals ──
+  const { data: metadataRes, isLoading: isMetadataLoading } = useQuery({
+    queryKey: ["myMetadata"],
+    queryFn: getMyMetadata,
+    enabled:
+      !!accessToken && userType === "individual" && user?.isOnboarded !== true,
+  });
+
+  // ── Onboarding Checks ──
   const isOnboarded = user?.isOnboarded;
+  const hasMetadata = metadataRes?.success && metadataRes.data !== null;
+
+  console.log("Onboarding Status:", {
+    userType,
+    isOnboarded,
+    isMetadataLoading,
+    hasMetadata,
+    metadataRes,
+    path: location.pathname
+  });
 
   // Organization Onboarding
   if (userType === "organization") {
-    if (
-      isOnboarded === false ||
-      (isOnboarded === undefined && !user?.organizationId)
-    ) {
+    const needsOrgOnboarding = !isOnboarded && !user?.organizationId;
+
+    if (needsOrgOnboarding) {
       if (location.pathname !== "/organization-onboarding") {
         return (
           <Navigate
@@ -74,20 +91,29 @@ export default function ProtectedRoute({
 
   // Individual Onboarding
   if (userType === "individual") {
-    if (isOnboarded === false) {
-      if (location.pathname !== "/individual-onboarding") {
-        return (
-          <Navigate
-            to="/individual-onboarding"
-            replace
-            state={{ from: location }}
-          />
-        );
+    // If not explicitly onboarded, we MUST wait for metadata verification
+    if (isOnboarded !== true) {
+      if (isMetadataLoading || metadataRes === undefined) {
+        return <LoadingScreen />;
       }
-    } else if (
-      isOnboarded === true &&
-      location.pathname === "/individual-onboarding"
-    ) {
+
+      // If we finished loading and still have no metadata and not onboarded
+      if (!hasMetadata) {
+        if (location.pathname !== "/individual-onboarding") {
+          return (
+            <Navigate
+              to="/individual-onboarding"
+              replace
+              state={{ from: location }}
+            />
+          );
+        }
+      }
+    }
+
+    // If already onboarded (either by flag or by having metadata), 
+    // prevent going back to onboarding page
+    if ((isOnboarded === true || hasMetadata) && location.pathname === "/individual-onboarding") {
       return <Navigate to="/dashboard" replace />;
     }
   }
