@@ -11,7 +11,11 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { completeIndividualOnboarding } from "@/api/individual";
+import {
+  completeIndividualOnboarding,
+  getMetadataByUserId,
+  updateIndividualMetadata,
+} from "@/api/individual";
 import { useAuth } from "../providers/AuthProvider";
 import { toast } from "react-hot-toast";
 import Logo from "../components/Logo";
@@ -67,41 +71,59 @@ export function IndividualOnboarding() {
   const onSubmit = async (data: IndividualOnboardingValues) => {
     if (!userId) {
       toast.error("User session not found. Please sign in again.");
-      console.error("No userId found in user object:", user);
       return;
     }
 
     setIsLoading(true);
 
-    const spiritualGoals = {
-      dailyBibleReading: data.goals.includes("dailyBibleReading"),
-      dailyPrayer: data.goals.includes("dailyPrayer"),
-      consistentPrayerLife: data.goals.includes("consistentPrayerLife"),
-      scriptureMemorization: data.goals.includes("scriptureMemorization"),
-      scripturalJournaling: data.goals.includes("scripturalJournaling"),
-      betterTimeManagement: data.goals.includes("betterTimeManagement"),
-      deeperFaith: data.goals.includes("deeperFaith"),
-    };
+    try {
+      // 1. Prepare the spiritual goals object
+      const spiritualGoals = {
+        dailyBibleReading: data.goals.includes("dailyBibleReading"),
+        dailyPrayer: data.goals.includes("dailyPrayer"),
+        consistentPrayerLife: data.goals.includes("consistentPrayerLife"),
+        scriptureMemorization: data.goals.includes("scriptureMemorization"),
+        scripturalJournaling: data.goals.includes("scripturalJournaling"),
+        betterTimeManagement: data.goals.includes("betterTimeManagement"),
+        deeperFaith: data.goals.includes("deeperFaith"),
+      };
 
-    const payload = {
-      userId: userId,
-      location: data.location,
-      organization: "64a1f2c3e4b5d6e7f8a9b0c1", // Fallback ID
-      churchName: data.churchName,
-      spiritualGoals: spiritualGoals,
-      dailyBibleReadingStreakCount: 0,
-    };
+      const payload = {
+        location: data.location,
+        churchName: data.churchName,
+        spiritualGoals: spiritualGoals,
+        dailyBibleReadingStreakCount: 0,
+      };
 
-    const res = await completeIndividualOnboarding(payload);
+      // 2. Check if metadata already exists (to avoid 500 duplicate errors)
+      const existingRes = await getMetadataByUserId(userId);
+      let res;
 
-    if (res.success) {
-      toast.success("Welcome to FaithCare!");
-      navigate("/dashboard");
-    } else {
-      toast.error(res.error || "Failed to complete setup");
+      const existingData = existingRes.data;
+      const metadata = Array.isArray(existingData)
+        ? existingData[0]
+        : existingData?.metadata || existingData;
+
+      if (existingRes.success && metadata && (metadata._id || metadata.id)) {
+        // Update existing
+        res = await updateIndividualMetadata(metadata._id || metadata.id, payload);
+      } else {
+        // Create new
+        res = await completeIndividualOnboarding({ ...payload, userId });
+      }
+
+      if (res.success) {
+        toast.success("Welcome to FaithCare!");
+        navigate("/dashboard");
+      } else {
+        toast.error(res.error || "Failed to complete setup");
+      }
+    } catch (err: any) {
+      toast.error("An unexpected error occurred");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (

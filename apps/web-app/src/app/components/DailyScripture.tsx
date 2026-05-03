@@ -7,6 +7,7 @@ import {
   getMetadataByUserId,
   updateIndividualMetadata,
 } from "@/api/individual";
+import { getTodayScripture } from "@/api/scripture";
 import { toast } from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { Card } from "./ui/card";
@@ -22,12 +23,22 @@ export function DailyScripture() {
   const queryClient = useQueryClient();
   const [isMarking, setIsMarking] = useState(false);
 
+  // Fetch today's global scripture
+  const { data: scriptureResponse, isLoading: isScriptureLoading } = useQuery({
+    queryKey: ["today-scripture"],
+    queryFn: getTodayScripture,
+  });
+
+  const scripture = scriptureResponse?.data;
+
   // Fetch metadata to get current scripture count
-  const { data: metadataResponse, isLoading } = useQuery({
+  const { data: metadataResponse, isLoading: isMetadataLoading } = useQuery({
     queryKey: ["individual-metadata", userId],
     queryFn: () => getMetadataByUserId(userId),
     enabled: !!accessToken && !!userId,
   });
+
+  const isLoading = isScriptureLoading || isMetadataLoading;
 
   const metadataRaw = metadataResponse?.data;
   const metadata = Array.isArray(metadataRaw)
@@ -81,7 +92,7 @@ export function DailyScripture() {
               <p className="text-muted-foreground">Preparing today's word...</p>
             </Card>
           ) : (
-            <Card 
+            <Card
               padding="none"
               className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-lg border-accent/20 shadow-xl shadow-accent/5 relative overflow-hidden"
             >
@@ -107,23 +118,21 @@ export function DailyScripture() {
                   {/* Scripture */}
                   <blockquote className="mb-8 sm:mb-10">
                     <p className="text-xl sm:text-2xl md:text-3xl font-serif text-foreground leading-relaxed mb-6 italic px-2 sm:px-0">
-                      "For I know the plans I have for you," declares the Lord,
-                      "plans to prosper you and not to harm you, plans to give you
-                      hope and a future."
+                      "{scripture?.verse || scripture?.content || "For I know the plans I have for you..."}"
                     </p>
                     <footer className="flex items-center justify-center gap-2 sm:gap-3 text-accent bg-accent/5 py-1.5 sm:py-2 px-3 sm:px-4 rounded-full w-fit mx-auto text-sm sm:text-base">
                       <Book className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <cite className="not-italic font-bold">Jeremiah 29:11</cite>
+                      <cite className="not-italic font-bold">
+                        {scripture?.reference || "Jeremiah 29:11"}
+                      </cite>
                     </footer>
                   </blockquote>
 
                   {/* Encouragement */}
                   <div className="bg-card/50 backdrop-blur-sm rounded-lg p-4 sm:p-6 mb-8 sm:mb-10 border border-neutral-200 shadow-inner">
                     <p className="text-muted-foreground leading-relaxed italic text-xs sm:text-sm md:text-base">
-                      Today, remember that God has a beautiful plan for your life.
-                      Even when the path seems unclear, trust that He is working
-                      all things together for your good. Take a moment to reflect
-                      on His faithfulness and let His peace guide your steps.
+                      {scripture?.encouragement ||
+                        "Today, remember that God has a beautiful plan for your life. Even when the path seems unclear, trust that He is working all things together for your good."}
                     </p>
                   </div>
 
@@ -137,7 +146,7 @@ export function DailyScripture() {
                       {!isMarking && <CheckCircle2 className="w-5 h-5" />}
                       Mark as Read
                     </Button>
-                    <Button 
+                    <Button
                       variant="outline"
                       className="w-full sm:w-auto px-8 sm:px-10 h-14 bg-card text-foreground border border-neutral-200 rounded-lg hover:bg-muted transition-all font-bold text-sm sm:text-base"
                     >

@@ -326,3 +326,32 @@ export async function switchOrganization(organizationId: string) {
     };
   }
 }
+
+export async function googleSignIn(idToken: string) {
+  try {
+    const response = await fetch(`${baseUrl}/auth/google/signin`, {
+      method: "POST",
+      body: JSON.stringify({ idToken }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) throw new Error(data.message || "Google sign in failed");
+
+    return {
+      success: true,
+      data,
+      status: response.status,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+      status: error.status || 500,
+    };
+  }
+}

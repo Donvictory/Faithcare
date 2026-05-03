@@ -95,7 +95,6 @@ export function OrganizationOnboarding() {
     if (res.success && Array.isArray(res.data)) {
       setChurchOptions(res.data);
     } else if (res.success && res.data) {
-      // Fallback for single object if backend still returns it
       setChurchOptions([res.data]);
     } else {
       setChurchOptions([]);
